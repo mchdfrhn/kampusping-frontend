@@ -1,0 +1,11 @@
+{
+  "include": ["src"],
+  "venvPath": ".",
+  "venv": "node_modules",
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "extraPaths": ["."]
+    }
+  ]
+}

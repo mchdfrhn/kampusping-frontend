@@ -1,0 +1,41 @@
+# Nginx — HIS Standard UI/UX Frontend (production)
+# Arsitektur: Browser → GCP LB (HTTPS) → Nginx :80 → PM2 Next.js 127.0.0.1:8093
+# Ganti server_name sesuai subdomain project.
+#
+# Install:
+#   sudo cp deploy/nginx-prod.conf.example /etc/nginx/sites-available/his-standard-uiux
+#   sudo ln -sf /etc/nginx/sites-available/his-standard-uiux /etc/nginx/sites-enabled/
+#   sudo nginx -t && sudo systemctl reload nginx
+
+upstream his_standard_uiux_prod {
+    server 127.0.0.1:8093;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name app.example.hino.co.id;
+
+    client_max_body_size 10m;
+
+    location /_next/static/ {
+        proxy_pass http://his_standard_uiux_prod;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://his_standard_uiux_prod;
+    }
+}

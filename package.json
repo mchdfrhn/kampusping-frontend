@@ -1,0 +1,41 @@
+{
+  "name": "his-standard-uiux",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@mui/icons-material": "9.1.2",
+    "@mui/material": "9.1.2",
+    "@mui/material-nextjs": "^16.0.1",
+    "@mui/x-data-grid": "9.7.0",
+    "@mui/x-date-pickers": "9.7.0",
+    "dayjs": "^1.11.18",
+    "next": "16.2.9",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-hook-form": "7.80.0",
+    "zod": "4.4.3",
+    "zustand": "5.0.14"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "eslint": "^9.36.0",
+    "eslint-config-next": "16.2.9",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.60.1"
+  }
+}
