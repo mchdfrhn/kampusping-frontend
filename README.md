@@ -67,7 +67,7 @@ Pola list page: lihat `src/modules/example/components/ExampleListPage.tsx`.
 - Search debounce 300ms, **minimal 3 karakter**
 - Date range `date_from` / `date_to` format `YYYY-MM-DD`
 - Pagination server: `page` 1-based, `page_size` 20/50/100, `sort_by`, `sort_order`
-- Kolom aksi `field: '__actions__'` agar sticky
+- Kolom aksi `field: '__actions__'` agar **sticky di kiri**
 
 ## Cara menambah modul
 
@@ -80,18 +80,37 @@ Pola list page: lihat `src/modules/example/components/ExampleListPage.tsx`.
 
 Warna primer `#E30613`, sekunder `#005BAC`. Logo: `public/media/logos/logo-hino-v.png`. Ubah lewat `.env.local` / `app.config.ts`.
 
-## Auth IAM
+## Auth IAM — Tanpa Halaman Login
 
-Aplikasi HIS dibuka dari launcher master dengan query `?auth={"access_token":"..."}`.
+HIS (Hino Integrated System) adalah portal IAM HMSI. **Aplikasi modul tidak memiliki halaman Login.**
 
-1. Token disimpan.
-2. `POST {IAM}/v1/verify-user`
-3. `GET {API}/auth/session` memvalidasi role ke tabel `app_allowed_roles`
-4. Jika tidak ada akses → dialog "Tidak Ada Akses" → kembali ke master app
+Alur:
+
+1. User login di portal HIS (master app).
+2. User klik kotak **Launcher** aplikasi modul.
+3. IAM mengarahkan ke URL aplikasi dengan `?auth={"access_token":"..."}` jika login sukses.
+4. Token disimpan → `POST {IAM}/v1/verify-user` → `GET {API}/auth/session`.
+5. Tanpa akses → `NoAccessDialog` → kembali ke master app.
+
+**Wajib:** set `NEXT_PUBLIC_LAUNCHER_ID` di `.env` — ID launcher IAM untuk aplikasi ini.
+
+Menu sidebar **dinamis** dari API IAM sesuai launcher. Ikon menu memakai **MUI Icons**.
 
 ID role group-admin **tidak di-hardcode** di komponen. Pakai `NEXT_PUBLIC_GROUP_ADMIN_ROLE_ID`. Prefix permission pakai `NEXT_PUBLIC_APP_PERMISSION_PREFIXES`.
 
 Production: set `NEXT_PUBLIC_ALLOW_LOCAL_DEV_WITHOUT_AUTH=false`.
+
+## Aturan UI/UX Layout HIS
+
+| Area | Aturan |
+|---|---|
+| **Sidebar** | Logo Hino background merah di atas; ikon collapse/uncollapse di sampingnya; menu dinamis dari IAM; ikon MUI |
+| **Header kanan atas** | Lonceng notifikasi; ikon Hino → klik tampilkan nama & posisi user |
+| **Toolbar tabel** | Refresh → Search → custom filter (tanggal, dll.) → Export Data (kanan) |
+| **Tabel** | `AppDataGrid`; kolom **Action sticky kiri** dengan ikon MUI; pagination kanan bawah |
+| **Form** | `AppDialog` + komponen form standar; semua basis MUI |
+
+Lihat modul contoh `/example` dan `ExampleListPage.tsx`.
 
 ## Deploy production (PM2 + Nginx)
 
