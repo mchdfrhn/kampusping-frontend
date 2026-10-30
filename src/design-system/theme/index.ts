@@ -1,18 +1,21 @@
 import { createTheme } from '@mui/material/styles';
 
 import { components } from './components';
-import { createPalette } from './palette';
-import { shadows } from './shadows';
-import { shape } from './shape';
-import { spacing } from './spacing';
+import { darkPalette, lightPalette } from './palette';
 import { typography } from './typography';
 
+/**
+ * One theme with both color schemes. MUI emits CSS variables (`--mui-palette-*`) and switches the
+ * `.light` / `.dark` class on <html>, so toggling the mode never re-renders the tree.
+ */
 export const createAppTheme = () =>
   createTheme({
-    palette: createPalette(),
+    cssVariables: { colorSchemeSelector: 'class' },
+    colorSchemes: {
+      light: { palette: lightPalette },
+      dark: { palette: darkPalette },
+    },
     typography,
-    shadows,
-    shape,
-    spacing,
+    shape: { borderRadius: 10 },
     components,
   });

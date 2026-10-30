@@ -7,19 +7,18 @@ export const appDialogActionsSx: SxProps<Theme> = {
 
 export const appDialogCancelButtonSx: SxProps<Theme> = {
   color: 'text.secondary',
-  fontWeight: 700,
+  fontWeight: 600,
 };
 
 export const appDialogOutlinedCancelButtonSx: SxProps<Theme> = {
   ...appDialogCancelButtonSx,
-  borderColor: '#d0d5dd',
-  color: '#667085',
+  borderColor: 'divider',
   '&:hover': {
-    bgcolor: '#f9fafb',
-    borderColor: '#98a2b3',
+    bgcolor: 'action.hover',
+    borderColor: 'text.disabled',
   },
 };
 
 export const appDialogBackButtonSx: SxProps<Theme> = {
-  fontWeight: 700,
+  fontWeight: 600,
 };

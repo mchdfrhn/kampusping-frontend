@@ -1,14 +1,8 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useEffect } from 'react';
+import { DEFAULT_AUTHENTICATED_ROUTE } from '@/core/config/route.config';
 
-import { AppLoading } from '@/components/base/AppLoading';
-
+// The auth guard on the destination sends anonymous visitors on to the login page.
 export default function HomePage() {
-  useEffect(() => {
-    const search = window.location.search || '';
-    window.location.replace(`/dashboard${search}`);
-  }, []);
-
-  return <AppLoading label="Redirecting..." />;
+  redirect(DEFAULT_AUTHENTICATED_ROUTE);
 }

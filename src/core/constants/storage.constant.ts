@@ -1,8 +1,9 @@
+const PREFIX = 'webapp';
+
+/**
+ * Per-browser UI conveniences only. Never put tokens or other secrets here: the access token
+ * lives in memory and the refresh token in an HttpOnly cookie.
+ */
 export const storageKeys = {
-  accessToken: 'accessToken',
-  currentUser: 'currentUser',
-  iamMenus: 'hisIamMenus',
-  menusMapping: 'hisMenusMapping',
-  themeMode: 'his-standard-uiux:theme-mode',
-  sidebarOpen: 'his-standard-uiux:sidebar-open',
+  sidebarCollapsed: `${PREFIX}:sidebar-collapsed`,
 } as const;

@@ -1,15 +1,41 @@
 'use client';
 
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
+import { useEffect } from 'react';
 
-export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
   return (
-    <Container maxWidth="sm" sx={{ py: 10, textAlign: 'center' }}>
-      <Typography variant="h4">Something went wrong</Typography>
-      <Typography color="text.secondary" sx={{ my: 2 }}>Please try again or contact the application owner.</Typography>
-      <Button variant="contained" onClick={reset}>Try again</Button>
-    </Container>
+    <Box
+      sx={{
+        display: 'grid',
+        justifyItems: 'center',
+        minHeight: '60vh',
+        placeContent: 'center',
+        px: 2,
+        textAlign: 'center',
+      }}
+    >
+      <Typography component="h1" variant="h4">
+        Something went wrong
+      </Typography>
+      <Typography color="text.secondary" sx={{ maxWidth: 420, my: 2 }}>
+        An unexpected error occurred. You can try again, and if it keeps happening contact support.
+      </Typography>
+      <Button onClick={reset} variant="contained">
+        Try again
+      </Button>
+    </Box>
   );
 }

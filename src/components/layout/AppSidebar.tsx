@@ -1,151 +1,206 @@
 'use client';
 
-import Divider from '@mui/material/Divider';
+import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import ListSubheader from '@mui/material/ListSubheader';
+import Tooltip from '@mui/material/Tooltip';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
-import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
 
-import { getStoredUser } from '@/core/auth/auth.service';
-import { userIsGroupAdmin } from '@/core/auth/auth-session.util';
-import { appConfig } from '@/core/config/app.config';
-import { groupSettingsMenuConfig } from '@/core/config/menu.config';
-import {
-  readCachedSidebarMenuItems,
-  refreshSidebarMenuItemConfigs,
-  staticMenuItemConfigs,
-  toMenuItemConfig,
-  withDashboardMenu,
-} from '@/core/layout/sidebar-menu.util';
-import type { MenuItemConfig } from '@/core/types/menu.type';
+import { useAuthStore } from '@/core/auth/auth.store';
+import { hasPermission } from '@/core/auth/permissions';
+import { menuConfig } from '@/core/config/menu.config';
 import { layoutTokens } from '@/design-system/tokens/layout.token';
+import { mixToken } from '@/design-system/tokens/surface.token';
 import { useUiStore } from '@/store';
 
-import { AppSidebarItem } from './AppSidebarItem';
+import { AppLogo } from './AppLogo';
+
+const isActivePath = (pathname: string, path: string) =>
+  pathname === path || pathname.startsWith(`${path}/`);
+
+type NavListProps = { collapsed: boolean; onNavigate?: () => void };
+
+const NavList = ({ collapsed, onNavigate }: NavListProps) => {
+  const user = useAuthStore((state) => state.user);
+  const pathname = usePathname();
+
+  const groups = useMemo(
+    () =>
+      menuConfig
+        .map((group) => ({
+          ...group,
+          items: group.items.filter(
+            (item) => !item.permission || hasPermission(user, item.permission),
+          ),
+        }))
+        .filter((group) => group.items.length > 0),
+    [user],
+  );
+
+  return (
+    <Box
+      component="nav"
+      aria-label="Main navigation"
+      sx={{ flex: 1, overflowY: 'auto', px: 1.5, py: 1.5 }}
+    >
+      {groups.map((group, index) => (
+        <List
+          key={group.title ?? index}
+          disablePadding
+          subheader={
+            group.title && !collapsed ? (
+              <ListSubheader
+                disableGutters
+                disableSticky
+                sx={{
+                  bgcolor: 'transparent',
+                  color: 'text.secondary',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: 0.6,
+                  lineHeight: '32px',
+                  px: 1.5,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {group.title}
+              </ListSubheader>
+            ) : undefined
+          }
+          sx={{
+            mb: 1.5,
+            ...(group.title && collapsed
+              ? { borderTop: '1px solid', borderColor: 'divider', pt: 1.5 }
+              : {}),
+          }}
+        >
+          {group.items.map((item) => {
+            const active = isActivePath(pathname, item.path);
+            const Icon = item.icon;
+            const button = (
+              <ListItemButton
+                component={Link}
+                href={item.path}
+                selected={active}
+                aria-current={active ? 'page' : undefined}
+                onClick={onNavigate}
+                sx={{
+                  color: active ? 'primary.main' : 'text.secondary',
+                  gap: 1.5,
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                  mb: 0.5,
+                  minHeight: 44,
+                  px: collapsed ? 0 : 1.5,
+                  '&:hover': { bgcolor: mixToken('text-primary', 6) },
+                  '&.Mui-selected, &.Mui-selected:hover': {
+                    bgcolor: mixToken('primary-main', 12),
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ color: 'inherit', justifyContent: 'center', minWidth: 0 }}>
+                  <Icon fontSize="small" />
+                </ListItemIcon>
+                {!collapsed ? (
+                  <ListItemText
+                    primary={item.label}
+                    slotProps={{
+                      primary: {
+                        noWrap: true,
+                        sx: { fontSize: 14, fontWeight: active ? 600 : 500 },
+                      },
+                    }}
+                  />
+                ) : null}
+              </ListItemButton>
+            );
+            return (
+              <Box component="li" key={item.path} sx={{ listStyle: 'none' }}>
+                {collapsed ? (
+                  <Tooltip placement="right" title={item.label}>
+                    {button}
+                  </Tooltip>
+                ) : (
+                  button
+                )}
+              </Box>
+            );
+          })}
+        </List>
+      ))}
+    </Box>
+  );
+};
+
+const Brand = ({ collapsed }: { collapsed: boolean }) => (
+  <Box
+    sx={{
+      alignItems: 'center',
+      borderBottom: '1px solid',
+      borderColor: 'divider',
+      display: 'flex',
+      flexShrink: 0,
+      height: layoutTokens.headerHeight,
+      justifyContent: collapsed ? 'center' : 'flex-start',
+      px: collapsed ? 0 : 2.5,
+    }}
+  >
+    <AppLogo withName={!collapsed} />
+  </Box>
+);
 
 export const AppSidebar = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const sidebarOpen = useUiStore((state) => state.sidebarOpen);
-  const setSidebarOpen = useUiStore((state) => state.setSidebarOpen);
-  const width = sidebarOpen ? layoutTokens.sidebarWidth : layoutTokens.sidebarMiniWidth;
-  const collapsed = !sidebarOpen && !isMobile;
-  const showSettingsMenu =
-    userIsGroupAdmin(getStoredUser()) || appConfig.allowLocalDevWithoutAuth;
+  const collapsed = useUiStore((state) => state.sidebarCollapsed);
+  const mobileOpen = useUiStore((state) => state.mobileNavOpen);
+  const setMobileOpen = useUiStore((state) => state.setMobileNavOpen);
 
-  const [menuItems, setMenuItems] = useState<MenuItemConfig[]>(() => staticMenuItemConfigs());
+  if (isMobile) {
+    return (
+      <Drawer
+        open={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        slotProps={{ paper: { sx: { width: layoutTokens.sidebarWidth } } }}
+      >
+        <Brand collapsed={false} />
+        <NavList collapsed={false} onNavigate={() => setMobileOpen(false)} />
+      </Drawer>
+    );
+  }
 
-  const allPaths = useMemo(
-    () => [
-      ...menuItems.map((item) => item.path),
-      ...(showSettingsMenu ? groupSettingsMenuConfig.map((item) => item.path) : []),
-    ],
-    [menuItems, showSettingsMenu],
-  );
-
-  useEffect(() => {
-    let ignore = false;
-
-    const run = async () => {
-      try {
-        const items = await refreshSidebarMenuItemConfigs();
-        if (!ignore) setMenuItems(items);
-      } catch {
-        if (!ignore) {
-          const cached = readCachedSidebarMenuItems();
-          setMenuItems(
-            cached.length > 0
-              ? withDashboardMenu(cached.map(toMenuItemConfig))
-              : staticMenuItemConfigs(),
-          );
-        }
-      }
-    };
-
-    void run();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  }, [isMobile, setSidebarOpen]);
-
-  const drawerOpen = isMobile ? sidebarOpen : true;
-
+  const width = collapsed ? layoutTokens.sidebarMiniWidth : layoutTokens.sidebarWidth;
   return (
     <Drawer
-      variant={isMobile ? 'temporary' : 'permanent'}
-      open={drawerOpen}
-      onClose={() => setSidebarOpen(false)}
+      variant="permanent"
       sx={{
         flexShrink: 0,
-        transition: 'width 0.2s ease',
-        width: isMobile ? 0 : width,
+        transition: theme.transitions.create('width', {
+          duration: theme.transitions.duration.shorter,
+        }),
+        width,
         '& .MuiDrawer-paper': {
-          bgcolor: '#1E1E2D',
-          borderRight: 0,
+          borderRight: '1px solid',
+          borderColor: 'divider',
           boxSizing: 'border-box',
-          color: '#fff',
-          height: { xs: '100%', md: `calc(100vh - ${layoutTokens.headerHeight}px)` },
           overflowX: 'hidden',
-          pt: { xs: `${layoutTokens.headerHeight + 8}px`, md: 0 },
-          top: { xs: 0, md: layoutTokens.headerHeight },
-          transition: 'width 0.2s ease',
-          width: isMobile ? layoutTokens.sidebarWidth : width,
+          transition: theme.transitions.create('width', {
+            duration: theme.transitions.duration.shorter,
+          }),
+          width,
         },
       }}
     >
-      <List disablePadding sx={{ pt: { xs: 0, md: 0.5 } }}>
-        {menuItems.map((item) => (
-          <AppSidebarItem
-            key={item.path}
-            item={item}
-            allPaths={allPaths}
-            collapsed={collapsed}
-            onClick={() => isMobile && setSidebarOpen(false)}
-          />
-        ))}
-
-        {showSettingsMenu ? (
-          <>
-            <Divider sx={{ borderColor: 'rgba(255,255,255,0.12)', mx: collapsed ? 1 : 1.5, my: 1 }} />
-            {!collapsed ? (
-              <ListSubheader
-                disableSticky
-                sx={{
-                  bgcolor: 'transparent',
-                  color: 'rgba(255,255,255,0.45)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 0.6,
-                  lineHeight: '28px',
-                  px: 2,
-                  py: 0,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Settings
-              </ListSubheader>
-            ) : null}
-            {groupSettingsMenuConfig.map((item) => (
-              <AppSidebarItem
-                key={item.path}
-                item={item}
-                allPaths={allPaths}
-                collapsed={collapsed}
-                onClick={() => isMobile && setSidebarOpen(false)}
-              />
-            ))}
-          </>
-        ) : null}
-      </List>
+      <Brand collapsed={collapsed} />
+      <NavList collapsed={collapsed} />
     </Drawer>
   );
 };

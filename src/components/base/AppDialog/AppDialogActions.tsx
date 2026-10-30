@@ -59,7 +59,7 @@ export const AppDialogCancelButton = ({
     startIcon={<CloseOutlinedIcon />}
     sx={
       color === 'error'
-        ? { fontWeight: 700 }
+        ? { fontWeight: 600 }
         : variant === 'outlined'
           ? appDialogOutlinedCancelButtonSx
           : appDialogCancelButtonSx
@@ -71,7 +71,7 @@ export const AppDialogCancelButton = ({
 );
 
 type ConfirmButtonProps = {
-  color?: 'error' | 'secondary' | 'success';
+  color?: 'error' | 'primary' | 'success';
   disabled?: boolean;
   label?: string;
   loading?: boolean;
@@ -81,7 +81,7 @@ type ConfirmButtonProps = {
 };
 
 export const AppDialogConfirmButton = ({
-  color = 'secondary',
+  color = 'primary',
   disabled = false,
   label = 'Confirm',
   loading = false,
@@ -102,7 +102,7 @@ export const AppDialogConfirmButton = ({
         <CheckOutlinedIcon />
       ) : undefined
     }
-    sx={{ fontWeight: 700 }}
+    sx={{ fontWeight: 600 }}
     variant="contained"
   >
     {label}

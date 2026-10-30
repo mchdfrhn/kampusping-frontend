@@ -1,54 +1,24 @@
-const disabledSx = {
-  bgcolor: '#e5e7eb',
-  color: '#9ca3af',
-  '&:hover': { bgcolor: '#e5e7eb' },
-};
+import type { SxProps, Theme } from '@mui/material/styles';
 
-const withDisabled = (active: Record<string, unknown>) => ({
-  ...active,
+import { mixToken } from '@/design-system/tokens/surface.token';
+
+/** Tinted square icon buttons for the sticky action column. Colors follow the active theme. */
+const tinted = (token: 'primary' | 'success' | 'error' | 'warning' | 'info'): SxProps<Theme> => ({
+  bgcolor: mixToken(`${token}-main`, 12),
   borderRadius: 2,
-  '&.Mui-disabled': disabledSx,
+  color: `${token}.main`,
+  '&:hover': { bgcolor: mixToken(`${token}-main`, 20) },
+  '&.Mui-disabled': {
+    bgcolor: 'action.disabledBackground',
+    color: 'action.disabled',
+  },
 });
 
 export const gridActionButtonSx = {
-  view: withDisabled({
-    bgcolor: '#eef2ff',
-    color: '#4f46e5',
-    '&:hover': { bgcolor: '#eef2ff' },
-  }),
-  upload: withDisabled({
-    bgcolor: '#eaf2ff',
-    color: '#2E82FF',
-    '&:hover': { bgcolor: '#eaf2ff' },
-  }),
-  approve: withDisabled({
-    bgcolor: '#e8f8ef',
-    color: '#22a06b',
-    '&:hover': { bgcolor: '#e8f8ef' },
-  }),
-  reject: withDisabled({
-    bgcolor: '#ffeaf0',
-    color: '#FF6B86',
-    '&:hover': { bgcolor: '#ffeaf0' },
-  }),
-  download: withDisabled({
-    bgcolor: '#eaf2ff',
-    color: '#2E82FF',
-    '&:hover': { bgcolor: '#eaf2ff' },
-  }),
-  certificate: withDisabled({
-    bgcolor: '#fff7ed',
-    color: '#ea580c',
-    '&:hover': { bgcolor: '#fff7ed' },
-  }),
-  edit: withDisabled({
-    bgcolor: '#eaf2ff',
-    color: '#2E82FF',
-    '&:hover': { bgcolor: '#eaf2ff' },
-  }),
-  delete: withDisabled({
-    bgcolor: '#ffeaf0',
-    color: '#FF6B86',
-    '&:hover': { bgcolor: '#ffeaf0' },
-  }),
-};
+  view: tinted('info'),
+  edit: tinted('primary'),
+  download: tinted('primary'),
+  approve: tinted('success'),
+  reject: tinted('warning'),
+  delete: tinted('error'),
+} as const;

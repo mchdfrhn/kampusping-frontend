@@ -1,18 +1,27 @@
+/**
+ * localStorage wrapper that never throws: storage can be unavailable (private mode, blocked
+ * cookies) and the app must keep working without it.
+ */
 export const storage = {
   get(key: string): string | null {
-    if (typeof window === 'undefined') return null;
-    return window.localStorage.getItem(key);
+    try {
+      return typeof window === 'undefined' ? null : window.localStorage.getItem(key);
+    } catch {
+      return null;
+    }
   },
   set(key: string, value: string): void {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(key, value);
+    try {
+      if (typeof window !== 'undefined') window.localStorage.setItem(key, value);
+    } catch {
+      // ignore
+    }
   },
   remove(key: string): void {
-    if (typeof window === 'undefined') return;
-    window.localStorage.removeItem(key);
-  },
-  clear(): void {
-    if (typeof window === 'undefined') return;
-    window.localStorage.clear();
+    try {
+      if (typeof window !== 'undefined') window.localStorage.removeItem(key);
+    } catch {
+      // ignore
+    }
   },
 };

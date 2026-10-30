@@ -12,7 +12,12 @@ const mergeSx = (...parts: Array<AppDatePickerProps['sx'] | undefined>) =>
     return Array.isArray(part) ? part : [part];
   });
 
-export const AppDatePicker = ({ slotProps, sx, format = DATE_INPUT_FORMAT, ...props }: AppDatePickerProps) => (
+export const AppDatePicker = ({
+  slotProps,
+  sx,
+  format = DATE_INPUT_FORMAT,
+  ...props
+}: AppDatePickerProps) => (
   <DatePicker
     {...props}
     format={format}
@@ -23,7 +28,7 @@ export const AppDatePicker = ({ slotProps, sx, format = DATE_INPUT_FORMAT, ...pr
         const fieldProps =
           typeof slotProps?.field === 'function'
             ? slotProps.field(ownerState)
-            : slotProps?.field ?? {};
+            : (slotProps?.field ?? {});
 
         return {
           clearable: true,
@@ -43,7 +48,7 @@ export const AppDatePicker = ({ slotProps, sx, format = DATE_INPUT_FORMAT, ...pr
         const textFieldProps =
           typeof slotProps?.textField === 'function'
             ? slotProps.textField(ownerState)
-            : slotProps?.textField ?? {};
+            : (slotProps?.textField ?? {});
 
         const existingSlotProps = textFieldProps.slotProps ?? {};
 

@@ -13,7 +13,7 @@ import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   AppDialogCancelButton,
@@ -39,7 +39,7 @@ export type AppActionConfirmDialogProps = Omit<DialogProps, 'children'> & {
   summary?: ActionConfirmSummary | ActionConfirmSummaryRow[] | null;
   confirmText?: string;
   cancelText?: string;
-  confirmColor?: 'error' | 'secondary' | 'success';
+  confirmColor?: 'error' | 'primary' | 'success';
   loading?: boolean;
   notesLabel?: string;
   notesRequired?: boolean;
@@ -50,7 +50,7 @@ export type AppActionConfirmDialogProps = Omit<DialogProps, 'children'> & {
 };
 
 const emphasizedValueSx = {
-  color: '#1976d2',
+  color: 'primary.main',
   fontSize: 14,
   fontWeight: 700,
 };
@@ -59,7 +59,7 @@ const normalizeSummaryRows = (
   summary?: ActionConfirmSummary | ActionConfirmSummaryRow[] | null,
 ): ActionConfirmSummaryRow[] => {
   if (!summary) return [];
-  const rows = Array.isArray(summary) ? summary : summary.rows ?? [];
+  const rows = Array.isArray(summary) ? summary : (summary.rows ?? []);
   return rows.filter((row) => formatOptionalText(row.value));
 };
 
@@ -84,7 +84,7 @@ const ActionConfirmSummaryPanel = ({ rows }: { rows: ActionConfirmSummaryRow[] }
               <TableCell
                 component="th"
                 sx={{
-                  bgcolor: '#f8fafc',
+                  bgcolor: 'background.default',
                   color: 'text.secondary',
                   fontWeight: 700,
                   verticalAlign: 'top',
@@ -135,16 +135,16 @@ export const AppActionConfirmDialog = ({
   const [submitting, setSubmitting] = useState(false);
   const summaryRows = normalizeSummaryRows(summary);
 
-  useEffect(() => {
+  // Start every opening with fresh notes. Adjusting state during render (rather than in an effect)
+  // avoids painting the previous dialog's text for one frame.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (open) setNotes(initialNotes);
-  }, [open, initialNotes]);
-
-  useEffect(() => {
-    if (!open) setSubmitting(false);
-  }, [open]);
+  }
 
   const isRejectAction = confirmText.toLowerCase().includes('reject');
-  const resolvedConfirmColor = confirmColor ?? (isRejectAction ? 'error' : 'success');
+  const resolvedConfirmColor = confirmColor ?? (isRejectAction ? 'error' : 'primary');
   const resolvedMaxWidth = maxWidth ?? (summaryRows.length ? 'md' : 'xs');
   const isBusy = loading || submitting;
 
@@ -179,7 +179,9 @@ export const AppActionConfirmDialog = ({
 
       <DialogContent dividers sx={{ py: 2.5 }}>
         {summaryRows.length ? <ActionConfirmSummaryPanel rows={summaryRows} /> : null}
-        <Typography sx={{ color: 'text.primary', fontSize: 14, lineHeight: 1.6, mb: showNotes ? 2 : 0 }}>
+        <Typography
+          sx={{ color: 'text.primary', fontSize: 14, lineHeight: 1.6, mb: showNotes ? 2 : 0 }}
+        >
           {message}
         </Typography>
         {showNotes ? (

@@ -1,35 +1,21 @@
-import type { LayoutType, SidebarMode, ThemeMode } from '@/core/types/common.type';
+export type ThemeModeSetting = 'light' | 'dark' | 'system';
 
-const defaultThemeMode = (process.env.NEXT_PUBLIC_DEFAULT_THEME_MODE ?? 'light') as ThemeMode;
+const parseThemeMode = (value: string | undefined): ThemeModeSetting =>
+  value === 'light' || value === 'dark' ? value : 'system';
 
-const parseNumber = (value: string | undefined, fallback: number) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-};
-
-const parseCsv = (value: string | undefined, fallback: string[]) => {
-  if (!value?.trim()) return fallback;
-  return value
-    .split(',')
-    .map((item) => item.trim().toLowerCase())
-    .filter(Boolean);
-};
-
+/**
+ * Branding and runtime options. Values come from NEXT_PUBLIC_* variables, which Next.js inlines at
+ * build time, so each one has to be referenced literally.
+ */
 export const appConfig = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? 'HIS Standard UI/UX',
-  companyName: process.env.NEXT_PUBLIC_COMPANY_NAME ?? 'PT. Hino Motors Sales Indonesia',
-  companyLogo: process.env.NEXT_PUBLIC_COMPANY_LOGO ?? '/media/logos/logo-hino-v.png',
-  companyLogoDark: process.env.NEXT_PUBLIC_COMPANY_LOGO_DARK ?? '/media/logos/logo-hino-v.png',
-  favicon: process.env.NEXT_PUBLIC_FAVICON ?? '/media/favicon/favicon.ico',
-  primaryColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR ?? '#E30613',
-  secondaryColor: process.env.NEXT_PUBLIC_SECONDARY_COLOR ?? '#005BAC',
-  defaultThemeMode,
-  sidebarMode: 'full' as SidebarMode,
-  layoutType: 'dashboard' as LayoutType,
-  masterAppUrl: process.env.NEXT_PUBLIC_MASTER_APP ?? '/',
-  masterLogoutUrl: process.env.NEXT_PUBLIC_MASTER_LOGOUT ?? '/',
-  launcherId: process.env.NEXT_PUBLIC_LAUNCHER_ID ?? '',
-  groupAdminRoleId: parseNumber(process.env.NEXT_PUBLIC_GROUP_ADMIN_ROLE_ID, 1),
-  permissionPrefixes: parseCsv(process.env.NEXT_PUBLIC_APP_PERMISSION_PREFIXES, ['example']),
-  allowLocalDevWithoutAuth: (process.env.NEXT_PUBLIC_ALLOW_LOCAL_DEV_WITHOUT_AUTH ?? 'true') === 'true',
+  appName: process.env.NEXT_PUBLIC_APP_NAME ?? 'Webapp',
+  appDescription:
+    process.env.NEXT_PUBLIC_APP_DESCRIPTION ??
+    'A clean, modern starting point for business web applications.',
+  /** Optional logo image (e.g. /logo.svg). Empty renders a monogram of the app name. */
+  logo: process.env.NEXT_PUBLIC_APP_LOGO ?? '',
+  primaryColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR ?? '#4F46E5',
+  defaultThemeMode: parseThemeMode(process.env.NEXT_PUBLIC_DEFAULT_THEME_MODE),
+  /** BCP 47 locale for dates and numbers. */
+  locale: process.env.NEXT_PUBLIC_LOCALE ?? 'en',
 };

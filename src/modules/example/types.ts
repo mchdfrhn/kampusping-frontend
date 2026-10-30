@@ -1,4 +1,12 @@
+import type { ListQuery } from '@/core/types/common.type';
+
 export type ExampleItemStatus = 'draft' | 'active' | 'inactive';
+
+export const EXAMPLE_STATUSES: { value: ExampleItemStatus; label: string }[] = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+];
 
 export type ExampleItem = {
   id: number;
@@ -9,22 +17,15 @@ export type ExampleItem = {
   updated_at: string;
 };
 
-export type ExampleListQuery = {
-  page?: number;
-  page_size?: number;
-  search?: string;
+export type ExampleFilters = {
+  status?: ExampleItemStatus;
+  /** YYYY-MM-DD, inclusive */
   date_from?: string;
+  /** YYYY-MM-DD, inclusive */
   date_to?: string;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
 };
 
-export type ExampleListResponse = {
-  items: ExampleItem[];
-  total: number;
-  page: number;
-  page_size: number;
-};
+export type ExampleListQuery = ListQuery & ExampleFilters;
 
 export type ExampleUpsertPayload = {
   code: string;

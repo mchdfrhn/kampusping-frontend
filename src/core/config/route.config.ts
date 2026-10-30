@@ -1,13 +1,12 @@
 export const routes = {
   home: '/',
+  login: '/login',
   dashboard: '/dashboard',
   example: '/example',
-  notifications: '/notifications',
-  settings: {
-    appRoles: '/settings/app-roles',
-    menuMapping: '/settings/menu-mapping',
-  },
-  auth: {
-    login: '/auth/login',
-  },
+  users: '/users',
+  roles: '/roles',
+  profile: '/profile',
 } as const;
+
+/** Where signed-in users land when no `next` target is given. */
+export const DEFAULT_AUTHENTICATED_ROUTE = routes.dashboard;

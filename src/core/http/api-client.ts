@@ -1,79 +1,153 @@
 import { envConfig } from '@/core/config/env.config';
-import { storageKeys } from '@/core/constants/storage.constant';
-import { storage } from '@/core/utils/storage.util';
 
-import { ApiError } from './api-error';
-import type { ApiClientResponse } from './api-response';
+import { ApiError, type ApiErrorBody } from './api-error';
 
-type RequestOptions = Omit<RequestInit, 'body' | 'method'> & {
-  token?: string | null;
+/**
+ * The HTTP client knows nothing about the auth store; the store plugs itself in through this
+ * bridge. That keeps the dependency one-way (auth -> http) and the client easy to test.
+ */
+export type AuthBridge = {
+  getAccessToken: () => string | null;
+  /** Obtain a new access token. Resolves true when the session was renewed. */
+  refresh: () => Promise<boolean>;
+  /** Called when a request failed with 401 and the session could not be renewed. */
+  onAuthFailure: () => void;
+};
+
+let bridge: AuthBridge | null = null;
+
+export const registerAuthBridge = (next: AuthBridge | null) => {
+  bridge = next;
+};
+
+export type RequestOptions = {
+  headers?: HeadersInit;
+  signal?: AbortSignal;
+  /** Send and accept cookies (needed for the cookie-based /auth endpoints). */
+  withCredentials?: boolean;
+  /** Do not attach the access token or try to refresh on 401. */
+  skipAuth?: boolean;
 };
 
 type JsonBody = Record<string, unknown> | unknown[] | string | number | boolean | null;
 
-const pendingGetRequests = new Map<string, Promise<ApiClientResponse<unknown>>>();
+export const buildUrl = (path: string) =>
+  /^https?:\/\//i.test(path) ? path : `${envConfig.apiBaseUrl}/${path.replace(/^\//, '')}`;
 
-const buildUrl = (path: string) => {
-  if (/^https?:\/\//i.test(path)) return path;
-  return `${envConfig.apiBaseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+export const toQueryString = (query: object): string => {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== null && value !== '') params.set(key, String(value));
+  }
+  const text = params.toString();
+  return text ? `?${text}` : '';
 };
 
-const parseResponse = async <T>(response: Response): Promise<T> => {
-  const contentType = response.headers.get('content-type') ?? '';
-  if (!contentType.includes('application/json')) return undefined as T;
-  return (await response.json()) as T;
+const buildError = async (response: Response): Promise<ApiError> => {
+  let body: ApiErrorBody | null = null;
+  try {
+    body = (await response.json()) as ApiErrorBody;
+  } catch {
+    // Non-JSON error (gateway page, network proxy...): fall through to the generic message.
+  }
+  const error = body?.error;
+  return new ApiError(
+    error?.message ?? `Request failed (${response.status})`,
+    response.status,
+    error?.code,
+    error?.details,
+  );
 };
 
-const request = async <T>(method: string, path: string, body?: JsonBody, options?: RequestOptions) => {
-  const token = options?.token ?? storage.get(storageKeys.accessToken);
-  const headers = new Headers(options?.headers);
-  headers.set('Accept', 'application/json');
+const send = (
+  method: string,
+  path: string,
+  body: JsonBody | undefined,
+  options: RequestOptions,
+  token: string | null,
+) => {
+  const headers = new Headers(options.headers);
+  headers.set('Accept', headers.get('Accept') ?? 'application/json');
   if (body !== undefined) headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const response = await fetch(buildUrl(path), {
-    ...options,
+  return fetch(buildUrl(path), {
     method,
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
+    signal: options.signal,
+    credentials: options.withCredentials ? 'include' : 'omit',
   });
+};
 
-  const data = await parseResponse<T>(response);
+const execute = async (
+  method: string,
+  path: string,
+  body: JsonBody | undefined,
+  options: RequestOptions,
+): Promise<Response> => {
+  const token = options.skipAuth ? null : (bridge?.getAccessToken() ?? null);
+  let response = await send(method, path, body, options, token);
 
-  if (!response.ok) {
-    const detail =
-      typeof data === 'object' && data !== null && 'detail' in data
-        ? String(data.detail)
-        : null;
-    const message =
-      typeof data === 'object' && data !== null && 'message' in data
-        ? String(data.message)
-        : detail ?? 'API request failed';
-    throw new ApiError(message, response.status, data);
+  if (response.status === 401 && token && bridge && !options.skipAuth) {
+    const renewed = await bridge.refresh();
+    if (renewed) {
+      response = await send(method, path, body, options, bridge.getAccessToken());
+    }
+    if (response.status === 401) {
+      bridge.onAuthFailure();
+    }
   }
 
-  return { data, status: response.status, headers: response.headers } satisfies ApiClientResponse<T>;
+  if (!response.ok) throw await buildError(response);
+  return response;
+};
+
+const requestJson = async <T>(
+  method: string,
+  path: string,
+  body?: JsonBody,
+  options: RequestOptions = {},
+): Promise<T> => {
+  const response = await execute(method, path, body, options);
+  if (response.status === 204) return undefined as T;
+  const contentType = response.headers.get('content-type') ?? '';
+  return contentType.includes('application/json')
+    ? ((await response.json()) as T)
+    : (undefined as T);
+};
+
+const parseFilename = (header: string | null): string | null => {
+  if (!header) return null;
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header);
+  if (encoded?.[1]) return decodeURIComponent(encoded[1]);
+  return /filename="?([^";]+)"?/i.exec(header)?.[1] ?? null;
 };
 
 export const apiClient = {
-  get: <T>(path: string, options?: RequestOptions) => {
-    const token = options?.token ?? storage.get(storageKeys.accessToken) ?? '';
-    const cacheKey = `${buildUrl(path)}::${token}`;
-    const pending = pendingGetRequests.get(cacheKey);
-    if (pending) return pending as Promise<ApiClientResponse<T>>;
-
-    const promise = request<T>('GET', path, undefined, options).finally(() => {
-      pendingGetRequests.delete(cacheKey);
-    });
-    pendingGetRequests.set(cacheKey, promise as Promise<ApiClientResponse<unknown>>);
-    return promise;
-  },
+  get: <T>(path: string, options?: RequestOptions) =>
+    requestJson<T>('GET', path, undefined, options),
   post: <T>(path: string, body?: JsonBody, options?: RequestOptions) =>
-    request<T>('POST', path, body, options),
+    requestJson<T>('POST', path, body, options),
   put: <T>(path: string, body?: JsonBody, options?: RequestOptions) =>
-    request<T>('PUT', path, body, options),
+    requestJson<T>('PUT', path, body, options),
   patch: <T>(path: string, body?: JsonBody, options?: RequestOptions) =>
-    request<T>('PATCH', path, body, options),
-  delete: <T>(path: string, options?: RequestOptions) =>
-    request<T>('DELETE', path, undefined, options),
+    requestJson<T>('PATCH', path, body, options),
+  delete: <T = void>(path: string, options?: RequestOptions) =>
+    requestJson<T>('DELETE', path, undefined, options),
+
+  /** Authenticated file download. Resolves with the blob and the server-provided file name. */
+  download: async (
+    path: string,
+    options?: RequestOptions,
+  ): Promise<{ blob: Blob; filename: string | null }> => {
+    const response = await execute('GET', path, undefined, {
+      ...options,
+      headers: { Accept: '*/*', ...(options?.headers as Record<string, string> | undefined) },
+    });
+    return {
+      blob: await response.blob(),
+      filename: parseFilename(response.headers.get('content-disposition')),
+    };
+  },
 };

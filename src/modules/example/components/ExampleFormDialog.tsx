@@ -1,90 +1,112 @@
 'use client';
 
-import { AppDialog, AppDialogTextField } from '@/components/base/AppDialog';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Alert from '@mui/material/Alert';
+import MenuItem from '@mui/material/MenuItem';
+import Stack from '@mui/material/Stack';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+import { AppDialog } from '@/components/base/AppDialog';
 import {
   AppDialogCancelButton,
   AppDialogConfirmButton,
 } from '@/components/base/AppDialog/AppDialogActions';
-import MenuItem from '@mui/material/MenuItem';
-import Stack from '@mui/material/Stack';
-import { useEffect, useState } from 'react';
+import { FormProvider } from '@/components/form/FormProvider';
+import { RHFTextField } from '@/components/form/RHFTextField';
+import { handleFormApiError } from '@/core/http/form-errors';
 
-import type { ExampleItem, ExampleItemStatus, ExampleUpsertPayload } from '../types';
+import { EXAMPLE_STATUSES, type ExampleItem, type ExampleUpsertPayload } from '../types';
+
+const schema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(1, 'Code is required')
+    .max(50, 'At most 50 characters')
+    .regex(/^[A-Za-z0-9._-]+$/, 'Use letters, digits, dot, dash or underscore'),
+  name: z.string().trim().min(1, 'Name is required').max(150, 'At most 150 characters'),
+  status: z.enum(['draft', 'active', 'inactive']),
+});
+
+const FIELDS = ['code', 'name', 'status'] as const;
+const emptyForm: ExampleUpsertPayload = { code: '', name: '', status: 'draft' };
 
 type Props = {
   open: boolean;
   item?: ExampleItem | null;
-  saving?: boolean;
   onClose: () => void;
-  onSubmit: (payload: ExampleUpsertPayload) => Promise<void> | void;
+  /** Persist the item. Reject to keep the dialog open and show the error. */
+  onSubmit: (payload: ExampleUpsertPayload) => Promise<void>;
 };
 
-const emptyForm: ExampleUpsertPayload = {
-  code: '',
-  name: '',
-  status: 'active',
-};
-
-export const ExampleFormDialog = ({ open, item, saving = false, onClose, onSubmit }: Props) => {
-  const [form, setForm] = useState<ExampleUpsertPayload>(emptyForm);
+export const ExampleFormDialog = ({ open, item, onClose, onSubmit }: Props) => {
+  const methods = useForm<ExampleUpsertPayload>({
+    resolver: zodResolver(schema),
+    defaultValues: emptyForm,
+  });
+  const {
+    handleSubmit,
+    reset,
+    setError,
+    clearErrors,
+    formState: { errors, isSubmitting },
+  } = methods;
 
   useEffect(() => {
-    if (!open) return;
-    setForm(
-      item
-        ? { code: item.code, name: item.name, status: item.status }
-        : emptyForm,
-    );
-  }, [open, item]);
+    if (open) {
+      reset(item ? { code: item.code, name: item.name, status: item.status } : emptyForm);
+    }
+  }, [open, item, reset]);
 
-  const canSave = form.code.trim().length > 0 && form.name.trim().length > 0 && !saving;
+  const submit = handleSubmit(async (values) => {
+    clearErrors('root.server');
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      handleFormApiError(error, setError, FIELDS, { conflictField: 'code' });
+    }
+  });
 
   return (
     <AppDialog
       open={open}
-      onClose={saving ? undefined : onClose}
-      fullWidth
-      maxWidth="sm"
-      title={item ? 'Edit Example Item' : 'Create Example Item'}
+      onClose={isSubmitting ? undefined : onClose}
+      title={item ? 'Edit item' : 'Create item'}
       actions={
         <>
-          <AppDialogCancelButton disabled={saving} label="Cancel" onClick={onClose} variant="outlined" />
+          <AppDialogCancelButton
+            disabled={isSubmitting}
+            label="Cancel"
+            onClick={onClose}
+            variant="outlined"
+          />
           <AppDialogConfirmButton
-            disabled={!canSave}
-            label={item ? 'Save' : 'Create'}
-            loading={saving}
-            onClick={() => void onSubmit(form)}
+            label={item ? 'Save changes' : 'Create'}
+            loading={isSubmitting}
+            onClick={() => void submit()}
             showCheckIcon
           />
         </>
       }
     >
-      <Stack spacing={2.5}>
-        <AppDialogTextField
-          label="Code"
-          required
-          value={form.code}
-          onChange={(event) => setForm((prev) => ({ ...prev, code: event.target.value }))}
-        />
-        <AppDialogTextField
-          label="Name"
-          required
-          value={form.name}
-          onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
-        />
-        <AppDialogTextField
-          select
-          label="Status"
-          value={form.status}
-          onChange={(event) =>
-            setForm((prev) => ({ ...prev, status: event.target.value as ExampleItemStatus }))
-          }
-        >
-          <MenuItem value="draft">Draft</MenuItem>
-          <MenuItem value="active">Active</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
-        </AppDialogTextField>
-      </Stack>
+      <FormProvider methods={methods} onSubmit={submit}>
+        <Stack spacing={2.5}>
+          {errors.root?.server ? (
+            <Alert severity="error">{errors.root.server.message}</Alert>
+          ) : null}
+          <RHFTextField<ExampleUpsertPayload> name="code" label="Code" required autoFocus />
+          <RHFTextField<ExampleUpsertPayload> name="name" label="Name" required />
+          <RHFTextField<ExampleUpsertPayload> name="status" label="Status" select>
+            {EXAMPLE_STATUSES.map((status) => (
+              <MenuItem key={status.value} value={status.value}>
+                {status.label}
+              </MenuItem>
+            ))}
+          </RHFTextField>
+        </Stack>
+      </FormProvider>
     </AppDialog>
   );
 };

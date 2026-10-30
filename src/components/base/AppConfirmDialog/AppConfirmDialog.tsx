@@ -6,7 +6,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   AppDialogBackButton,
@@ -21,7 +21,7 @@ export type AppConfirmDialogProps = Omit<DialogProps, 'children'> & {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  confirmColor?: 'error' | 'secondary' | 'success';
+  confirmColor?: 'error' | 'primary' | 'success';
   loading?: boolean;
   onConfirm: () => void | Promise<void>;
 };
@@ -41,14 +41,9 @@ export const AppConfirmDialog = ({
   ...props
 }: AppConfirmDialogProps) => {
   const [submitting, setSubmitting] = useState(false);
-  const resolvedConfirmColor =
-    confirmColor ?? (/delete/i.test(confirmText) ? 'error' : 'secondary');
+  const resolvedConfirmColor = confirmColor ?? (/delete/i.test(confirmText) ? 'error' : 'primary');
   const isBackAction = cancelText.toLowerCase() === 'back';
   const isBusy = loading || submitting;
-
-  useEffect(() => {
-    if (!open) setSubmitting(false);
-  }, [open]);
 
   const handleClose = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (isBusy) return;

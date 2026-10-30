@@ -1,16 +1,15 @@
-# Modul bisnis
+# Modules
 
-Setiap fitur project diletakkan di `src/modules/{nama-modul}/` dengan struktur:
+One folder per feature. `example/` is the reference implementation to copy.
 
 ```text
-src/modules/{nama-modul}/
-├── components/     # halaman dan dialog
-├── services/       # pemanggilan API
-├── types.ts        # tipe data modul
-├── hooks/          # opsional
-└── utils/          # opsional
+<module>/
+├── types.ts                   # API shapes and filters
+├── services/<module>.service.ts   # thin wrappers over apiClient
+└── components/
+    ├── <Module>ListPage.tsx   # list page built on useServerGrid + AppDataGrid
+    └── <Module>FormDialog.tsx # React Hook Form + Zod, errors mapped with handleFormApiError
 ```
 
-Route Next.js di `src/app/{nama-modul}` hanya meng-compose halaman dari folder modules.
-
-Contoh siap pakai: `src/modules/example` (list + filter + dialog + export).
+Wire it up in three places: a route under `src/app/(app)/`, a menu entry in
+`src/core/config/menu.config.ts`, and the permission codes in `src/core/auth/permissions.ts`.

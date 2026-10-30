@@ -1,41 +1,59 @@
 {
-  "name": "his-standard-uiux",
+  "name": "webapp-frontend",
   "version": "1.0.0",
   "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.9"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run lint && npm run typecheck && npm run format:check && npm run test"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@hookform/resolvers": "^5.2.2",
-    "@mui/icons-material": "9.1.2",
-    "@mui/material": "9.1.2",
-    "@mui/material-nextjs": "^16.0.1",
-    "@mui/x-data-grid": "9.7.0",
-    "@mui/x-date-pickers": "9.7.0",
-    "dayjs": "^1.11.18",
-    "next": "16.2.9",
-    "react": "19.2.7",
-    "react-dom": "19.2.7",
-    "react-hook-form": "7.80.0",
-    "zod": "4.4.3",
-    "zustand": "5.0.14"
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.5.0",
+    "@mui/material-nextjs": "^9.5.0",
+    "@mui/x-charts": "^9.16.0",
+    "@mui/x-data-grid": "^9.16.0",
+    "@mui/x-date-pickers": "^9.16.0",
+    "dayjs": "^1.11.23",
+    "next": "^16.4.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-hook-form": "^7.91.0",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@playwright/test": "^1.64.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^9.36.0",
-    "eslint-config-next": "16.2.9",
+    "eslint-config-next": "^16.4.3",
+    "jsdom": "^27.0.0",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.60.1"
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^3.2.4"
   }
 }

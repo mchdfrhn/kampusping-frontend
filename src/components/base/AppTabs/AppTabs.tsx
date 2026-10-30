@@ -7,6 +7,10 @@ export type AppTabsProps = TabsProps & { items: AppTabItem[] };
 
 export const AppTabs = ({ items, ...props }: AppTabsProps) => (
   <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-    <Tabs {...props}>{items.map((item) => <Tab key={item.value} label={item.label} value={item.value} />)}</Tabs>
+    <Tabs {...props}>
+      {items.map((item) => (
+        <Tab key={item.value} label={item.label} value={item.value} />
+      ))}
+    </Tabs>
   </Box>
 );

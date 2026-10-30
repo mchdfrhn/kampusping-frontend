@@ -1,56 +1,45 @@
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import TableViewOutlinedIcon from '@mui/icons-material/TableViewOutlined';
 
+import { permissions } from '@/core/auth/permissions';
 import { routes } from '@/core/config/route.config';
-import type { MenuItemConfig } from '@/core/types/menu.type';
-
-export const menuIconMap = {
-  DashboardOutlinedIcon,
-  TableViewOutlinedIcon,
-  SettingsOutlinedIcon,
-  AdminPanelSettingsOutlinedIcon,
-} as const;
-
-export type MenuIconName = keyof typeof menuIconMap;
-
-export const getMenuIconByName = (iconName?: string | null) => {
-  if (!iconName) return undefined;
-  return menuIconMap[iconName as MenuIconName];
-};
+import type { MenuGroupConfig } from '@/core/types/menu.type';
 
 /**
- * Fallback menu when IAM launcher menus are not available (local development).
- * Replace labels/paths/slugs with the project module when cloning this starter.
+ * Sidebar navigation. Items with a `permission` are shown only to users who hold it; the page
+ * and the API enforce the same permission independently.
+ *
+ * To add a module, add an entry here and a route under `src/app/(app)/`.
  */
-export const menuConfig: MenuItemConfig[] = [
-  { label: 'Dashboard', path: routes.dashboard, icon: DashboardOutlinedIcon },
+export const menuConfig: MenuGroupConfig[] = [
   {
-    label: 'Example Master',
-    path: routes.example,
-    slug: 'example',
-    icon: TableViewOutlinedIcon,
+    items: [
+      { label: 'Dashboard', path: routes.dashboard, icon: DashboardOutlinedIcon },
+      {
+        label: 'Example items',
+        path: routes.example,
+        icon: TableViewOutlinedIcon,
+        permission: permissions.examplesRead,
+      },
+    ],
+  },
+  {
+    title: 'Administration',
+    items: [
+      {
+        label: 'Users',
+        path: routes.users,
+        icon: GroupOutlinedIcon,
+        permission: permissions.usersRead,
+      },
+      {
+        label: 'Roles',
+        path: routes.roles,
+        icon: AdminPanelSettingsOutlinedIcon,
+        permission: permissions.rolesRead,
+      },
+    ],
   },
 ];
-
-export const groupSettingsMenuConfig: MenuItemConfig[] = [
-  {
-    label: 'Menu Mapping',
-    path: routes.settings.menuMapping,
-    icon: SettingsOutlinedIcon,
-  },
-  {
-    label: 'Role Access',
-    path: routes.settings.appRoles,
-    icon: AdminPanelSettingsOutlinedIcon,
-  },
-];
-
-export const getStaticMenuSlugMapping = (): Record<string, string> => {
-  const mapping: Record<string, string> = {};
-  for (const item of menuConfig) {
-    if (item.slug) mapping[item.path] = item.slug;
-  }
-  return mapping;
-};

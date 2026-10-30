@@ -3,24 +3,24 @@
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
 
+import { appConfig } from '@/core/config/app.config';
+import { NotifyProvider } from '@/core/notify/NotifyProvider';
 import { createAppTheme } from '@/design-system/theme';
 
-export const Providers = ({ children }: { children: ReactNode }) => {
-  const theme = useMemo(() => createAppTheme(), []);
+// Created once at module scope: the theme does not depend on any request or user state.
+const theme = createAppTheme();
 
-  return (
-    <AppRouterCacheProvider options={{ key: 'mui' }}>
-      <ThemeProvider theme={theme}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <CssBaseline />
-          {children}
-        </LocalizationProvider>
-      </ThemeProvider>
-    </AppRouterCacheProvider>
-  );
-};
+export const Providers = ({ children }: { children: ReactNode }) => (
+  <AppRouterCacheProvider options={{ key: 'mui' }}>
+    <ThemeProvider theme={theme} defaultMode={appConfig.defaultThemeMode} disableTransitionOnChange>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={appConfig.locale}>
+        <CssBaseline />
+        <NotifyProvider>{children}</NotifyProvider>
+      </LocalizationProvider>
+    </ThemeProvider>
+  </AppRouterCacheProvider>
+);

@@ -28,7 +28,11 @@ export const AppBreadcrumbs = ({ items }: AppBreadcrumbsProps) => (
           {item.label}
         </Link>
       ) : (
-        <Typography key={item.label} color="text.primary" sx={{ fontSize: 14, fontWeight: 600, lineHeight: 1.4 }}>
+        <Typography
+          key={item.label}
+          color="text.primary"
+          sx={{ fontSize: 14, fontWeight: 600, lineHeight: 1.4 }}
+        >
           {item.label}
         </Typography>
       ),

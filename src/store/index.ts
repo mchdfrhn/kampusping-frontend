@@ -1,1 +1,1 @@
-export * from './ui.store';
+export { useUiStore } from './ui.store';

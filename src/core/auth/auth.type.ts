@@ -1,22 +1,33 @@
-import type { AuthSession } from '@/core/iam/iam.service';
-
-export type IamAuthUser = {
-  name?: string;
-  email?: string;
-  username?: string;
-  user?: IamAuthUser;
-  rolesdivision?: Array<{ role?: { id?: number } }>;
-  [key: string]: unknown;
+export type RoleSummary = {
+  id: number;
+  name: string;
 };
 
-export type EnrichedAuthUser = IamAuthUser & {
-  has_app_access?: boolean;
-  is_group_admin?: boolean;
-  display_role?: string;
-  app_role?: AuthSession['app_role'];
-  division_role_ids?: number[];
-  dealer_code?: string | null;
-  dealer_name?: string | null;
+/** The signed-in user as returned by `/auth/login`, `/auth/refresh` and `/auth/me`. */
+export type AuthUser = {
+  id: number;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  roles: RoleSummary[];
+  /** Flattened permission codes. Used for display logic only; the API enforces access. */
+  permissions: string[];
+  last_login_at: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
-export type AuthUser = EnrichedAuthUser;
+export type TokenResponse = {
+  access_token: string;
+  token_type: string;
+  /** Access token lifetime in seconds. */
+  expires_in: number;
+  user: AuthUser;
+};
+
+export type LoginCredentials = {
+  email: string;
+  password: string;
+};
+
+export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'anonymous';

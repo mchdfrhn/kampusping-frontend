@@ -1,15 +1,30 @@
 import type { ThemeOptions } from '@mui/material/styles';
 
-import { typographyTokens } from '@/design-system/tokens/typography.token';
+/** `--font-inter` is defined by next/font in the root layout. */
+const fontFamily = [
+  'var(--font-inter)',
+  'ui-sans-serif',
+  'system-ui',
+  '-apple-system',
+  'Segoe UI',
+  'Roboto',
+  'Helvetica Neue',
+  'Arial',
+  'sans-serif',
+].join(', ');
+
+const heading = { fontWeight: 600, letterSpacing: '-0.01em' };
 
 export const typography: ThemeOptions['typography'] = {
-  fontFamily: typographyTokens.fontFamily,
-  h1: { fontWeight: typographyTokens.headingWeight, fontSize: '2.75rem', lineHeight: 1.15 },
-  h2: { fontWeight: typographyTokens.headingWeight, fontSize: '2.25rem', lineHeight: 1.2 },
-  h3: { fontWeight: typographyTokens.headingWeight, fontSize: '1.75rem', lineHeight: 1.25 },
-  h4: { fontWeight: typographyTokens.headingWeight, fontSize: '1.5rem', lineHeight: 1.3 },
-  h5: { fontWeight: typographyTokens.headingWeight, fontSize: '1.25rem', lineHeight: 1.35 },
-  h6: { fontWeight: typographyTokens.headingWeight, fontSize: '1rem', lineHeight: 1.4 },
-  button: { fontWeight: 700, textTransform: 'none' },
+  fontFamily,
+  h1: { ...heading, fontSize: '2.25rem', lineHeight: 1.2 },
+  h2: { ...heading, fontSize: '1.875rem', lineHeight: 1.25 },
+  h3: { ...heading, fontSize: '1.5rem', lineHeight: 1.3 },
+  h4: { ...heading, fontSize: '1.25rem', lineHeight: 1.35 },
+  h5: { ...heading, fontSize: '1.125rem', lineHeight: 1.4 },
+  h6: { ...heading, fontSize: '1rem', lineHeight: 1.4 },
+  subtitle1: { fontWeight: 500 },
+  subtitle2: { fontWeight: 600 },
   body2: { lineHeight: 1.6 },
+  button: { fontWeight: 600, textTransform: 'none' },
 };

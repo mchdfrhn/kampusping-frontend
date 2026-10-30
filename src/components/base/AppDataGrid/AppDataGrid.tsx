@@ -1,7 +1,14 @@
 'use client';
 
-import { DataGrid, type DataGridProps, type GridColDef, type GridValidRowModel } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  type DataGridProps,
+  type GridColDef,
+  type GridValidRowModel,
+} from '@mui/x-data-grid';
 import { useMemo } from 'react';
+
+import { surfaceTokens } from '@/design-system/tokens/surface.token';
 
 export type AppDataGridProps<R extends GridValidRowModel = GridValidRowModel> = Omit<
   DataGridProps<R>,
@@ -28,9 +35,7 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
     return cols.map((col, idx) => {
       const field = String(col.field ?? '');
       const isAction =
-        field === '__actions__' ||
-        field === '__action__' ||
-        field.startsWith('__action');
+        field === '__actions__' || field === '__action__' || field.startsWith('__action');
 
       const withFixedWidth =
         col.flex === undefined && (col.width !== undefined || col.minWidth !== undefined)
@@ -79,23 +84,26 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
           maxHeight: '44px !important',
         },
         '& .MuiDataGrid-columnHeaderTitle': {
-          fontWeight: 700,
+          fontWeight: 600,
         },
-        '& .MuiDataGrid-row:nth-of-type(even), & .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell': {
-          bgcolor: '#fafafa',
-        },
+        '& .MuiDataGrid-row:nth-of-type(even), & .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell':
+          {
+            bgcolor: surfaceTokens.zebra,
+          },
         '& .MuiDataGrid-row:hover, & .MuiDataGrid-row:hover .MuiDataGrid-cell': {
-          bgcolor: '#f5f8ff',
+          bgcolor: surfaceTokens.hover,
         },
         '& .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-cell.dg-sticky-left-actions': {
           bgcolor: 'background.paper',
         },
-        '& .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell.dg-sticky-left-actions': {
-          bgcolor: '#fafafa',
-        },
-        '& .MuiDataGrid-row:hover .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-row:hover .MuiDataGrid-cell.dg-sticky-left-actions': {
-          bgcolor: '#f5f8ff',
-        },
+        '& .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell.dg-sticky-left-actions':
+          {
+            bgcolor: surfaceTokens.zebra,
+          },
+        '& .MuiDataGrid-row:hover .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-row:hover .MuiDataGrid-cell.dg-sticky-left-actions':
+          {
+            bgcolor: surfaceTokens.hover,
+          },
         '& .MuiDataGrid-columnHeader.dg-sticky-actions': {
           position: 'sticky',
           right: 0,
@@ -136,7 +144,7 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
           overflowY: 'auto !important',
           overflowX: fillWidth ? 'hidden !important' : 'auto !important',
           msOverflowStyle: 'auto',
-          scrollbarColor: '#b0b8c4 #f0f2f5',
+          scrollbarColor: `${surfaceTokens.scrollbarThumb} ${surfaceTokens.scrollbarTrack}`,
           scrollbarWidth: 'thin',
           '&::-webkit-scrollbar': {
             display: 'block',
@@ -144,14 +152,14 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
             width: 10,
           },
           '&::-webkit-scrollbar-track': {
-            background: '#f0f2f5',
+            background: surfaceTokens.scrollbarTrack,
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#b0b8c4',
+            backgroundColor: surfaceTokens.scrollbarThumb,
             borderRadius: 999,
           },
           '&::-webkit-scrollbar-corner': {
-            background: '#f0f2f5',
+            background: surfaceTokens.scrollbarTrack,
           },
         },
         '& .MuiDataGrid-virtualScrollerContent': {
@@ -234,8 +242,15 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
         {
           ...localeText,
           MuiTablePagination: {
-            labelDisplayedRows: ({ from, to, count }: { from: number; to: number; count: number }) =>
-              `${from}-${to} of ${count} items`,
+            labelDisplayedRows: ({
+              from,
+              to,
+              count,
+            }: {
+              from: number;
+              to: number;
+              count: number;
+            }) => `${from}-${to} of ${count} items`,
             ...(localeText as { MuiTablePagination?: object } | undefined)?.MuiTablePagination,
           },
         } as DataGridProps<R>['localeText']

@@ -2,24 +2,31 @@
 
 import { create } from 'zustand';
 
-import { appConfig } from '@/core/config/app.config';
-import type { ThemeMode } from '@/core/types/common.type';
+import { storageKeys } from '@/core/constants/storage.constant';
+import { storage } from '@/core/utils/storage.util';
 
 type UiState = {
-  sidebarOpen: boolean;
-  themeMode: ThemeMode;
-  setSidebarOpen: (open: boolean) => void;
+  /** Desktop sidebar shows icons only. Persisted per browser. */
+  sidebarCollapsed: boolean;
+  /** Mobile navigation drawer. */
+  mobileNavOpen: boolean;
+  /** Read persisted preferences. Call once after mount to avoid a hydration mismatch. */
+  hydrate: () => void;
   toggleSidebar: () => void;
-  setThemeMode: (mode: ThemeMode) => void;
-  toggleThemeMode: () => void;
+  setMobileNavOpen: (open: boolean) => void;
 };
 
-export const useUiStore = create<UiState>((set) => ({
-  sidebarOpen: true,
-  themeMode: appConfig.defaultThemeMode,
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
-  setThemeMode: (mode) => set({ themeMode: mode }),
-  toggleThemeMode: () =>
-    set((state) => ({ themeMode: state.themeMode === 'light' ? 'dark' : 'light' })),
+export const useUiStore = create<UiState>((set, get) => ({
+  sidebarCollapsed: false,
+  mobileNavOpen: false,
+
+  hydrate: () => set({ sidebarCollapsed: storage.get(storageKeys.sidebarCollapsed) === 'true' }),
+
+  toggleSidebar: () => {
+    const next = !get().sidebarCollapsed;
+    storage.set(storageKeys.sidebarCollapsed, String(next));
+    set({ sidebarCollapsed: next });
+  },
+
+  setMobileNavOpen: (open) => set({ mobileNavOpen: open }),
 }));

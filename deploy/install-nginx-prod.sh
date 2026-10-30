@@ -2,14 +2,17 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SITE_NAME="his-standard-uiux"
+SITE_NAME="webapp-frontend"
 SOURCE="${SCRIPT_DIR}/nginx-prod.conf.example"
 TARGET="/etc/nginx/sites-available/${SITE_NAME}"
 
-echo "==> Copy Nginx config to ${TARGET}"
+if grep -q "app.example.com" "${SOURCE}"; then
+  echo "Edit server_name in ${SOURCE} before installing it." >&2
+  exit 1
+fi
+
 sudo cp "${SOURCE}" "${TARGET}"
 sudo ln -sf "${TARGET}" "/etc/nginx/sites-enabled/${SITE_NAME}"
 sudo nginx -t
 sudo systemctl reload nginx
-
-echo "==> Nginx site ${SITE_NAME} aktif. PM2 listen 127.0.0.1:8093"
+echo "==> Nginx site ${SITE_NAME} enabled (upstream 127.0.0.1:8094)"

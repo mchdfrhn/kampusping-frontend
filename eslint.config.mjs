@@ -1,16 +1,24 @@
-import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTypescript from 'eslint-config-next/typescript';
 
 const eslintConfig = [
   {
-    ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'],
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'next-env.d.ts',
+      'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
+    ],
   },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...nextVitals,
+  ...nextTypescript,
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': ['warn', { fixStyle: 'inline-type-imports' }],
     },
   },
 ];

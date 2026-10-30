@@ -1,20 +1,16 @@
-/** PM2 — Next.js production. Listen 127.0.0.1:8093; Nginx proxy_pass ke port ini. */
+/** PM2: Next.js in production. Listens on 127.0.0.1:8094 only; Nginx proxies to it. */
 module.exports = {
   apps: [
     {
-      name: 'his-standard-uiux',
+      name: 'webapp-frontend',
       cwd: __dirname + '/..',
-      script: 'node_modules/.bin/next',
-      args: 'start -H 127.0.0.1 -p 8093',
-      interpreter: 'none',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'start -p 8094 -H 127.0.0.1',
       instances: 1,
       autorestart: true,
       watch: false,
-      max_memory_restart: '768M',
-      env: {
-        NODE_ENV: 'production',
-        PORT: 8093,
-      },
+      max_memory_restart: '1G',
+      env: { NODE_ENV: 'production' },
     },
   ],
 };

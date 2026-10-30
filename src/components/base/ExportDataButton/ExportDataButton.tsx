@@ -1,6 +1,6 @@
 'use client';
 
-import IosShareOutlinedIcon from '@mui/icons-material/IosShareOutlined';
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import TableViewOutlinedIcon from '@mui/icons-material/TableViewOutlined';
 import Button from '@mui/material/Button';
@@ -9,25 +9,29 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 
-export type ExportFormat = 'excel' | 'pdf';
+export type ExportFormat = 'csv' | 'excel' | 'pdf';
+
+const FORMATS: Record<ExportFormat, { label: string; icon: ReactNode }> = {
+  csv: { label: 'CSV', icon: <TableViewOutlinedIcon fontSize="small" /> },
+  excel: { label: 'Excel', icon: <TableViewOutlinedIcon fontSize="small" /> },
+  pdf: { label: 'PDF', icon: <PictureAsPdfOutlinedIcon fontSize="small" /> },
+};
 
 type Props = {
+  /** Offered formats. A single format renders a plain button; several open a menu. */
+  formats?: ExportFormat[];
   disabled?: boolean;
   onExport: (format: ExportFormat) => Promise<void>;
 };
 
-export const ExportDataButton = ({ disabled = false, onExport }: Props) => {
+export const ExportDataButton = ({ formats = ['csv'], disabled = false, onExport }: Props) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [exporting, setExporting] = useState(false);
-  const open = Boolean(anchorEl);
 
-  const handleClose = () => {
-    if (!exporting) setAnchorEl(null);
-  };
-
-  const handleExport = async (format: ExportFormat) => {
+  const run = async (format: ExportFormat) => {
     setExporting(true);
     try {
       await onExport(format);
@@ -37,36 +41,36 @@ export const ExportDataButton = ({ disabled = false, onExport }: Props) => {
     }
   };
 
+  const single = formats.length === 1 ? formats[0] : null;
+
   return (
     <>
       <Button
+        color="inherit"
         disabled={disabled || exporting}
-        onClick={(event) => setAnchorEl(event.currentTarget)}
-        startIcon={exporting ? <CircularProgress color="inherit" size={16} /> : <IosShareOutlinedIcon />}
-        sx={{
-          bgcolor: '#ede9fe',
-          borderRadius: 1,
-          color: '#7c3aed',
-          minWidth: 136,
-          px: 2,
-        }}
+        onClick={(event) => (single ? void run(single) : setAnchorEl(event.currentTarget))}
+        startIcon={
+          exporting ? <CircularProgress color="inherit" size={16} /> : <FileDownloadOutlinedIcon />
+        }
+        sx={{ borderColor: 'divider', minWidth: 120 }}
+        variant="outlined"
       >
-        Export Data
+        {single ? `Export ${FORMATS[single].label}` : 'Export'}
       </Button>
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-        <MenuItem disabled={exporting} onClick={() => void handleExport('excel')}>
-          <ListItemIcon>
-            <TableViewOutlinedIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Export Excel</ListItemText>
-        </MenuItem>
-        <MenuItem disabled={exporting} onClick={() => void handleExport('pdf')}>
-          <ListItemIcon>
-            <PictureAsPdfOutlinedIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Export PDF</ListItemText>
-        </MenuItem>
-      </Menu>
+      {single ? null : (
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => !exporting && setAnchorEl(null)}
+        >
+          {formats.map((format) => (
+            <MenuItem key={format} disabled={exporting} onClick={() => void run(format)}>
+              <ListItemIcon>{FORMATS[format].icon}</ListItemIcon>
+              <ListItemText>Export {FORMATS[format].label}</ListItemText>
+            </MenuItem>
+          ))}
+        </Menu>
+      )}
     </>
   );
 };

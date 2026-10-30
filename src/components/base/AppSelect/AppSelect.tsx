@@ -9,7 +9,11 @@ export type AppSelectProps<T extends string | number = string> = SelectProps<T> 
   options: AppSelectOption<T>[];
 };
 
-export const AppSelect = <T extends string | number = string>({ label, options, ...props }: AppSelectProps<T>) => (
+export const AppSelect = <T extends string | number = string>({
+  label,
+  options,
+  ...props
+}: AppSelectProps<T>) => (
   <FormControl fullWidth size={props.size ?? 'small'}>
     {label ? <InputLabel>{label}</InputLabel> : null}
     <Select label={label} {...props}>

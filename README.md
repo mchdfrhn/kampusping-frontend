@@ -1,144 +1,120 @@
-# HIS Standard UI/UX
+# Webapp Frontend
 
-Base frontend resmi **PT. Hino Motors Sales Indonesia** untuk semua project HIS baru.
+A clean, modern Next.js starter for business web applications: sign-in with cookie-based sessions,
+permission-aware navigation, light/dark themes, and reusable data-grid, dialog and form building
+blocks. It talks to the companion [FastAPI backend](../his-standard-backend/README.md).
 
-Stack: **Next.js App Router 16**, **React 19**, **TypeScript**, **MUI 9** (Data Grid + Date Pickers), React Hook Form, Zod, Zustand.
+**Stack:** Next.js 16 (App Router), React 19, TypeScript, MUI 9 (+ Data Grid, Date Pickers, Charts),
+React Hook Form + Zod, Zustand, Vitest, Playwright.
 
-Vendor dan IT internal **wajib** clone repo ini, bukan membuat UI dari nol dan bukan memakai Tailwind / Ant Design / Chakra / Bootstrap.
-
-## Menjalankan di lokal
+## Quick start
 
 ```bash
 cp .env.example .env.local
 npm install
-npm run dev
+npm run dev                # http://localhost:3000
 ```
 
-Buka `http://localhost:3000`. Dengan `NEXT_PUBLIC_ALLOW_LOCAL_DEV_WITHOUT_AUTH=true` dashboard bisa dibuka tanpa token IAM.
+Start the backend first (see its README), create an administrator, and sign in at `/login`.
+`NEXT_PUBLIC_API_BASE_URL` must point at the API (default `http://localhost:8000/api/v1`), and the
+API's `BACKEND_CORS_ORIGINS` must include this app's origin.
 
-Halaman contoh siap pakai: `/example` (table, filter, dialog, export).
+## What is included
 
-## Struktur folder
+| Area           | Details                                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Auth           | Login page, in-memory access token, HttpOnly refresh cookie, automatic refresh on 401, safe `?next=` redirects                 |
+| Access control | Sidebar and pages filtered by permission (`usePermission`, `<Can>`, `<RequirePermission>`); the API enforces the real checks   |
+| Modules        | Dashboard (live stats + chart), Example items (full CRUD reference), Users, Roles and permissions, Profile and password        |
+| UI kit         | `AppDataGrid`, `AppDialog`, `AppConfirmDialog`, `AppDatePicker`, `AppStatusChip`, `ExportDataButton`, React Hook Form wrappers |
+| Theming        | Light, dark and system modes via CSS variables, no flash on load; brand color from one env variable                            |
+| Quality        | ESLint (Next + React Hooks rules), Prettier, strict TypeScript, unit tests, e2e tests                                          |
+
+## Project layout
 
 ```text
 src/
-├── app/                 # routing Next.js saja (layout, page, loading, error)
+├── app/                  # routing only
+│   ├── layout.tsx        # fonts, theme, providers
+│   ├── (auth)/login/     # public pages
+│   └── (app)/            # signed-in area: AuthGuard + AppShell, then dashboard, example, users, roles, profile
 ├── components/
-│   ├── base/            # komponen wajib: table, form, dialog, chip, export
-│   ├── form/            # wrapper React Hook Form
-│   ├── layout/          # header, sidebar, shell, toolbar
-│   └── feedback/        # loader, empty, error
+│   ├── base/             # reusable UI kit (App* components)
+│   ├── form/             # React Hook Form wrappers
+│   └── layout/           # AppShell, sidebar, header, PageHeader, guards
 ├── core/
-│   ├── auth/            # bootstrap IAM, session, logout
-│   ├── config/          # app, env, menu, route
-│   ├── constants/       # storage key, page size
-│   ├── helpers/         # permission & role (ID dari env/DB, bukan hardcoded)
-│   ├── http/            # apiClient
-│   ├── iam/             # verify-user, menu, app-roles, menus-mapping
-│   ├── layout/          # PageTitle / PageToolbar data
-│   ├── services/        # service lintas modul (notifikasi)
-│   ├── types/
-│   └── utils/           # tanggal, download, storage
-├── design-system/       # theme, token warna Hino, typography Poppins
-├── modules/             # modul bisnis project (contoh: example)
-└── store/               # Zustand UI state (sidebar, theme)
-deploy/                  # PM2 + Nginx production
+│   ├── auth/             # auth store, service, permissions, hooks
+│   ├── http/             # api client (refresh + retry), errors, form error mapping
+│   ├── config/           # app, env, routes, sidebar menu
+│   ├── hooks/            # useServerGrid, useDebounce, ...
+│   └── notify/           # toast notifications
+├── design-system/        # theme (palette, typography, components) and tokens
+├── modules/              # feature modules: components, services, types
+└── store/                # UI state (sidebar)
+e2e/                      # Playwright tests
+deploy/                   # PM2 + Nginx
 ```
 
-## Komponen yang wajib dipakai
-
-| Kebutuhan | Komponen |
-|---|---|
-| Table list (server pagination) | `AppDataGrid` |
-| Table sederhana | `AppTable` |
-| Dialog form | `AppDialog` + `AppDialogTextField` + `AppDialogActions` |
-| Konfirmasi hapus | `AppConfirmDialog` |
-| Konfirmasi + summary + notes | `AppActionConfirmDialog` |
-| Filter tanggal | `AppDatePicker` (`DD-MM-YYYY`) |
-| Export Excel/PDF | `ExportDataButton` |
-| Status | `AppStatusChip` |
-| Loading splash | `AppLoading` |
-| Form terstruktur | `RHFTextField`, `RHFSelect`, `RHFDatePicker` |
-
-Jangan memakai `DataGrid` / `Dialog` MUI mentah di halaman bisnis. Wrap sudah distandarkan (sticky action, zebra, footer, tinggi input dialog).
-
-Pola list page: lihat `src/modules/example/components/ExampleListPage.tsx`.
-
-- Search debounce 300ms, **minimal 3 karakter**
-- Date range `date_from` / `date_to` format `YYYY-MM-DD`
-- Pagination server: `page` 1-based, `page_size` 20/50/100, `sort_by`, `sort_order`
-- Kolom aksi `field: '__actions__'` agar **sticky di kiri**
-
-## Cara menambah modul
-
-1. Buat `src/modules/{modul}/` (components, services, types).
-2. Buat route `src/app/{modul}/page.tsx` + `layout.tsx` yang membungkus `DashboardShell`.
-3. Daftarkan menu di `src/core/config/menu.config.ts` (slug permission).
-4. Ganti `USE_MOCK` di service menjadi pemanggilan `apiClient`.
-
-## Branding
-
-Warna primer `#E30613`, sekunder `#005BAC`. Logo: `public/media/logos/logo-hino-v.png`. Ubah lewat `.env.local` / `app.config.ts`.
-
-## Auth IAM — Tanpa Halaman Login
-
-HIS (Hino Integrated System) adalah portal IAM HMSI. **Aplikasi modul tidak memiliki halaman Login.**
-
-Alur:
-
-1. User login di portal HIS (master app).
-2. User klik kotak **Launcher** aplikasi modul.
-3. IAM mengarahkan ke URL aplikasi dengan `?auth={"access_token":"..."}` jika login sukses.
-4. Token disimpan → `POST {IAM}/v1/verify-user` → `GET {API}/auth/session`.
-5. Tanpa akses → `NoAccessDialog` → kembali ke master app.
-
-**Wajib:** set `NEXT_PUBLIC_LAUNCHER_ID` di `.env` — ID launcher IAM untuk aplikasi ini.
-
-Menu sidebar **dinamis** dari API IAM sesuai launcher. Ikon menu memakai **MUI Icons**.
-
-ID role group-admin **tidak di-hardcode** di komponen. Pakai `NEXT_PUBLIC_GROUP_ADMIN_ROLE_ID`. Prefix permission pakai `NEXT_PUBLIC_APP_PERMISSION_PREFIXES`.
-
-Production: set `NEXT_PUBLIC_ALLOW_LOCAL_DEV_WITHOUT_AUTH=false`.
-
-## Aturan UI/UX Layout HIS
-
-| Area | Aturan |
-|---|---|
-| **Sidebar** | Logo Hino background merah di atas; ikon collapse/uncollapse di sampingnya; menu dinamis dari IAM; ikon MUI |
-| **Header kanan atas** | Lonceng notifikasi; ikon Hino → klik tampilkan nama & posisi user |
-| **Toolbar tabel** | Refresh → Search → custom filter (tanggal, dll.) → Export Data (kanan) |
-| **Tabel** | `AppDataGrid`; kolom **Action sticky kiri** dengan ikon MUI; pagination kanan bawah |
-| **Form** | `AppDialog` + komponen form standar; semua basis MUI |
-
-Lihat modul contoh `/example` dan `ExampleListPage.tsx`.
-
-## Deploy production (PM2 + Nginx)
-
-Arsitektur:
+## Authentication model
 
 ```text
-Browser → GCP Load Balancer (HTTPS) → Nginx :80 → PM2 Next.js 127.0.0.1:8093
+POST /auth/login    -> access token (kept in memory) + refresh cookie (HttpOnly, set by the API)
+any API call        -> Authorization: Bearer <access token>
+401                 -> one shared POST /auth/refresh -> retry once; still 401 -> back to /login
+page reload         -> access token is gone; /auth/refresh restores it from the cookie
 ```
 
-Di server (Node.js 20+):
+- No token is ever written to `localStorage` or `sessionStorage`.
+- Refreshes are serialised across browser tabs (Web Locks), because refresh tokens rotate.
+- Route protection is client-side navigation convenience. **Authorization happens on the server**;
+  hiding a button never grants or removes access.
 
-```bash
-cd /var/www/his-standard-uiux
-cp deploy/.env.production.example .env
-# isi URL API, IAM, launcher
-chmod +x deploy/*.sh
-bash deploy/deploy-prod.sh --all
-```
+## Add a module
 
-- PM2 config: `deploy/ecosystem.prod.config.js`
-- Nginx: `deploy/nginx-prod.conf.example` (ganti `server_name`)
-- Update: `git pull && bash deploy/deploy-prod.sh`
+1. `src/modules/<name>/` with `types.ts`, `services/<name>.service.ts`, `components/<Name>ListPage.tsx`.
+   Copy `modules/example/` and use `useServerGrid` for pagination, sorting and search.
+2. A route: `src/app/(app)/<name>/page.tsx`, wrapping the page in `<RequirePermission>`.
+3. A menu entry in `src/core/config/menu.config.ts`, with the permission that should reveal it.
+4. Permission codes mirrored in `src/core/auth/permissions.ts` (the backend defines them).
 
-SSL di-terminate di load balancer. PM2 hanya listen internal.
+## Conventions
 
-## Larangan
+- Use the `App*` components for grids, dialogs and confirmations instead of raw MUI ones, so the
+  look and behavior stay consistent.
+- Colors come from the theme (`primary.main`, `divider`, `mixToken(...)`), never hex literals.
+- Lists follow the API contract: `page` (1-based), `page_size` 20/50/100, `search` (3+ characters),
+  `sort_by`, `sort_order`, plus module filters.
+- Forms use React Hook Form + Zod. Map API validation errors onto fields with `handleFormApiError`.
+- Toasts: `const notify = useNotify(); notify.success('Saved')`.
 
-- Tailwind, Bootstrap, Ant Design, Chakra, CSS framework lain
-- Hardcode warna di halaman (gunakan theme token)
-- Bypass `AppDataGrid` / `AppDialog` untuk list/form utama
-- Commit file `.env` / secret
+## Scripts
+
+| Command                           | Purpose                                                      |
+| --------------------------------- | ------------------------------------------------------------ |
+| `npm run dev` / `build` / `start` | Develop, build, serve                                        |
+| `npm run check`                   | Lint, typecheck, format check and unit tests                 |
+| `npm test`                        | Vitest unit and component tests                              |
+| `npm run test:e2e`                | Playwright end-to-end tests ([e2e/README.md](e2e/README.md)) |
+| `npm run format`                  | Prettier                                                     |
+
+## Configuration
+
+`NEXT_PUBLIC_*` variables are inlined at build time and visible in the browser: never put secrets
+in them. See `.env.example`.
+
+| Variable                                                                      | Purpose                                                   |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `NEXT_PUBLIC_API_BASE_URL`                                                    | Backend API base URL including `/api/v1`                  |
+| `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_DESCRIPTION`, `NEXT_PUBLIC_APP_LOGO` | Branding (logo is optional; a monogram is used otherwise) |
+| `NEXT_PUBLIC_PRIMARY_COLOR`                                                   | Brand color; dark mode derives a lighter variant          |
+| `NEXT_PUBLIC_DEFAULT_THEME_MODE`                                              | `light`, `dark` or `system`                               |
+| `NEXT_PUBLIC_LOCALE`                                                          | Date/number locale (`en` or `id` bundled)                 |
+
+## Deploy
+
+PM2 + Nginx scripts: [`deploy/`](deploy/README.md). A multi-stage `Dockerfile` is included and the
+repository root has a `docker-compose.yml` that runs the whole stack.
+
+## License
+
+[MIT](LICENSE)
