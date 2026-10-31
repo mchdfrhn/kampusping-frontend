@@ -29,7 +29,19 @@ const schema = z.object({
 });
 
 /** Display names for permission groups (the part of the code before the colon). */
-const RESOURCE_LABELS: Record<string, string> = { users: 'Pengguna', roles: 'Peran' };
+const RESOURCE_LABELS: Record<string, string> = {
+  users: 'Pengguna',
+  roles: 'Peran',
+  dashboard: 'Dasbor',
+  imports: 'Impor tagihan',
+  students: 'Mahasiswa',
+  invoices: 'Tagihan',
+  templates: 'Templat pesan',
+  schedules: 'Jadwal pengingat',
+  messages: 'Riwayat pesan',
+  settings: 'Pengaturan',
+  audit: 'Jejak audit',
+};
 
 const FIELDS = ['name', 'description', 'permissions'] as const;
 const emptyForm: RoleUpsertPayload = { name: '', description: '', permissions: [] };
