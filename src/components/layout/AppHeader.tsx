@@ -23,7 +23,7 @@ export const AppHeader = () => {
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
   const setMobileNavOpen = useUiStore((state) => state.setMobileNavOpen);
 
-  const label = isMobile ? 'Open navigation' : collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  const label = isMobile ? 'Buka navigasi' : collapsed ? 'Perluas sidebar' : 'Ciutkan sidebar';
 
   return (
     <AppBar

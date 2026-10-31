@@ -86,10 +86,10 @@ describe('useAuthStore', () => {
   });
 
   it('leaves the state untouched when login fails', async () => {
-    service.login.mockRejectedValue(new Error('Invalid email or password.'));
+    service.login.mockRejectedValue(new Error('Email atau kata sandi salah.'));
 
     await expect(useAuthStore.getState().login({ email: 'a@b.co', password: 'x' })).rejects.toThrow(
-      'Invalid email or password.',
+      'Email atau kata sandi salah.',
     );
 
     expect(useAuthStore.getState().status).toBe('idle');

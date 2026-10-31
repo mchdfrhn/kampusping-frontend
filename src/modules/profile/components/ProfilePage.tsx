@@ -28,19 +28,19 @@ import { formatDisplayDateTime } from '@/core/utils/date.util';
 import { passwordSchema } from '@/core/validation/password';
 
 const profileSchema = z.object({
-  full_name: z.string().trim().min(1, 'Name is required').max(150, 'At most 150 characters'),
+  full_name: z.string().trim().min(1, 'Nama wajib diisi').max(150, 'Maksimal 150 karakter'),
 });
 type ProfileValues = z.infer<typeof profileSchema>;
 
 const passwordFormSchema = z
   .object({
-    current_password: z.string().min(1, 'Enter your current password'),
+    current_password: z.string().min(1, 'Masukkan kata sandi Anda saat ini'),
     new_password: passwordSchema,
     confirm_password: z.string(),
   })
   .refine((values) => values.new_password === values.confirm_password, {
     path: ['confirm_password'],
-    message: 'Passwords do not match',
+    message: 'Kata sandi tidak cocok',
   });
 type PasswordValues = z.infer<typeof passwordFormSchema>;
 
@@ -68,33 +68,33 @@ const ProfileCard = () => {
   const onSubmit = handleSubmit(async (values) => {
     try {
       setUser(await authService.updateProfile(values));
-      notify.success('Profile updated.');
+      notify.success('Profil berhasil diperbarui.');
     } catch (error) {
-      notify.error(getErrorMessage(error, 'Could not update your profile.'));
+      notify.error(getErrorMessage(error, 'Tidak dapat memperbarui profil Anda.'));
     }
   });
 
   return (
     <Card>
-      <CardHeader title="Profile" subheader="Your name is shown across the app." />
+      <CardHeader title="Profil" subheader="Nama Anda ditampilkan di seluruh aplikasi." />
       <CardContent>
         <FormProvider methods={methods} onSubmit={onSubmit}>
           <Stack spacing={2.5} sx={{ maxWidth: 480 }}>
-            <RHFTextField<ProfileValues> name="full_name" label="Full name" fullWidth />
+            <RHFTextField<ProfileValues> name="full_name" label="Nama lengkap" fullWidth />
             <RHFTextField
               label="Email"
               value={user.email}
               disabled
               fullWidth
-              helperText="Contact an administrator to change your email."
+              helperText="Hubungi administrator untuk mengubah email Anda."
               name="email"
             />
             <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
               <Typography color="text.secondary" variant="body2">
-                Roles
+                Peran
               </Typography>
               {user.roles.length === 0 ? (
-                <Typography variant="body2">None</Typography>
+                <Typography variant="body2">Tidak ada</Typography>
               ) : (
                 user.roles.map((role) => (
                   <Chip key={role.id} label={role.name} size="small" variant="outlined" />
@@ -102,7 +102,7 @@ const ProfileCard = () => {
               )}
             </Stack>
             <Typography color="text.secondary" variant="caption">
-              Last sign-in: {formatDisplayDateTime(user.last_login_at, 'First session')}
+              Masuk terakhir: {formatDisplayDateTime(user.last_login_at, 'Sesi pertama')}
             </Typography>
             <div>
               <Button
@@ -113,7 +113,7 @@ const ProfileCard = () => {
                 type="submit"
                 variant="contained"
               >
-                Save changes
+                Simpan perubahan
               </Button>
             </div>
           </Stack>
@@ -148,19 +148,19 @@ const PasswordCard = () => {
       });
       // The server revoked every session (including this one), so sign in again.
       clear();
-      notify.success('Password changed. Please sign in again.');
+      notify.success('Kata sandi diubah. Silakan masuk kembali.');
       router.replace(routes.login);
     } catch (error) {
       handleFormApiError(error, setError, ['current_password', 'new_password'], {});
-      setFormError(getErrorMessage(error, 'Could not change your password.'));
+      setFormError(getErrorMessage(error, 'Tidak dapat mengubah kata sandi Anda.'));
     }
   });
 
   return (
     <Card>
       <CardHeader
-        title="Change password"
-        subheader="You will be signed out everywhere after changing it."
+        title="Ubah kata sandi"
+        subheader="Anda akan keluar dari semua perangkat setelah mengubahnya."
       />
       <CardContent>
         <FormProvider methods={methods} onSubmit={onSubmit}>
@@ -168,22 +168,22 @@ const PasswordCard = () => {
             {formError ? <Alert severity="error">{formError}</Alert> : null}
             <RHFTextField<PasswordValues>
               name="current_password"
-              label="Current password"
+              label="Kata sandi saat ini"
               type="password"
               autoComplete="current-password"
               fullWidth
             />
             <RHFTextField<PasswordValues>
               name="new_password"
-              label="New password"
+              label="Kata sandi baru"
               type="password"
               autoComplete="new-password"
-              helperText="At least 10 characters, with a letter and a digit."
+              helperText="Minimal 10 karakter, dengan huruf dan angka."
               fullWidth
             />
             <RHFTextField<PasswordValues>
               name="confirm_password"
-              label="Confirm new password"
+              label="Konfirmasi kata sandi baru"
               type="password"
               autoComplete="new-password"
               fullWidth
@@ -197,7 +197,7 @@ const PasswordCard = () => {
                 type="submit"
                 variant="contained"
               >
-                Change password
+                Ubah kata sandi
               </Button>
             </div>
           </Stack>
@@ -210,9 +210,9 @@ const PasswordCard = () => {
 export const ProfilePage = () => (
   <>
     <PageHeader
-      title="Profile"
-      description="Manage your account details and password."
-      breadcrumbs={[{ label: 'Dashboard', href: routes.dashboard }, { label: 'Profile' }]}
+      title="Profil"
+      description="Kelola data akun dan kata sandi Anda."
+      breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Profil' }]}
     />
     <Stack spacing={3}>
       <ProfileCard />

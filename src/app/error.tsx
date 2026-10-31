@@ -28,13 +28,14 @@ export default function Error({
       }}
     >
       <Typography component="h1" variant="h4">
-        Something went wrong
+        Terjadi kesalahan
       </Typography>
       <Typography color="text.secondary" sx={{ maxWidth: 420, my: 2 }}>
-        An unexpected error occurred. You can try again, and if it keeps happening contact support.
+        Terjadi kesalahan tak terduga. Silakan coba lagi, dan hubungi dukungan jika masalah
+        berlanjut.
       </Typography>
       <Button onClick={reset} variant="contained">
-        Try again
+        Coba lagi
       </Button>
     </Box>
   );

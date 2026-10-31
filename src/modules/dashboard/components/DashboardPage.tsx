@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useAuth } from '@/core/auth/useAuth';
+import { appConfig } from '@/core/config/app.config';
 
 export const DashboardPage = () => {
   const { user } = useAuth();
@@ -17,18 +18,18 @@ export const DashboardPage = () => {
   return (
     <>
       <PageHeader
-        title={firstName ? `Welcome back, ${firstName}` : 'Welcome back'}
-        description="Welcome to KampusPing."
+        title={firstName ? `Selamat datang kembali, ${firstName}` : 'Selamat datang kembali'}
+        description={`Selamat datang di ${appConfig.appName}.`}
       />
 
       <Card>
-        <CardHeader title="Your access" subheader="What your account can currently do." />
+        <CardHeader title="Akses Anda" subheader="Hal yang saat ini dapat dilakukan akun Anda." />
         <CardContent>
           <Stack spacing={1}>
             <Typography variant="body2">
               {user?.roles.length
-                ? 'Roles:'
-                : 'No roles assigned yet. Ask an administrator for access.'}
+                ? 'Peran:'
+                : 'Belum ada peran yang diberikan. Hubungi administrator untuk mendapatkan akses.'}
             </Typography>
             <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
               {user?.roles.map((role) => (

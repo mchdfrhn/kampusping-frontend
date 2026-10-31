@@ -23,13 +23,13 @@ export default function NotFound() {
         404
       </Typography>
       <Typography component="h1" sx={{ mt: 1 }} variant="h5">
-        Page not found
+        Halaman tidak ditemukan
       </Typography>
       <Typography color="text.secondary" sx={{ my: 2 }}>
-        The page you are looking for does not exist or was moved.
+        Halaman yang Anda cari tidak ada atau telah dipindahkan.
       </Typography>
       <Button component={Link} href={routes.dashboard} variant="contained">
-        Back to dashboard
+        Kembali ke dasbor
       </Button>
     </Box>
   );

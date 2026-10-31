@@ -9,7 +9,7 @@ export type AppBreadcrumbsProps = { items: BreadcrumbItem[] };
 
 export const AppBreadcrumbs = ({ items }: AppBreadcrumbsProps) => (
   <Breadcrumbs
-    aria-label="breadcrumb"
+    aria-label="Jejak navigasi"
     sx={{
       '& .MuiBreadcrumbs-separator': { mx: 0.75 },
       fontSize: 14,

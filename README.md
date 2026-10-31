@@ -2,7 +2,7 @@
 
 A clean, modern Next.js starter for business web applications: sign-in with cookie-based sessions,
 permission-aware navigation, light/dark themes, and reusable data-grid, dialog and form building
-blocks. It talks to the companion [FastAPI backend](../his-standard-backend/README.md).
+blocks. It talks to the companion [FastAPI backend](../kampusping-backend/README.md).
 
 **Stack:** Next.js 16 (App Router), React 19, TypeScript, MUI 9 (+ Data Grid, Date Pickers, Charts),
 React Hook Form + Zod, Zustand, Vitest, Playwright.

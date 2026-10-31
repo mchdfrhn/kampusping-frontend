@@ -6,8 +6,8 @@ import type { ReactNode } from 'react';
 export type AppEmptyStateProps = { title?: string; description?: string; action?: ReactNode };
 
 export const AppEmptyState = ({
-  title = 'No data',
-  description = 'There is nothing to display yet.',
+  title = 'Tidak ada data',
+  description = 'Belum ada data untuk ditampilkan.',
   action,
 }: AppEmptyStateProps) => (
   <Box

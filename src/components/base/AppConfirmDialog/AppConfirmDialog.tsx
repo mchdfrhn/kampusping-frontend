@@ -29,8 +29,8 @@ export type AppConfirmDialogProps = Omit<DialogProps, 'children'> & {
 export const AppConfirmDialog = ({
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = 'Konfirmasi',
+  cancelText = 'Batal',
   confirmColor,
   loading = false,
   onClose,

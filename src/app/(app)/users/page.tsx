@@ -4,7 +4,7 @@ import { RequirePermission } from '@/components/layout/RequirePermission';
 import { permissions } from '@/core/auth/permissions';
 import { UsersListPage } from '@/modules/users/components/UsersListPage';
 
-export const metadata: Metadata = { title: 'Users' };
+export const metadata: Metadata = { title: 'Pengguna' };
 
 export default function Page() {
   return (

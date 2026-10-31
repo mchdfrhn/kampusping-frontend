@@ -35,6 +35,6 @@ export const handleFormApiError = <T extends FieldValues>(
     }
   }
   setError(SERVER_ERROR_KEY as Path<T>, {
-    message: getErrorMessage(error, 'Something went wrong. Please try again.'),
+    message: getErrorMessage(error, 'Terjadi kesalahan. Silakan coba lagi.'),
   });
 };

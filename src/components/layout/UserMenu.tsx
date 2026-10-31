@@ -32,7 +32,7 @@ export const UserMenu = () => {
   return (
     <>
       <IconButton
-        aria-label="Open user menu"
+        aria-label="Buka menu pengguna"
         aria-haspopup="menu"
         onClick={(event) => setAnchor(event.currentTarget)}
         sx={{ p: 0.5 }}
@@ -84,7 +84,7 @@ export const UserMenu = () => {
           <ListItemIcon>
             <PersonOutlineOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          Profile
+          Profil
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -95,7 +95,7 @@ export const UserMenu = () => {
           <ListItemIcon>
             <LogoutOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          Sign out
+          Keluar
         </MenuItem>
       </Menu>
     </>

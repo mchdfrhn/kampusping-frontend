@@ -58,16 +58,16 @@ export const RolesListPage = () => {
     rolesService
       .permissions()
       .then(setCatalog)
-      .catch((error) => notify.error(getErrorMessage(error, 'Failed to load permissions.')));
+      .catch((error) => notify.error(getErrorMessage(error, 'Gagal memuat izin.')));
   }, [notify]);
 
   const handleSubmit = async (payload: RoleUpsertPayload) => {
     if (editing) {
       await rolesService.update(editing.id, payload);
-      notify.success('Role updated.');
+      notify.success('Peran berhasil diperbarui.');
     } else {
       await rolesService.create(payload);
-      notify.success('Role created.');
+      notify.success('Peran berhasil ditambahkan.');
     }
     setFormOpen(false);
     setEditing(null);
@@ -78,10 +78,10 @@ export const RolesListPage = () => {
     if (!deleteTarget) return;
     try {
       await rolesService.remove(deleteTarget.id);
-      notify.success('Role deleted.');
+      notify.success('Peran berhasil dihapus.');
       await grid.reload();
     } catch (error) {
-      notify.error(getErrorMessage(error, 'Delete failed.'));
+      notify.error(getErrorMessage(error, 'Gagal menghapus.'));
     } finally {
       setDeleteTarget(null);
     }
@@ -91,26 +91,26 @@ export const RolesListPage = () => {
     const base: GridColDef<Role>[] = [
       {
         field: 'name',
-        headerName: 'Name',
+        headerName: 'Nama',
         minWidth: 200,
         flex: 0.8,
         renderCell: ({ row }) => (
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <span>{row.name}</span>
-            {row.is_system ? <Chip label="System" size="small" variant="outlined" /> : null}
+            {row.is_system ? <Chip label="Sistem" size="small" variant="outlined" /> : null}
           </Stack>
         ),
       },
       {
         field: 'description',
-        headerName: 'Description',
+        headerName: 'Deskripsi',
         minWidth: 240,
         flex: 1.4,
         sortable: false,
       },
       {
         field: 'permissions',
-        headerName: 'Permissions',
+        headerName: 'Izin',
         minWidth: 130,
         flex: 0.5,
         sortable: false,
@@ -118,7 +118,7 @@ export const RolesListPage = () => {
       },
       {
         field: 'updated_at',
-        headerName: 'Updated',
+        headerName: 'Diperbarui',
         minWidth: 180,
         flex: 0.7,
         valueFormatter: (value) => formatDisplayDateTime(String(value ?? '')),
@@ -130,16 +130,16 @@ export const RolesListPage = () => {
       ...base,
       {
         field: '__actions__',
-        headerName: 'Actions',
+        headerName: 'Aksi',
         sortable: false,
         filterable: false,
         width: getActionColumnWidth(Number(canUpdate) + Number(canDelete)),
         renderCell: ({ row }) => (
           <Stack direction="row" spacing={0.75}>
             {canUpdate ? (
-              <Tooltip title={row.name === 'admin' ? 'View' : 'Edit'}>
+              <Tooltip title={row.name === 'admin' ? 'Lihat' : 'Ubah'}>
                 <IconButton
-                  aria-label={`Edit ${row.name}`}
+                  aria-label={`Ubah ${row.name}`}
                   size="small"
                   sx={gridActionButtonSx.edit}
                   onClick={() => {
@@ -152,10 +152,10 @@ export const RolesListPage = () => {
               </Tooltip>
             ) : null}
             {canDelete ? (
-              <Tooltip title={row.is_system ? 'System roles cannot be deleted' : 'Delete'}>
+              <Tooltip title={row.is_system ? 'Peran sistem tidak dapat dihapus' : 'Hapus'}>
                 <span>
                   <IconButton
-                    aria-label={`Delete ${row.name}`}
+                    aria-label={`Hapus ${row.name}`}
                     disabled={row.is_system}
                     size="small"
                     sx={gridActionButtonSx.delete}
@@ -175,9 +175,9 @@ export const RolesListPage = () => {
   return (
     <>
       <PageHeader
-        title="Roles"
-        description="Roles group permissions. Assign them to users to control what they can do."
-        breadcrumbs={[{ label: 'Dashboard', href: routes.dashboard }, { label: 'Roles' }]}
+        title="Peran"
+        description="Peran mengelompokkan izin. Berikan peran ke pengguna untuk mengatur apa yang dapat mereka lakukan."
+        breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Peran' }]}
         actions={
           <Can permission={permissions.rolesCreate}>
             <Button
@@ -188,7 +188,7 @@ export const RolesListPage = () => {
                 setFormOpen(true);
               }}
             >
-              New role
+              Tambah peran
             </Button>
           </Can>
         }
@@ -197,8 +197,8 @@ export const RolesListPage = () => {
       <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <TextField
-            placeholder="Search roles"
-            aria-label="Search"
+            placeholder="Cari peran"
+            aria-label="Cari"
             value={grid.search}
             onChange={(event) => grid.setSearch(event.target.value)}
             sx={{ minWidth: 300 }}
@@ -212,7 +212,7 @@ export const RolesListPage = () => {
                 endAdornment: grid.search ? (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label="Clear search"
+                      aria-label="Hapus pencarian"
                       size="small"
                       onClick={() => grid.setSearch('')}
                     >
@@ -230,7 +230,7 @@ export const RolesListPage = () => {
             onClick={() => void grid.reload()}
             sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
           >
-            Refresh
+            Muat ulang
           </Button>
         </Box>
         <Box sx={{ flex: 1, minHeight: 360 }}>
@@ -257,9 +257,9 @@ export const RolesListPage = () => {
 
       <AppConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete role"
-        message={`Delete the role "${deleteTarget?.name ?? ''}"? Roles assigned to users cannot be deleted.`}
-        confirmText="Delete"
+        title="Hapus peran"
+        message={`Hapus peran "${deleteTarget?.name ?? ''}"? Peran yang masih diberikan ke pengguna tidak dapat dihapus.`}
+        confirmText="Hapus"
         onConfirm={handleDelete}
         onClose={() => setDeleteTarget(null)}
       />

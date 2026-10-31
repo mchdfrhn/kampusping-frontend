@@ -23,10 +23,13 @@ import { handleFormApiError } from '@/core/http/form-errors';
 import type { Permission, Role, RoleUpsertPayload } from '../types';
 
 const schema = z.object({
-  name: z.string().trim().min(2, 'At least 2 characters').max(50, 'At most 50 characters'),
-  description: z.string().trim().max(255, 'At most 255 characters'),
+  name: z.string().trim().min(2, 'Minimal 2 karakter').max(50, 'Maksimal 50 karakter'),
+  description: z.string().trim().max(255, 'Maksimal 255 karakter'),
   permissions: z.array(z.string()),
 });
+
+/** Display names for permission groups (the part of the code before the colon). */
+const RESOURCE_LABELS: Record<string, string> = { users: 'Pengguna', roles: 'Peran' };
 
 const FIELDS = ['name', 'description', 'permissions'] as const;
 const emptyForm: RoleUpsertPayload = { name: '', description: '', permissions: [] };
@@ -91,18 +94,18 @@ export const RoleFormDialog = ({ open, role, permissions, onClose, onSubmit }: P
       open={open}
       maxWidth="md"
       onClose={isSubmitting ? undefined : onClose}
-      title={role ? `Edit role: ${role.name}` : 'Create role'}
+      title={role ? `Ubah peran: ${role.name}` : 'Tambah peran'}
       actions={
         <>
           <AppDialogCancelButton
             disabled={isSubmitting}
-            label="Cancel"
+            label="Batal"
             onClick={onClose}
             variant="outlined"
           />
           <AppDialogConfirmButton
             disabled={locked}
-            label={role ? 'Save changes' : 'Create'}
+            label={role ? 'Simpan perubahan' : 'Tambah'}
             loading={isSubmitting}
             onClick={() => void submit()}
             showCheckIcon
@@ -117,16 +120,16 @@ export const RoleFormDialog = ({ open, role, permissions, onClose, onSubmit }: P
           ) : null}
           {locked ? (
             <Alert severity="info">
-              The admin role always holds every permission and cannot be edited.
+              Peran admin selalu memiliki seluruh izin dan tidak dapat diubah.
             </Alert>
           ) : null}
           <RHFTextField<RoleUpsertPayload>
             name="name"
-            label="Name"
+            label="Nama"
             required
             disabled={Boolean(role?.is_system)}
           />
-          <RHFTextField<RoleUpsertPayload> name="description" label="Description" />
+          <RHFTextField<RoleUpsertPayload> name="description" label="Deskripsi" />
 
           <Controller
             control={control}
@@ -134,7 +137,7 @@ export const RoleFormDialog = ({ open, role, permissions, onClose, onSubmit }: P
             render={({ field }) => (
               <Box>
                 <Typography sx={{ fontWeight: 600, mb: 1 }} variant="subtitle2">
-                  Permissions
+                  Izin
                 </Typography>
                 <Box
                   sx={{
@@ -153,7 +156,7 @@ export const RoleFormDialog = ({ open, role, permissions, onClose, onSubmit }: P
                         sx={{ fontWeight: 600, textTransform: 'capitalize' }}
                         variant="caption"
                       >
-                        {resource}
+                        {RESOURCE_LABELS[resource] ?? resource}
                       </Typography>
                       <Stack>
                         {items.map((permission) => (

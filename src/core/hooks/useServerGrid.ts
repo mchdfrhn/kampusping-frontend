@@ -89,7 +89,7 @@ export const useServerGrid = <Row, Extra extends object = Record<never, never>>(
       })
       .catch((error) => {
         if (cancelled) return;
-        onErrorRef.current?.(getErrorMessage(error, 'Failed to load data.'));
+        onErrorRef.current?.(getErrorMessage(error, 'Gagal memuat data.'));
         setLoaded((previous) => ({
           key: requestKey,
           rows: previous?.rows ?? [],

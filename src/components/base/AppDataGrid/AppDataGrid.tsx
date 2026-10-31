@@ -6,6 +6,7 @@ import {
   type GridColDef,
   type GridValidRowModel,
 } from '@mui/x-data-grid';
+import { idID } from '@mui/x-data-grid/locales';
 import { useMemo } from 'react';
 
 import { surfaceTokens } from '@/design-system/tokens/surface.token';
@@ -240,6 +241,7 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
       }}
       localeText={
         {
+          ...idID.components.MuiDataGrid.defaultProps.localeText,
           ...localeText,
           MuiTablePagination: {
             labelDisplayedRows: ({
@@ -250,7 +252,7 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
               from: number;
               to: number;
               count: number;
-            }) => `${from}-${to} of ${count} items`,
+            }) => `${from}-${to} dari ${count} data`,
             ...(localeText as { MuiTablePagination?: object } | undefined)?.MuiTablePagination,
           },
         } as DataGridProps<R>['localeText']

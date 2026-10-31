@@ -33,12 +33,13 @@ export const RequirePermission = ({ permission, children }: RequirePermissionPro
       }}
     >
       <LockOutlinedIcon color="disabled" sx={{ fontSize: 48 }} />
-      <Typography variant="h5">You don&apos;t have access to this page</Typography>
+      <Typography variant="h5">Anda tidak memiliki akses ke halaman ini</Typography>
       <Typography color="text.secondary" sx={{ maxWidth: 420 }}>
-        Your account does not have the required permission. Ask an administrator if you need it.
+        Akun Anda tidak memiliki izin yang diperlukan. Hubungi administrator jika Anda
+        membutuhkannya.
       </Typography>
       <Button component={Link} href={routes.dashboard} variant="outlined">
-        Back to dashboard
+        Kembali ke dasbor
       </Button>
     </Box>
   );

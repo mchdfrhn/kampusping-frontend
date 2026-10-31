@@ -66,7 +66,7 @@ export const UsersListPage = () => {
     rolesService
       .list({ page_size: 100, sort_by: 'name', sort_order: 'asc' })
       .then((page) => setRoles(page.items))
-      .catch((error) => notify.error(getErrorMessage(error, 'Failed to load roles.')));
+      .catch((error) => notify.error(getErrorMessage(error, 'Gagal memuat peran.')));
   }, [canReadRoles, notify]);
 
   const closeForm = () => {
@@ -76,14 +76,14 @@ export const UsersListPage = () => {
 
   const handleCreate = async (payload: UserCreatePayload) => {
     await usersService.create(payload);
-    notify.success('User created.');
+    notify.success('Pengguna berhasil ditambahkan.');
     closeForm();
     await grid.reload();
   };
 
   const handleUpdate = async (id: number, payload: UserUpdatePayload) => {
     await usersService.update(id, payload);
-    notify.success('User updated.');
+    notify.success('Pengguna berhasil diperbarui.');
     closeForm();
     await grid.reload();
   };
@@ -92,10 +92,10 @@ export const UsersListPage = () => {
     if (!deleteTarget) return;
     try {
       await usersService.remove(deleteTarget.id);
-      notify.success('User deleted.');
+      notify.success('Pengguna berhasil dihapus.');
       await grid.reload();
     } catch (error) {
-      notify.error(getErrorMessage(error, 'Delete failed.'));
+      notify.error(getErrorMessage(error, 'Gagal menghapus.'));
     } finally {
       setDeleteTarget(null);
     }
@@ -103,11 +103,11 @@ export const UsersListPage = () => {
 
   const columns = useMemo<GridColDef<UserRecord>[]>(() => {
     const base: GridColDef<UserRecord>[] = [
-      { field: 'full_name', headerName: 'Name', minWidth: 180, flex: 0.9 },
+      { field: 'full_name', headerName: 'Nama', minWidth: 180, flex: 0.9 },
       { field: 'email', headerName: 'Email', minWidth: 220, flex: 1.2 },
       {
         field: 'roles',
-        headerName: 'Roles',
+        headerName: 'Peran',
         minWidth: 200,
         flex: 1,
         sortable: false,
@@ -131,16 +131,17 @@ export const UsersListPage = () => {
         renderCell: ({ row }) => (
           <AppStatusChip
             status={row.is_active ? 'success' : 'default'}
-            label={row.is_active ? 'Active' : 'Inactive'}
+            label={row.is_active ? 'Aktif' : 'Nonaktif'}
           />
         ),
       },
       {
         field: 'last_login_at',
-        headerName: 'Last sign-in',
+        headerName: 'Masuk terakhir',
         minWidth: 170,
         flex: 0.7,
-        valueFormatter: (value) => formatDisplayDateTime(value ? String(value) : null, 'Never'),
+        valueFormatter: (value) =>
+          formatDisplayDateTime(value ? String(value) : null, 'Belum pernah'),
       },
     ];
     if (!canUpdate && !canDelete) return base;
@@ -149,16 +150,16 @@ export const UsersListPage = () => {
       ...base,
       {
         field: '__actions__',
-        headerName: 'Actions',
+        headerName: 'Aksi',
         sortable: false,
         filterable: false,
         width: getActionColumnWidth(Number(canUpdate) + Number(canDelete)),
         renderCell: ({ row }) => (
           <Stack direction="row" spacing={0.75}>
             {canUpdate ? (
-              <Tooltip title="Edit">
+              <Tooltip title="Ubah">
                 <IconButton
-                  aria-label={`Edit ${row.email}`}
+                  aria-label={`Ubah ${row.email}`}
                   size="small"
                   sx={gridActionButtonSx.edit}
                   onClick={() => {
@@ -171,10 +172,14 @@ export const UsersListPage = () => {
               </Tooltip>
             ) : null}
             {canDelete ? (
-              <Tooltip title={row.id === currentUserId ? 'You cannot delete yourself' : 'Delete'}>
+              <Tooltip
+                title={
+                  row.id === currentUserId ? 'Anda tidak dapat menghapus diri sendiri' : 'Hapus'
+                }
+              >
                 <span>
                   <IconButton
-                    aria-label={`Delete ${row.email}`}
+                    aria-label={`Hapus ${row.email}`}
                     disabled={row.id === currentUserId}
                     size="small"
                     sx={gridActionButtonSx.delete}
@@ -194,9 +199,9 @@ export const UsersListPage = () => {
   return (
     <>
       <PageHeader
-        title="Users"
-        description="Manage who can sign in and what they are allowed to do."
-        breadcrumbs={[{ label: 'Dashboard', href: routes.dashboard }, { label: 'Users' }]}
+        title="Pengguna"
+        description="Kelola siapa yang dapat masuk dan apa yang boleh mereka lakukan."
+        breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Pengguna' }]}
         actions={
           <Can permission={permissions.usersCreate}>
             <Button
@@ -207,7 +212,7 @@ export const UsersListPage = () => {
                 setFormOpen(true);
               }}
             >
-              New user
+              Tambah pengguna
             </Button>
           </Can>
         }
@@ -216,8 +221,8 @@ export const UsersListPage = () => {
       <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <TextField
-            placeholder="Search name or email"
-            aria-label="Search"
+            placeholder="Cari nama atau email"
+            aria-label="Cari"
             value={grid.search}
             onChange={(event) => grid.setSearch(event.target.value)}
             sx={{ minWidth: 320 }}
@@ -231,7 +236,7 @@ export const UsersListPage = () => {
                 endAdornment: grid.search ? (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label="Clear search"
+                      aria-label="Hapus pencarian"
                       size="small"
                       onClick={() => grid.setSearch('')}
                     >
@@ -249,7 +254,7 @@ export const UsersListPage = () => {
             onClick={() => void grid.reload()}
             sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
           >
-            Refresh
+            Muat ulang
           </Button>
         </Box>
         <Box sx={{ flex: 1, minHeight: 360 }}>
@@ -275,9 +280,9 @@ export const UsersListPage = () => {
 
       <AppConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete user"
-        message={`Delete ${deleteTarget?.email ?? ''}? They will be signed out and lose access immediately.`}
-        confirmText="Delete"
+        title="Hapus pengguna"
+        message={`Hapus ${deleteTarget?.email ?? ''}? Pengguna akan keluar dan langsung kehilangan akses.`}
+        confirmText="Hapus"
         onConfirm={handleDelete}
         onClose={() => setDeleteTarget(null)}
       />

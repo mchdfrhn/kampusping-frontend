@@ -9,7 +9,7 @@ export type AppLoadingProps = {
   fullScreen?: boolean;
 };
 
-export const AppLoading = ({ label = 'Loading...', fullScreen = true }: AppLoadingProps) => (
+export const AppLoading = ({ label = 'Memuat...', fullScreen = true }: AppLoadingProps) => (
   <Box
     role="status"
     aria-live="polite"

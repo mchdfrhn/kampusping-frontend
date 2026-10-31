@@ -38,6 +38,16 @@ describe('handleFormApiError', () => {
     expect(setError).toHaveBeenNthCalledWith(2, 'root.server', { message: 'offline' });
   });
 
+  it('uses an Indonesian fallback when the error carries no message', () => {
+    const setError = vi.fn();
+
+    handleFormApiError('boom', setError, FIELDS);
+
+    expect(setError).toHaveBeenCalledWith('root.server', {
+      message: 'Terjadi kesalahan. Silakan coba lagi.',
+    });
+  });
+
   it('ignores validation errors for unknown fields', () => {
     const setError = vi.fn();
     const error = new ApiError('Invalid', 422, 'validation_error', [

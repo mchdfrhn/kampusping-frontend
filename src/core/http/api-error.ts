@@ -42,5 +42,5 @@ export class ApiError extends Error {
   }
 }
 
-export const getErrorMessage = (error: unknown, fallback = 'Something went wrong.'): string =>
+export const getErrorMessage = (error: unknown, fallback = 'Terjadi kesalahan.'): string =>
   error instanceof Error && error.message ? error.message : fallback;

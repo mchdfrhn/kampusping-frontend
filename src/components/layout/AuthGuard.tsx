@@ -32,6 +32,6 @@ export const AuthGuard = ({ children }: { children: ReactNode }) => {
     }
   }, [status, pathname, router]);
 
-  if (status !== 'authenticated') return <AppLoading label="Loading your workspace..." />;
+  if (status !== 'authenticated') return <AppLoading label="Memuat ruang kerja Anda..." />;
   return <>{children}</>;
 };

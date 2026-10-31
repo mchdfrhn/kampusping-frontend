@@ -13,10 +13,11 @@ export const ThemeToggle = () => {
 
   const resolved = mode === 'system' ? systemMode : mode;
   const next = resolved === 'dark' ? 'light' : 'dark';
+  const label = `Beralih ke mode ${next === 'dark' ? 'gelap' : 'terang'}`;
 
   return (
-    <Tooltip title={`Switch to ${next} mode`}>
-      <IconButton aria-label={`Switch to ${next} mode`} onClick={() => setMode(next)}>
+    <Tooltip title={label}>
+      <IconButton aria-label={label} onClick={() => setMode(next)}>
         {resolved === 'dark' ? <LightModeOutlinedIcon /> : <DarkModeOutlinedIcon />}
       </IconButton>
     </Tooltip>

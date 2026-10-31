@@ -52,7 +52,7 @@ const buildError = async (response: Response): Promise<ApiError> => {
   }
   const error = body?.error;
   return new ApiError(
-    error?.message ?? `Request failed (${response.status})`,
+    error?.message ?? `Permintaan gagal (${response.status})`,
     response.status,
     error?.code,
     error?.details,

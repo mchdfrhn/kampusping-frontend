@@ -21,8 +21,8 @@ import { getErrorMessage } from '@/core/http/api-error';
 import { safeNextPath } from '@/core/utils/navigation.util';
 
 const schema = z.object({
-  email: z.email('Enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.email('Format email tidak valid'),
+  password: z.string().min(1, 'Kata sandi wajib diisi'),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -49,7 +49,7 @@ export const LoginForm = () => {
       await login(values);
       router.replace(safeNextPath(params.get('next')));
     } catch (error) {
-      setFormError(getErrorMessage(error, 'Unable to sign in. Please try again.'));
+      setFormError(getErrorMessage(error, 'Tidak dapat masuk. Silakan coba lagi.'));
     }
   });
 
@@ -71,7 +71,7 @@ export const LoginForm = () => {
         />
         <RHFTextField<FormValues>
           name="password"
-          label="Password"
+          label="Kata sandi"
           type={showPassword ? 'text' : 'password'}
           autoComplete="current-password"
           fullWidth
@@ -80,7 +80,7 @@ export const LoginForm = () => {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                     edge="end"
                     onClick={() => setShowPassword((visible) => !visible)}
                   >
@@ -98,7 +98,7 @@ export const LoginForm = () => {
           type="submit"
           variant="contained"
         >
-          Sign in
+          Masuk
         </Button>
       </Stack>
     </FormProvider>

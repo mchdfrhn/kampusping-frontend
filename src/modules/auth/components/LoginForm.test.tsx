@@ -42,8 +42,8 @@ const tokenResponse = {
 const fill = async (email: string, password: string) => {
   const user = userEvent.setup();
   if (email) await user.type(screen.getByLabelText(/email/i), email);
-  if (password) await user.type(screen.getByLabelText(/^password/i), password);
-  await user.click(screen.getByRole('button', { name: /sign in/i }));
+  if (password) await user.type(screen.getByLabelText(/^kata sandi/i), password);
+  await user.click(screen.getByRole('button', { name: /^masuk$/i }));
 };
 
 beforeEach(() => {
@@ -58,20 +58,20 @@ describe('LoginForm', () => {
 
     await fill('not-an-email', '');
 
-    expect(await screen.findByText('Enter a valid email address')).toBeInTheDocument();
-    expect(screen.getByText('Password is required')).toBeInTheDocument();
+    expect(await screen.findByText('Format email tidak valid')).toBeInTheDocument();
+    expect(screen.getByText('Kata sandi wajib diisi')).toBeInTheDocument();
     expect(service.login).not.toHaveBeenCalled();
   });
 
   it('shows the server message when credentials are rejected', async () => {
     service.login.mockRejectedValue(
-      new ApiError('Invalid email or password.', 401, 'unauthorized'),
+      new ApiError('Email atau kata sandi salah.', 401, 'unauthorized'),
     );
     render(<LoginForm />);
 
     await fill('admin@example.com', 'wrong-password');
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid email or password.');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Email atau kata sandi salah.');
     expect(replace).not.toHaveBeenCalled();
     expect(useAuthStore.getState().status).toBe('anonymous');
   });
@@ -104,10 +104,10 @@ describe('LoginForm', () => {
   it('can reveal the password', async () => {
     const user = userEvent.setup();
     render(<LoginForm />);
-    const field = screen.getByLabelText(/^password/i);
+    const field = screen.getByLabelText(/^kata sandi/i);
     expect(field).toHaveAttribute('type', 'password');
 
-    await user.click(screen.getByRole('button', { name: /show password/i }));
+    await user.click(screen.getByRole('button', { name: /tampilkan kata sandi/i }));
 
     expect(field).toHaveAttribute('type', 'text');
   });

@@ -5,8 +5,8 @@ const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? 'ChangeMe-12345';
 
 const signIn = async (page: Page, email = EMAIL, password = PASSWORD) => {
   await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  await page.getByLabel('Kata sandi', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Masuk', exact: true }).click();
 };
 
 test.describe('authentication', () => {
@@ -19,7 +19,7 @@ test.describe('authentication', () => {
     await signIn(page);
 
     await expect(page).toHaveURL(/\/users$/);
-    await expect(page.getByRole('heading', { name: 'Users', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Pengguna', level: 1 })).toBeVisible();
   });
 
   test('rejects wrong credentials without revealing which part was wrong', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('authentication', () => {
 
     // Next.js has its own route-announcer alert, so match ours by text.
     await expect(
-      page.getByRole('alert').filter({ hasText: 'Invalid email or password.' }),
+      page.getByRole('alert').filter({ hasText: 'Email atau kata sandi salah.' }),
     ).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
@@ -37,14 +37,14 @@ test.describe('authentication', () => {
   test('keeps the session across a reload and ends it on sign out', async ({ page }) => {
     await page.goto('/login');
     await signIn(page);
-    await expect(page.getByRole('heading', { name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Selamat datang kembali/ })).toBeVisible();
 
     // The access token lives in memory; a reload recovers the session via the refresh cookie.
     await page.reload();
-    await expect(page.getByRole('heading', { name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Selamat datang kembali/ })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Open user menu' }).click();
-    await page.getByRole('menuitem', { name: 'Sign out' }).click();
+    await page.getByRole('button', { name: 'Buka menu pengguna' }).click();
+    await page.getByRole('menuitem', { name: 'Keluar' }).click();
     await expect(page).toHaveURL(/\/login/);
 
     // The refresh cookie is gone, so protected pages bounce to login again.
@@ -68,7 +68,7 @@ test.describe('administration', () => {
     await page.goto('/login?next=%2Froles');
     await signIn(page);
 
-    await expect(page.getByRole('heading', { name: 'Roles', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Peran', level: 1 })).toBeVisible();
     await expect(page.getByRole('gridcell', { name: 'admin' }).first()).toBeVisible();
     await expect(page.getByRole('gridcell', { name: 'member' }).first()).toBeVisible();
   });
@@ -76,11 +76,11 @@ test.describe('administration', () => {
   test('toggles dark mode', async ({ page }) => {
     await page.goto('/login');
     await signIn(page);
-    await expect(page.getByRole('heading', { name: /Welcome back/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Selamat datang kembali/ })).toBeVisible();
 
     const html = page.locator('html');
     const before = await html.getAttribute('class');
-    await page.getByRole('button', { name: /Switch to (dark|light) mode/ }).click();
+    await page.getByRole('button', { name: /Beralih ke mode (gelap|terang)/ }).click();
 
     await expect.poll(async () => html.getAttribute('class')).not.toBe(before);
   });

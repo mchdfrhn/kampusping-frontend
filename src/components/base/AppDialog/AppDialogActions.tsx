@@ -22,7 +22,7 @@ type BackButtonProps = {
 
 export const AppDialogBackButton = ({
   disabled = false,
-  label = 'Back',
+  label = 'Kembali',
   onClick,
 }: BackButtonProps) => (
   <Button
@@ -48,7 +48,7 @@ type CancelButtonProps = {
 export const AppDialogCancelButton = ({
   color = 'inherit',
   disabled = false,
-  label = 'Cancel',
+  label = 'Batal',
   onClick,
   variant = 'text',
 }: CancelButtonProps) => (
@@ -83,7 +83,7 @@ type ConfirmButtonProps = {
 export const AppDialogConfirmButton = ({
   color = 'primary',
   disabled = false,
-  label = 'Confirm',
+  label = 'Konfirmasi',
   loading = false,
   onClick,
   showCheckIcon = false,

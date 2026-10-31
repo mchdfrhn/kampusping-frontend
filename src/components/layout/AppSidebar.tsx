@@ -48,7 +48,7 @@ const NavList = ({ collapsed, onNavigate }: NavListProps) => {
   return (
     <Box
       component="nav"
-      aria-label="Main navigation"
+      aria-label="Navigasi utama"
       sx={{ flex: 1, overflowY: 'auto', px: 1.5, py: 1.5 }}
     >
       {groups.map((group, index) => (

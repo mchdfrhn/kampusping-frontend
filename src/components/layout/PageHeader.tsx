@@ -18,7 +18,7 @@ type PageHeaderProps = {
 export const PageHeader = ({ title, description, breadcrumbs, actions }: PageHeaderProps) => (
   <Box sx={{ mb: 3 }}>
     {breadcrumbs && breadcrumbs.length > 0 ? (
-      <Breadcrumbs aria-label="Breadcrumb" sx={{ fontSize: 13, mb: 1 }}>
+      <Breadcrumbs aria-label="Jejak navigasi" sx={{ fontSize: 13, mb: 1 }}>
         {breadcrumbs.map((crumb) =>
           crumb.href ? (
             <Link

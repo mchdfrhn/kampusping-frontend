@@ -14,19 +14,19 @@ import type { MenuGroupConfig } from '@/core/types/menu.type';
  */
 export const menuConfig: MenuGroupConfig[] = [
   {
-    items: [{ label: 'Dashboard', path: routes.dashboard, icon: DashboardOutlinedIcon }],
+    items: [{ label: 'Dasbor', path: routes.dashboard, icon: DashboardOutlinedIcon }],
   },
   {
-    title: 'Administration',
+    title: 'Administrasi',
     items: [
       {
-        label: 'Users',
+        label: 'Pengguna',
         path: routes.users,
         icon: GroupOutlinedIcon,
         permission: permissions.usersRead,
       },
       {
-        label: 'Roles',
+        label: 'Peran',
         path: routes.roles,
         icon: AdminPanelSettingsOutlinedIcon,
         permission: permissions.rolesRead,

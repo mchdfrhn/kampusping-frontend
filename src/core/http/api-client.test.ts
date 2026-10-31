@@ -78,7 +78,7 @@ describe('apiClient', () => {
 
     await expect(apiClient.get('/things')).rejects.toMatchObject({
       status: 502,
-      message: 'Request failed (502)',
+      message: 'Permintaan gagal (502)',
     });
   });
 

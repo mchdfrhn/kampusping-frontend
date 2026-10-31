@@ -8,12 +8,15 @@ describe('passwordSchema', () => {
   });
 
   it.each([
-    ['too short', 'abc123'],
-    ['no digit', 'onlyletterslong'],
-    ['no letter', '12345678901'],
-    ['too long', `a1${'x'.repeat(200)}`],
-  ])('rejects a password that is %s', (_label, value) => {
-    expect(passwordSchema.safeParse(value).success).toBe(false);
+    ['too short', 'abc123', 'Minimal 10 karakter'],
+    ['no digit', 'onlyletterslong', 'Harus mengandung minimal satu angka'],
+    ['no letter', '12345678901', 'Harus mengandung minimal satu huruf'],
+    ['too long', `a1${'x'.repeat(200)}`, 'Maksimal 128 karakter'],
+  ])('rejects a password that is %s', (_label, value, message) => {
+    const result = passwordSchema.safeParse(value);
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.map((issue) => issue.message)).toContain(message);
   });
 });
 

@@ -39,7 +39,7 @@ export const AppDialog = ({
         </Stack>
         {showCloseButton ? (
           <IconButton
-            aria-label="Close"
+            aria-label="Tutup"
             onClick={(event) => onClose?.(event, 'backdropClick')}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >

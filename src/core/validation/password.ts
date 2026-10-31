@@ -6,10 +6,10 @@ export const PASSWORD_MAX_LENGTH = 128;
 
 export const passwordSchema = z
   .string()
-  .min(PASSWORD_MIN_LENGTH, `At least ${PASSWORD_MIN_LENGTH} characters`)
-  .max(PASSWORD_MAX_LENGTH, `At most ${PASSWORD_MAX_LENGTH} characters`)
-  .regex(/[A-Za-z]/, 'Include at least one letter')
-  .regex(/\d/, 'Include at least one digit');
+  .min(PASSWORD_MIN_LENGTH, `Minimal ${PASSWORD_MIN_LENGTH} karakter`)
+  .max(PASSWORD_MAX_LENGTH, `Maksimal ${PASSWORD_MAX_LENGTH} karakter`)
+  .regex(/[A-Za-z]/, 'Harus mengandung minimal satu huruf')
+  .regex(/\d/, 'Harus mengandung minimal satu angka');
 
 /** Optional password: an empty string means "leave unchanged". */
 export const optionalPasswordSchema = z.union([z.literal(''), passwordSchema]);

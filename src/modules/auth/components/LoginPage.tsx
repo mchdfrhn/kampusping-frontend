@@ -30,7 +30,7 @@ export const LoginPage = () => {
   }, [status, router, params]);
 
   if (status === 'idle' || status === 'loading' || status === 'authenticated') {
-    return <AppLoading label="Checking your session..." />;
+    return <AppLoading label="Memeriksa sesi Anda..." />;
   }
 
   return (
@@ -84,10 +84,10 @@ export const LoginPage = () => {
             <AppLogo size={40} withName />
           </Box>
           <Typography component="h1" sx={{ mb: 0.5 }} variant="h4">
-            Sign in
+            Masuk
           </Typography>
           <Typography color="text.secondary" sx={{ mb: 4 }} variant="body2">
-            Use your email and password to continue.
+            Gunakan email dan kata sandi Anda untuk melanjutkan.
           </Typography>
           <LoginForm />
         </Box>

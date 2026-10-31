@@ -36,13 +36,13 @@ type FormValues = {
 const FIELDS = ['email', 'full_name', 'password', 'is_active', 'role_ids'] as const;
 
 const baseShape = {
-  full_name: z.string().trim().min(1, 'Name is required').max(150, 'At most 150 characters'),
+  full_name: z.string().trim().min(1, 'Nama wajib diisi').max(150, 'Maksimal 150 karakter'),
   is_active: z.boolean(),
   role_ids: z.array(z.number()),
 };
 const createSchema = z.object({
   ...baseShape,
-  email: z.email('Enter a valid email address'),
+  email: z.email('Format email tidak valid'),
   password: passwordSchema,
 });
 const editSchema = z.object({
@@ -138,17 +138,17 @@ export const UserFormDialog = ({
     <AppDialog
       open={open}
       onClose={isSubmitting ? undefined : onClose}
-      title={user ? 'Edit user' : 'Create user'}
+      title={user ? 'Ubah pengguna' : 'Tambah pengguna'}
       actions={
         <>
           <AppDialogCancelButton
             disabled={isSubmitting}
-            label="Cancel"
+            label="Batal"
             onClick={onClose}
             variant="outlined"
           />
           <AppDialogConfirmButton
-            label={user ? 'Save changes' : 'Create'}
+            label={user ? 'Simpan perubahan' : 'Tambah'}
             loading={isSubmitting}
             onClick={() => void submit()}
             showCheckIcon
@@ -169,14 +169,14 @@ export const UserFormDialog = ({
             disabled={editing}
             autoComplete="off"
           />
-          <RHFTextField<FormValues> name="full_name" label="Full name" required />
+          <RHFTextField<FormValues> name="full_name" label="Nama lengkap" required />
           <RHFTextField<FormValues>
             name="password"
-            label={editing ? 'New password' : 'Password'}
+            label={editing ? 'Kata sandi baru' : 'Kata sandi'}
             type="password"
             required={!editing}
             autoComplete="new-password"
-            helperText={editing ? 'Leave blank to keep the current password.' : undefined}
+            helperText={editing ? 'Kosongkan jika tidak ingin mengubah kata sandi.' : undefined}
           />
 
           <Controller
@@ -202,8 +202,10 @@ export const UserFormDialog = ({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Roles"
-                    helperText={roles.length === 0 ? 'No roles available to assign.' : undefined}
+                    label="Peran"
+                    helperText={
+                      roles.length === 0 ? 'Tidak ada peran yang dapat diberikan.' : undefined
+                    }
                   />
                 )}
               />
@@ -215,7 +217,7 @@ export const UserFormDialog = ({
             name="is_active"
             render={({ field }) => (
               <FormControlLabel
-                label={isSelf ? 'Active (you cannot deactivate yourself)' : 'Active'}
+                label={isSelf ? 'Aktif (Anda tidak dapat menonaktifkan diri sendiri)' : 'Aktif'}
                 control={
                   <Switch
                     checked={field.value}

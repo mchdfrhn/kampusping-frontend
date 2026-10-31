@@ -55,7 +55,7 @@ export const ExportDataButton = ({ formats = ['csv'], disabled = false, onExport
         sx={{ borderColor: 'divider', minWidth: 120 }}
         variant="outlined"
       >
-        {single ? `Export ${FORMATS[single].label}` : 'Export'}
+        {single ? `Ekspor ${FORMATS[single].label}` : 'Ekspor'}
       </Button>
       {single ? null : (
         <Menu
@@ -66,7 +66,7 @@ export const ExportDataButton = ({ formats = ['csv'], disabled = false, onExport
           {formats.map((format) => (
             <MenuItem key={format} disabled={exporting} onClick={() => void run(format)}>
               <ListItemIcon>{FORMATS[format].icon}</ListItemIcon>
-              <ListItemText>Export {FORMATS[format].label}</ListItemText>
+              <ListItemText>Ekspor {FORMATS[format].label}</ListItemText>
             </MenuItem>
           ))}
         </Menu>

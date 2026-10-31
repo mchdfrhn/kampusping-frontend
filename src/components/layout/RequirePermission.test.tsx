@@ -40,7 +40,7 @@ describe('RequirePermission', () => {
     );
 
     expect(screen.queryByText('Secret page')).not.toBeInTheDocument();
-    expect(screen.getByText(/don.t have access/i)).toBeInTheDocument();
+    expect(screen.getByText(/tidak memiliki akses/i)).toBeInTheDocument();
   });
 
   it('requires every permission when given several', () => {
@@ -63,22 +63,22 @@ describe('Can', () => {
     render(
       <>
         <Can permission="users:create">
-          <button>Create</button>
+          <button>Tambah</button>
         </Can>
         <Can permission="users:delete">
-          <button>Delete</button>
+          <button>Hapus</button>
         </Can>
       </>,
     );
 
-    expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tambah' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Hapus' })).not.toBeInTheDocument();
   });
 
   it('renders nothing for anonymous visitors', () => {
     render(
       <Can permission="users:create">
-        <button>Create</button>
+        <button>Tambah</button>
       </Can>,
     );
 
