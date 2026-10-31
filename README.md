@@ -1,4 +1,4 @@
-# Webapp Frontend
+# KampusPing Frontend
 
 A clean, modern Next.js starter for business web applications: sign-in with cookie-based sessions,
 permission-aware navigation, light/dark themes, and reusable data-grid, dialog and form building
@@ -25,7 +25,7 @@ API's `BACKEND_CORS_ORIGINS` must include this app's origin.
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Auth           | Login page, in-memory access token, HttpOnly refresh cookie, automatic refresh on 401, safe `?next=` redirects                 |
 | Access control | Sidebar and pages filtered by permission (`usePermission`, `<Can>`, `<RequirePermission>`); the API enforces the real checks   |
-| Modules        | Dashboard (live stats + chart), Example items (full CRUD reference), Users, Roles and permissions, Profile and password        |
+| Modules        | Dashboard (welcome card), Users, Roles and permissions, Profile and password                                                   |
 | UI kit         | `AppDataGrid`, `AppDialog`, `AppConfirmDialog`, `AppDatePicker`, `AppStatusChip`, `ExportDataButton`, React Hook Form wrappers |
 | Theming        | Light, dark and system modes via CSS variables, no flash on load; brand color from one env variable                            |
 | Quality        | ESLint (Next + React Hooks rules), Prettier, strict TypeScript, unit tests, e2e tests                                          |
@@ -37,7 +37,7 @@ src/
 ├── app/                  # routing only
 │   ├── layout.tsx        # fonts, theme, providers
 │   ├── (auth)/login/     # public pages
-│   └── (app)/            # signed-in area: AuthGuard + AppShell, then dashboard, example, users, roles, profile
+│   └── (app)/            # signed-in area: AuthGuard + AppShell, then dashboard, users, roles, profile
 ├── components/
 │   ├── base/             # reusable UI kit (App* components)
 │   ├── form/             # React Hook Form wrappers
@@ -72,7 +72,7 @@ page reload         -> access token is gone; /auth/refresh restores it from the 
 ## Add a module
 
 1. `src/modules/<name>/` with `types.ts`, `services/<name>.service.ts`, `components/<Name>ListPage.tsx`.
-   Copy `modules/example/` and use `useServerGrid` for pagination, sorting and search.
+   Copy `modules/users/` and use `useServerGrid` for pagination, sorting and search.
 2. A route: `src/app/(app)/<name>/page.tsx`, wrapping the page in `<RequirePermission>`.
 3. A menu entry in `src/core/config/menu.config.ts`, with the permission that should reveal it.
 4. Permission codes mirrored in `src/core/auth/permissions.ts` (the backend defines them).

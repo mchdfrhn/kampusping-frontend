@@ -22,7 +22,7 @@ type AuthState = {
   clear: () => void;
 };
 
-const LOCK_NAME = 'webapp-auth-refresh';
+const LOCK_NAME = 'kampusping-auth-refresh';
 
 /**
  * Serialise refreshes across browser tabs. Refresh tokens rotate, so two tabs refreshing at once

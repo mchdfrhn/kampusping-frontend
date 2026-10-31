@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PM2_CONFIG="${SCRIPT_DIR}/ecosystem.prod.config.js"
-APP_NAME="webapp-frontend"
+APP_NAME="kampusping-frontend"
 APP_PORT=8094
 RUN_NGINX=false
 

@@ -1,4 +1,4 @@
-const PREFIX = 'webapp';
+const PREFIX = 'kampusping';
 
 /**
  * Per-browser UI conveniences only. Never put tokens or other secrets here: the access token

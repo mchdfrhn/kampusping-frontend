@@ -31,7 +31,7 @@ describe('RequirePermission', () => {
   });
 
   it('shows an access message instead of the page otherwise', () => {
-    signIn(['examples:read']);
+    signIn(['roles:read']);
 
     render(
       <RequirePermission permission="users:read">

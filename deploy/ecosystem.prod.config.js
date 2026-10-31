@@ -2,7 +2,7 @@
 module.exports = {
   apps: [
     {
-      name: 'webapp-frontend',
+      name: 'kampusping-frontend',
       cwd: __dirname + '/..',
       script: 'node_modules/next/dist/bin/next',
       args: 'start -p 8094 -H 127.0.0.1',

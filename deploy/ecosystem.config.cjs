@@ -2,7 +2,7 @@
 module.exports = {
   apps: [
     {
-      name: 'webapp-frontend-dev',
+      name: 'kampusping-frontend-dev',
       cwd: __dirname + '/..',
       script: 'node_modules/next/dist/bin/next',
       args: 'dev -p 3000',

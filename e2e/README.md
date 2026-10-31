@@ -1,7 +1,7 @@
 # End-to-end tests
 
 Playwright drives the real UI against the real API: sign-in, protected routes, session restore after
-a reload, sign-out, safe redirects, example-item CRUD and dark mode.
+a reload, sign-out, safe redirects, and dark mode.
 
 ## Run
 

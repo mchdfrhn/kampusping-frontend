@@ -1,7 +1,6 @@
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
-import TableViewOutlinedIcon from '@mui/icons-material/TableViewOutlined';
 
 import { permissions } from '@/core/auth/permissions';
 import { routes } from '@/core/config/route.config';
@@ -15,15 +14,7 @@ import type { MenuGroupConfig } from '@/core/types/menu.type';
  */
 export const menuConfig: MenuGroupConfig[] = [
   {
-    items: [
-      { label: 'Dashboard', path: routes.dashboard, icon: DashboardOutlinedIcon },
-      {
-        label: 'Example items',
-        path: routes.example,
-        icon: TableViewOutlinedIcon,
-        permission: permissions.examplesRead,
-      },
-    ],
+    items: [{ label: 'Dashboard', path: routes.dashboard, icon: DashboardOutlinedIcon }],
   },
   {
     title: 'Administration',

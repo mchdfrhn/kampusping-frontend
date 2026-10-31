@@ -1,6 +1,6 @@
 # Modules
 
-One folder per feature. `example/` is the reference implementation to copy.
+One folder per feature. `users/` is the reference implementation to copy.
 
 ```text
 <module>/

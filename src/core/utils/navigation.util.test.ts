@@ -5,7 +5,7 @@ import { safeNextPath } from './navigation.util';
 describe('safeNextPath', () => {
   it('keeps in-app paths, including query strings', () => {
     expect(safeNextPath('/users')).toBe('/users');
-    expect(safeNextPath('/example?status=active')).toBe('/example?status=active');
+    expect(safeNextPath('/users?status=active')).toBe('/users?status=active');
   });
 
   it('falls back when missing', () => {

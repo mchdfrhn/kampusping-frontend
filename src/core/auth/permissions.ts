@@ -13,10 +13,6 @@ export const permissions = {
   rolesCreate: 'roles:create',
   rolesUpdate: 'roles:update',
   rolesDelete: 'roles:delete',
-  examplesRead: 'examples:read',
-  examplesCreate: 'examples:create',
-  examplesUpdate: 'examples:update',
-  examplesDelete: 'examples:delete',
 } as const;
 
 export type PermissionCode = (typeof permissions)[keyof typeof permissions];

@@ -9,9 +9,6 @@ const signIn = async (page: Page, email = EMAIL, password = PASSWORD) => {
   await page.getByRole('button', { name: 'Sign in' }).click();
 };
 
-// A code that is unique per run so repeated runs do not collide with soft-deleted rows.
-const uniqueCode = () => `E2E-${Date.now().toString(36).toUpperCase()}`;
-
 test.describe('authentication', () => {
   test('anonymous visitors are sent to the login page and back after signing in', async ({
     page,
@@ -63,50 +60,6 @@ test.describe('authentication', () => {
 
     // Lands on the app's own dashboard, not on the attacker's site.
     await expect(page).toHaveURL(`${origin}/dashboard`);
-  });
-});
-
-test.describe('example items (CRUD)', () => {
-  test('create, search, edit and delete an item', async ({ page }) => {
-    const code = uniqueCode();
-    const dialog = page.getByRole('dialog');
-
-    await page.goto('/login?next=%2Fexample');
-    await signIn(page);
-    await expect(page.getByRole('heading', { name: 'Example items', level: 1 })).toBeVisible();
-
-    // Create
-    await page.getByRole('button', { name: 'New item' }).click();
-    await dialog.getByLabel('Code').fill(code);
-    await dialog.getByLabel('Name').fill('Playwright item');
-    await page.getByRole('button', { name: 'Create', exact: true }).click();
-    await expect(page.getByText('Item created.')).toBeVisible();
-
-    // Search finds it
-    await page.getByPlaceholder(/Search code or name/).fill(code);
-    const row = page.getByRole('row', { name: new RegExp(code) });
-    await expect(row).toBeVisible();
-
-    // Duplicate code is rejected inline
-    await page.getByRole('button', { name: 'New item' }).click();
-    await dialog.getByLabel('Code').fill(code);
-    await dialog.getByLabel('Name').fill('Duplicate');
-    await page.getByRole('button', { name: 'Create', exact: true }).click();
-    await expect(page.getByText('An item with this code already exists.')).toBeVisible();
-    await page.getByRole('button', { name: 'Cancel' }).click();
-
-    // Edit
-    await page.getByRole('button', { name: `Edit ${code}` }).click();
-    await dialog.getByLabel('Name').fill('Renamed by Playwright');
-    await page.getByRole('button', { name: 'Save changes' }).click();
-    await expect(page.getByText('Item updated.')).toBeVisible();
-    await expect(page.getByRole('gridcell', { name: 'Renamed by Playwright' })).toBeVisible();
-
-    // Delete
-    await page.getByRole('button', { name: `Delete ${code}` }).click();
-    await page.getByRole('button', { name: 'Delete', exact: true }).click();
-    await expect(page.getByText('Item deleted.')).toBeVisible();
-    await expect(page.getByRole('row', { name: new RegExp(code) })).toHaveCount(0);
   });
 });
 

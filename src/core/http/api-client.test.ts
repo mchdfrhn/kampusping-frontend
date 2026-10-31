@@ -160,13 +160,13 @@ describe('apiClient', () => {
     fetchMock.mockResolvedValueOnce(
       new Response('a,b', {
         status: 200,
-        headers: { 'content-disposition': 'attachment; filename="examples.csv"' },
+        headers: { 'content-disposition': 'attachment; filename="users.csv"' },
       }),
     );
 
-    const { blob, filename } = await apiClient.download('/examples/export');
+    const { blob, filename } = await apiClient.download('/users/export');
 
-    expect(filename).toBe('examples.csv');
+    expect(filename).toBe('users.csv');
     expect(blob.size).toBe(3); // 'a,b'
   });
 });

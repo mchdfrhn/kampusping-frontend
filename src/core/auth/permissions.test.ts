@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { hasAnyPermission, hasPermission, permissions } from './permissions';
 
-const user = { permissions: [permissions.usersRead, permissions.examplesRead] };
+const user = { permissions: [permissions.usersRead, permissions.usersUpdate] };
 
 describe('hasPermission', () => {
   it('requires every listed permission', () => {
     expect(hasPermission(user, permissions.usersRead)).toBe(true);
-    expect(hasPermission(user, permissions.usersRead, permissions.examplesRead)).toBe(true);
+    expect(hasPermission(user, permissions.usersRead, permissions.usersUpdate)).toBe(true);
     expect(hasPermission(user, permissions.usersRead, permissions.usersDelete)).toBe(false);
   });
 
@@ -24,7 +24,7 @@ describe('hasPermission', () => {
 
 describe('hasAnyPermission', () => {
   it('needs at least one match', () => {
-    expect(hasAnyPermission(user, permissions.usersDelete, permissions.examplesRead)).toBe(true);
+    expect(hasAnyPermission(user, permissions.usersDelete, permissions.usersUpdate)).toBe(true);
     expect(hasAnyPermission(user, permissions.usersDelete, permissions.rolesRead)).toBe(false);
     expect(hasAnyPermission(null, permissions.usersRead)).toBe(false);
   });
