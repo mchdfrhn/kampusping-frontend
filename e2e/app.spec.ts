@@ -64,13 +64,35 @@ test.describe('authentication', () => {
 });
 
 test.describe('administration', () => {
-  test('lists roles with their permissions', async ({ page }) => {
+  test('lists the system roles', async ({ page }) => {
     await page.goto('/login?next=%2Froles');
     await signIn(page);
 
     await expect(page.getByRole('heading', { name: 'Peran', level: 1 })).toBeVisible();
-    await expect(page.getByRole('gridcell', { name: 'admin' }).first()).toBeVisible();
-    await expect(page.getByRole('gridcell', { name: 'member' }).first()).toBeVisible();
+    for (const role of ['admin', 'staf_keuangan', 'pimpinan']) {
+      // The name cell also holds the "Sistem" chip of built-in roles.
+      await expect(
+        page.getByRole('gridcell', { name: new RegExp(`^${role}( Sistem)?$`) }),
+      ).toBeVisible();
+    }
+  });
+
+  test('lists users including the administrator', async ({ page }) => {
+    await page.goto('/login?next=%2Fusers');
+    await signIn(page);
+
+    await expect(page.getByRole('heading', { name: 'Pengguna', level: 1 })).toBeVisible();
+    await expect(page.getByRole('gridcell', { name: EMAIL, exact: true }).first()).toBeVisible();
+  });
+
+  test('sends an administrator from the home page to the dashboard', async ({ page }) => {
+    await page.goto('/login');
+    await signIn(page);
+    await expect(page).toHaveURL(/\/dashboard$/);
+
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByRole('heading', { name: 'Dasbor', level: 1 })).toBeVisible();
   });
 
   test('toggles dark mode', async ({ page }) => {
