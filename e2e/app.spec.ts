@@ -1,13 +1,8 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-const EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'admin@example.com';
-const PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? 'ChangeMe-12345';
+import { ADMIN_EMAIL, signIn } from './helpers';
 
-const signIn = async (page: Page, email = EMAIL, password = PASSWORD) => {
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Kata sandi', { exact: true }).fill(password);
-  await page.getByRole('button', { name: 'Masuk', exact: true }).click();
-};
+const EMAIL = ADMIN_EMAIL;
 
 test.describe('authentication', () => {
   test('anonymous visitors are sent to the login page and back after signing in', async ({
