@@ -242,6 +242,9 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
       localeText={
         {
           ...idID.components.MuiDataGrid.defaultProps.localeText,
+          // The bundled Indonesian locale has typos in these two strings.
+          noRowsLabel: 'Tidak ada data',
+          noColumnsOverlayManageColumns: 'Kelola kolom',
           ...localeText,
           MuiTablePagination: {
             labelDisplayedRows: ({

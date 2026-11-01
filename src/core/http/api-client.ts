@@ -30,6 +30,7 @@ export type RequestOptions = {
 };
 
 type JsonBody = Record<string, unknown> | unknown[] | string | number | boolean | null;
+type RequestBody = JsonBody | FormData;
 
 export const buildUrl = (path: string) =>
   /^https?:\/\//i.test(path) ? path : `${envConfig.apiBaseUrl}/${path.replace(/^\//, '')}`;
@@ -59,31 +60,42 @@ const buildError = async (response: Response): Promise<ApiError> => {
   );
 };
 
-const send = (
+const NETWORK_ERROR_MESSAGE = 'Tidak dapat terhubung ke server.';
+
+const send = async (
   method: string,
   path: string,
-  body: JsonBody | undefined,
+  body: RequestBody | undefined,
   options: RequestOptions,
   token: string | null,
-) => {
+): Promise<Response> => {
   const headers = new Headers(options.headers);
   headers.set('Accept', headers.get('Accept') ?? 'application/json');
-  if (body !== undefined) headers.set('Content-Type', 'application/json');
+  // A FormData body must not get a Content-Type: the browser adds it with the multipart boundary.
+  const isForm = body instanceof FormData;
+  if (body !== undefined && !isForm) headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  return fetch(buildUrl(path), {
-    method,
-    headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: options.signal,
-    credentials: options.withCredentials ? 'include' : 'omit',
-  });
+  try {
+    return await fetch(buildUrl(path), {
+      method,
+      headers,
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
+      signal: options.signal,
+      credentials: options.withCredentials ? 'include' : 'omit',
+    });
+  } catch (error) {
+    // An aborted request is the caller's own doing; everything else is a failed connection
+    // (fetch rejects with the browser's English "Failed to fetch").
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
+    throw new ApiError(NETWORK_ERROR_MESSAGE, 0, 'network_error');
+  }
 };
 
 const execute = async (
   method: string,
   path: string,
-  body: JsonBody | undefined,
+  body: RequestBody | undefined,
   options: RequestOptions,
 ): Promise<Response> => {
   const token = options.skipAuth ? null : (bridge?.getAccessToken() ?? null);
@@ -106,7 +118,7 @@ const execute = async (
 const requestJson = async <T>(
   method: string,
   path: string,
-  body?: JsonBody,
+  body?: RequestBody,
   options: RequestOptions = {},
 ): Promise<T> => {
   const response = await execute(method, path, body, options);
@@ -133,6 +145,9 @@ export const apiClient = {
     requestJson<T>('PUT', path, body, options),
   patch: <T>(path: string, body?: JsonBody, options?: RequestOptions) =>
     requestJson<T>('PATCH', path, body, options),
+  /** Multipart upload. Never set Content-Type here: the browser adds the boundary. */
+  upload: <T>(path: string, form: FormData, options?: RequestOptions) =>
+    requestJson<T>('POST', path, form, options),
   delete: <T = void>(path: string, options?: RequestOptions) =>
     requestJson<T>('DELETE', path, undefined, options),
 

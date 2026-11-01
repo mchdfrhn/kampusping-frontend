@@ -156,6 +156,97 @@ describe('apiClient', () => {
     expect(fetchMock.mock.calls[1]?.[1]?.credentials).toBe('include');
   });
 
+  it('reports a network failure as an Indonesian ApiError with status 0', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    const error = await apiClient.get('/things').catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 0,
+      code: 'network_error',
+      message: 'Tidak dapat terhubung ke server.',
+    });
+  });
+
+  it('lets an aborted request surface as an abort, not as a network error', async () => {
+    const abort = new DOMException('The operation was aborted.', 'AbortError');
+    fetchMock.mockRejectedValueOnce(abort);
+
+    await expect(apiClient.get('/things')).rejects.toBe(abort);
+  });
+
+  describe('upload', () => {
+    const buildForm = () => {
+      const form = new FormData();
+      form.append('file', new File(['a,b'], 'tagihan.csv', { type: 'text/csv' }));
+      form.append('source', 'siakad');
+      return form;
+    };
+
+    it('posts multipart without setting Content-Type, with the bearer token', async () => {
+      registerAuthBridge({
+        getAccessToken: () => 'token-1',
+        refresh: vi.fn(),
+        onAuthFailure: vi.fn(),
+      });
+      fetchMock.mockResolvedValueOnce(json({ id: 7 }, 201));
+      const form = buildForm();
+
+      await expect(apiClient.upload('/imports', form)).resolves.toEqual({ id: 7 });
+
+      const init = fetchMock.mock.calls[0]?.[1];
+      expect(init?.method).toBe('POST');
+      expect(init?.body).toBe(form); // sent as-is: the browser adds the multipart boundary
+      const headers = new Headers(init?.headers);
+      expect(headers.has('Content-Type')).toBe(false);
+      expect(headers.get('Authorization')).toBe('Bearer token-1');
+      expect(String(fetchMock.mock.calls[0]?.[0])).toBe('http://localhost:8000/api/v1/imports');
+    });
+
+    it('refreshes the session on 401 and resends the same form', async () => {
+      let token = 'old';
+      registerAuthBridge({
+        getAccessToken: () => token,
+        refresh: async () => {
+          token = 'new';
+          return true;
+        },
+        onAuthFailure: vi.fn(),
+      });
+      fetchMock
+        .mockResolvedValueOnce(json({ error: { code: 'unauthorized', message: 'expired' } }, 401))
+        .mockResolvedValueOnce(json({ id: 8 }, 201));
+      const form = buildForm();
+
+      await expect(apiClient.upload('/imports', form)).resolves.toEqual({ id: 8 });
+
+      expect(authHeader(1)).toBe('Bearer new');
+      expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(form);
+    });
+
+    it('maps the backend error envelope like the other verbs', async () => {
+      fetchMock.mockResolvedValueOnce(
+        json(
+          {
+            error: {
+              code: 'validation_error',
+              message: 'Ukuran berkas melebihi batas 5 MB.',
+              details: [],
+            },
+          },
+          422,
+        ),
+      );
+
+      await expect(apiClient.upload('/imports', buildForm())).rejects.toMatchObject({
+        status: 422,
+        code: 'validation_error',
+        message: 'Ukuran berkas melebihi batas 5 MB.',
+      });
+    });
+  });
+
   it('downloads files with the server file name', async () => {
     fetchMock.mockResolvedValueOnce(
       new Response('a,b', {
