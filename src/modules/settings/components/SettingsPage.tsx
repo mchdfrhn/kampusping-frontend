@@ -16,6 +16,7 @@ import { describePausedReason } from '../paused-reason';
 import { settingsService } from '../services/settings.service';
 import type { SettingsPayload, SettingsRecord } from '../types';
 import { SettingsForm } from './SettingsForm';
+import { WhatsAppPanel } from './WhatsAppPanel';
 
 export const SettingsPage = () => {
   const notify = useNotify();
@@ -78,6 +79,8 @@ export const SettingsPage = () => {
         description="Atur identitas kampus, teks pembayaran, jendela kirim, dan pengaman pengiriman WhatsApp."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Pengaturan' }]}
       />
+
+      <WhatsAppPanel />
 
       {loadError ? (
         <Alert
