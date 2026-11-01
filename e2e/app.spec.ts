@@ -37,11 +37,11 @@ test.describe('authentication', () => {
   test('keeps the session across a reload and ends it on sign out', async ({ page }) => {
     await page.goto('/login');
     await signIn(page);
-    await expect(page.getByRole('heading', { name: /Selamat datang kembali/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Dasbor', level: 1 })).toBeVisible();
 
     // The access token lives in memory; a reload recovers the session via the refresh cookie.
     await page.reload();
-    await expect(page.getByRole('heading', { name: /Selamat datang kembali/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Dasbor', level: 1 })).toBeVisible();
 
     await page.getByRole('button', { name: 'Buka menu pengguna' }).click();
     await page.getByRole('menuitem', { name: 'Keluar' }).click();
@@ -76,7 +76,7 @@ test.describe('administration', () => {
   test('toggles dark mode', async ({ page }) => {
     await page.goto('/login');
     await signIn(page);
-    await expect(page.getByRole('heading', { name: /Selamat datang kembali/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Dasbor', level: 1 })).toBeVisible();
 
     const html = page.locator('html');
     const before = await html.getAttribute('class');
