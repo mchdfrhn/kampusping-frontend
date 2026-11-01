@@ -9,13 +9,14 @@ import { AppLoading } from '@/components/base/AppLoading';
 import { AppLogo } from '@/components/layout/AppLogo';
 import { useAuthStore } from '@/core/auth/auth.store';
 import { appConfig } from '@/core/config/app.config';
-import { safeNextPath } from '@/core/utils/navigation.util';
+import { firstAccessibleRoute, safeNextPath } from '@/core/utils/navigation.util';
 import { PRIMARY } from '@/design-system/tokens/surface.token';
 
 import { LoginForm } from './LoginForm';
 
 export const LoginPage = () => {
   const status = useAuthStore((state) => state.status);
+  const user = useAuthStore((state) => state.user);
   const bootstrap = useAuthStore((state) => state.bootstrap);
   const router = useRouter();
   const params = useSearchParams();
@@ -26,8 +27,10 @@ export const LoginPage = () => {
   }, [bootstrap]);
 
   useEffect(() => {
-    if (status === 'authenticated') router.replace(safeNextPath(params.get('next')));
-  }, [status, router, params]);
+    if (status === 'authenticated') {
+      router.replace(safeNextPath(params.get('next'), firstAccessibleRoute(user)));
+    }
+  }, [status, user, router, params]);
 
   if (status === 'idle' || status === 'loading' || status === 'authenticated') {
     return <AppLoading label="Memeriksa sesi Anda..." />;

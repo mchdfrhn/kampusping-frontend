@@ -1,8 +1,12 @@
-import { redirect } from 'next/navigation';
+import { AuthGuard } from '@/components/layout/AuthGuard';
+import { HomeRedirect } from '@/components/layout/HomeRedirect';
 
-import { DEFAULT_AUTHENTICATED_ROUTE } from '@/core/config/route.config';
-
-// The auth guard on the destination sends anonymous visitors on to the login page.
+// AuthGuard sends anonymous visitors to the login page; signed-in users go on to the first page
+// their permissions allow (the dashboard needs `dashboard:read`, so it cannot be hardcoded).
 export default function HomePage() {
-  redirect(DEFAULT_AUTHENTICATED_ROUTE);
+  return (
+    <AuthGuard>
+      <HomeRedirect />
+    </AuthGuard>
+  );
 }

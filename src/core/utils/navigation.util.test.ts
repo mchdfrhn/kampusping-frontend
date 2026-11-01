@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { permissions } from '@/core/auth/permissions';
 import { menuConfig } from '@/core/config/menu.config';
 
-import { filterMenuByPermission, safeNextPath } from './navigation.util';
+import { filterMenuByPermission, firstAccessibleRoute, safeNextPath } from './navigation.util';
 
 describe('safeNextPath', () => {
   it('keeps in-app paths, including query strings', () => {
@@ -73,5 +73,58 @@ describe('filterMenuByPermission', () => {
       ['Pengaturan Pesan', ['Template Pesan', 'Jadwal']],
       ['Administrasi', ['Pengaturan', 'Pengguna', 'Peran', 'Audit']],
     ]);
+  });
+});
+
+describe('firstAccessibleRoute', () => {
+  it('sends an administrator with every permission to the dashboard', () => {
+    expect(firstAccessibleRoute({ permissions: Object.values(permissions) })).toBe('/dashboard');
+  });
+
+  it('sends a user who may only read students to the student list', () => {
+    expect(firstAccessibleRoute({ permissions: [permissions.studentsRead] })).toBe('/students');
+  });
+
+  it('falls back to the profile, which every signed-in user may open', () => {
+    expect(firstAccessibleRoute({ permissions: [] })).toBe('/profile');
+    expect(firstAccessibleRoute(null)).toBe('/profile');
+    expect(firstAccessibleRoute(undefined)).toBe('/profile');
+  });
+
+  it('ignores permissions that open no page, such as update-only ones', () => {
+    expect(firstAccessibleRoute({ permissions: [permissions.studentsUpdate] })).toBe('/profile');
+  });
+
+  it('follows the menu order, not the order of the permissions', () => {
+    const permissionsInReverse = [
+      permissions.auditRead,
+      permissions.usersRead,
+      permissions.settingsRead,
+      permissions.invoicesRead,
+    ];
+
+    expect(firstAccessibleRoute({ permissions: permissionsInReverse })).toBe('/invoices');
+    expect(
+      firstAccessibleRoute({
+        permissions: [permissions.auditRead, permissions.usersRead, permissions.settingsRead],
+      }),
+    ).toBe('/settings');
+    expect(
+      firstAccessibleRoute({ permissions: [permissions.auditRead, permissions.usersRead] }),
+    ).toBe('/users');
+  });
+
+  it('returns the first item without a permission requirement of a custom menu', () => {
+    const menu = [
+      {
+        items: [
+          { label: 'Rahasia', path: '/secret', icon: DashboardOutlinedIcon, permission: 'x:read' },
+          { label: 'Bantuan', path: '/help', icon: DashboardOutlinedIcon },
+        ],
+      },
+    ];
+
+    expect(firstAccessibleRoute({ permissions: [] }, menu)).toBe('/help');
+    expect(firstAccessibleRoute({ permissions: ['x:read'] }, menu)).toBe('/secret');
   });
 });

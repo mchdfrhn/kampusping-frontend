@@ -18,7 +18,7 @@ import { FormProvider } from '@/components/form/FormProvider';
 import { RHFTextField } from '@/components/form/RHFTextField';
 import { useAuthStore } from '@/core/auth/auth.store';
 import { getErrorMessage } from '@/core/http/api-error';
-import { safeNextPath } from '@/core/utils/navigation.util';
+import { firstAccessibleRoute, safeNextPath } from '@/core/utils/navigation.util';
 
 const schema = z.object({
   email: z.email('Format email tidak valid'),
@@ -47,7 +47,9 @@ export const LoginForm = () => {
     setFormError(null);
     try {
       await login(values);
-      router.replace(safeNextPath(params.get('next')));
+      router.replace(
+        safeNextPath(params.get('next'), firstAccessibleRoute(useAuthStore.getState().user)),
+      );
     } catch (error) {
       setFormError(getErrorMessage(error, 'Tidak dapat masuk. Silakan coba lagi.'));
     }

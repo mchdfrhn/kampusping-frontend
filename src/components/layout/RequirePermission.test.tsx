@@ -43,6 +43,21 @@ describe('RequirePermission', () => {
     expect(screen.getByText(/tidak memiliki akses/i)).toBeInTheDocument();
   });
 
+  it('links back to the first page the user may open, not to a dashboard they cannot see', () => {
+    signIn(['messages:read']);
+
+    render(
+      <RequirePermission permission="dashboard:read">
+        <p>Secret page</p>
+      </RequirePermission>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Kembali ke halaman utama' })).toHaveAttribute(
+      'href',
+      '/messages',
+    );
+  });
+
   it('requires every permission when given several', () => {
     signIn(['users:read']);
 

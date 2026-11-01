@@ -5,9 +5,12 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 
-import { routes } from '@/core/config/route.config';
+import { useAuth } from '@/core/auth/useAuth';
+import { firstAccessibleRoute } from '@/core/utils/navigation.util';
 
 export default function NotFound() {
+  const { user } = useAuth();
+
   return (
     <Box
       sx={{
@@ -28,8 +31,8 @@ export default function NotFound() {
       <Typography color="text.secondary" sx={{ my: 2 }}>
         Halaman yang Anda cari tidak ada atau telah dipindahkan.
       </Typography>
-      <Button component={Link} href={routes.dashboard} variant="contained">
-        Kembali ke dasbor
+      <Button component={Link} href={firstAccessibleRoute(user)} variant="contained">
+        Kembali ke halaman utama
       </Button>
     </Box>
   );

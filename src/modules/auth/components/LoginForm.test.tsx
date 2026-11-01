@@ -91,14 +91,39 @@ describe('LoginForm', () => {
     expect(useAuthStore.getState().status).toBe('authenticated');
   });
 
-  it('ignores an external redirect target', async () => {
-    service.login.mockResolvedValue(tokenResponse);
+  const withPermissions = (permissions: string[]) => ({
+    ...tokenResponse,
+    user: { ...tokenResponse.user, permissions },
+  });
+
+  it('ignores an external redirect target and lands on the dashboard for dashboard:read', async () => {
+    service.login.mockResolvedValue(withPermissions(['dashboard:read']));
     search = `next=${encodeURIComponent('https://evil.example')}`;
     render(<LoginForm />);
 
     await fill('admin@example.com', 'Correct-horse-9');
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith('/dashboard'));
+  });
+
+  it('lands on the first page the user may open when there is no next target', async () => {
+    service.login.mockResolvedValue(withPermissions(['students:read', 'messages:read']));
+    render(<LoginForm />);
+
+    await fill('admin@example.com', 'Correct-horse-9');
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/students'));
+    expect(replace).not.toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('falls back to the profile for a user without any page permission', async () => {
+    service.login.mockResolvedValue(withPermissions([]));
+    search = `next=${encodeURIComponent('//evil.example')}`;
+    render(<LoginForm />);
+
+    await fill('admin@example.com', 'Correct-horse-9');
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/profile'));
   });
 
   it('can reveal the password', async () => {

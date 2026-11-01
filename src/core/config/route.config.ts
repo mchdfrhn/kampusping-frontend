@@ -15,5 +15,8 @@ export const routes = {
   profile: '/profile',
 } as const;
 
-/** Where signed-in users land when no `next` target is given. */
+/**
+ * Generic fallback for `safeNextPath`. The dashboard needs `dashboard:read`, so real landings use
+ * `firstAccessibleRoute(user)` instead.
+ */
 export const DEFAULT_AUTHENTICATED_ROUTE = routes.dashboard;

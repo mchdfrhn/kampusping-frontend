@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-import { usePermission } from '@/core/auth/useAuth';
-import { routes } from '@/core/config/route.config';
+import { useAuth, usePermission } from '@/core/auth/useAuth';
+import { firstAccessibleRoute } from '@/core/utils/navigation.util';
 
 type RequirePermissionProps = {
   /** The user must hold every listed permission to see the page. */
@@ -19,6 +19,7 @@ type RequirePermissionProps = {
 /** Page-level gate. The API still returns 403 on its own; this just avoids a broken-looking page. */
 export const RequirePermission = ({ permission, children }: RequirePermissionProps) => {
   const allowed = usePermission(...(Array.isArray(permission) ? permission : [permission]));
+  const { user } = useAuth();
   if (allowed) return <>{children}</>;
 
   return (
@@ -38,8 +39,8 @@ export const RequirePermission = ({ permission, children }: RequirePermissionPro
         Akun Anda tidak memiliki izin yang diperlukan. Hubungi administrator jika Anda
         membutuhkannya.
       </Typography>
-      <Button component={Link} href={routes.dashboard} variant="outlined">
-        Kembali ke dasbor
+      <Button component={Link} href={firstAccessibleRoute(user)} variant="outlined">
+        Kembali ke halaman utama
       </Button>
     </Box>
   );
