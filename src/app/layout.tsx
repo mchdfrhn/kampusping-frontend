@@ -13,7 +13,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 export const metadata: Metadata = {
   title: { default: appConfig.appName, template: `%s · ${appConfig.appName}` },
   description: appConfig.appDescription,
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: '/favicon.png', apple: '/apple-icon.png' },
 };
 
 export const viewport: Viewport = {

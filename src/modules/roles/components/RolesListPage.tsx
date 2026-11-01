@@ -135,7 +135,7 @@ export const RolesListPage = () => {
         filterable: false,
         width: getActionColumnWidth(Number(canUpdate) + Number(canDelete)),
         renderCell: ({ row }) => (
-          <Stack direction="row" spacing={0.75}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', height: '100%' }}>
             {canUpdate ? (
               <Tooltip title={row.name === 'admin' ? 'Lihat' : 'Ubah'}>
                 <IconButton
