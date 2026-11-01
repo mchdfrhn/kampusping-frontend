@@ -15,8 +15,8 @@ import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 
 import { useAuthStore } from '@/core/auth/auth.store';
-import { hasPermission } from '@/core/auth/permissions';
 import { menuConfig } from '@/core/config/menu.config';
+import { filterMenuByPermission } from '@/core/utils/navigation.util';
 import { layoutTokens } from '@/design-system/tokens/layout.token';
 import { mixToken } from '@/design-system/tokens/surface.token';
 import { useUiStore } from '@/store';
@@ -32,18 +32,7 @@ const NavList = ({ collapsed, onNavigate }: NavListProps) => {
   const user = useAuthStore((state) => state.user);
   const pathname = usePathname();
 
-  const groups = useMemo(
-    () =>
-      menuConfig
-        .map((group) => ({
-          ...group,
-          items: group.items.filter(
-            (item) => !item.permission || hasPermission(user, item.permission),
-          ),
-        }))
-        .filter((group) => group.items.length > 0),
-    [user],
-  );
+  const groups = useMemo(() => filterMenuByPermission(menuConfig, user), [user]);
 
   return (
     <Box
