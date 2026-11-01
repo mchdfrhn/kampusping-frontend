@@ -184,6 +184,7 @@ describe('DashboardPage', () => {
 
   it('shows skeletons while loading and no figures yet', () => {
     summaryApi.mockReturnValue(new Promise(() => {}));
+    whatsappApi.mockReturnValue(new Promise(() => {}));
     renderPage();
 
     expect(screen.getByLabelText('Memuat ringkasan')).toBeInTheDocument();
