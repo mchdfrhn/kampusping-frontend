@@ -74,14 +74,14 @@ export const ImportPage = () => {
         {canCreate ? <ImportUploadForm onPreviewed={showPreview} /> : null}
         {batch ? (
           <ImportPreview
-            key={batch.id}
+            key={`preview-${batch.id}`}
             batch={batch}
             canManage={canCreate}
             onApply={handleApply}
             onDiscard={handleDiscard}
           />
         ) : null}
-        <ImportHistory key={historyKey} onOpenPreview={setBatch} />
+        <ImportHistory key={`history-${historyKey}`} onOpenPreview={setBatch} />
       </Stack>
     </>
   );

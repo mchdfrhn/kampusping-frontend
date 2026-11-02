@@ -234,6 +234,20 @@ describe('ImportPage apply and discard', () => {
     await waitFor(() => expect(service.list.mock.calls.length).toBeGreaterThan(1));
   });
 
+  it('closes the preview of the very first import (batch id equal to the history counter)', async () => {
+    // The first upload on an empty database is batch 1, and the history has been refreshed once
+    // by then: equal sibling keys used to leave the applied preview on screen.
+    service.apply.mockResolvedValue(makeBatch({ id: 1, status: 'applied' }));
+    const { user, region } = await upload(makeBatch({ id: 1 }));
+
+    await user.click(within(region).getByRole('button', { name: 'Terapkan' }));
+
+    await screen.findByRole('alert');
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Pratinjau impor' })).not.toBeInTheDocument(),
+    );
+  });
+
   it('shows the server message when apply is refused and keeps a 422 preview open', async () => {
     service.apply.mockRejectedValue(
       new ApiError('Tidak ada baris valid untuk diterapkan.', 422, 'validation_error'),
