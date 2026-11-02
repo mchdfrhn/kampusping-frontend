@@ -77,7 +77,9 @@ test.describe('administration', () => {
     await signIn(page);
 
     await expect(page.getByRole('heading', { name: 'Pengguna', level: 1 })).toBeVisible();
-    await expect(page.getByRole('gridcell', { name: EMAIL, exact: true }).first()).toBeVisible();
+    // Search for the address so the check does not depend on which page the grid shows first.
+    await page.getByPlaceholder('Cari nama atau email').fill(EMAIL);
+    await expect(page.getByRole('gridcell', { name: EMAIL, exact: true })).toHaveCount(1);
   });
 
   test('sends an administrator from the home page to the dashboard', async ({ page }) => {

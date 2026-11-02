@@ -4,6 +4,12 @@ export const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? 'admin@example.com';
 export const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? 'ChangeMe-12345';
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1';
 
+/**
+ * Set to `1` only when the backend runs with `WA_PROVIDER=fake`. The API cannot tell a fake provider
+ * from a connected gateway, so specs that touch send-related controls refuse to run without it.
+ */
+export const FAKE_PROVIDER_CONFIRMED = process.env.E2E_FAKE_PROVIDER === '1';
+
 /** Fills the login form; the page must already be on `/login`. */
 export const signIn = async (page: Page, email = ADMIN_EMAIL, password = ADMIN_PASSWORD) => {
   await page.getByLabel('Email').fill(email);
@@ -88,4 +94,48 @@ export const importViaApi = async (
   const batch = (await preview.json()) as { id: number };
   const applied = await request.post(`${API_BASE_URL}/imports/${batch.id}/apply`, { headers });
   expect(applied.ok(), `import apply failed with ${applied.status()}`).toBe(true);
+};
+
+export const bearer = (token: string) => ({ Authorization: `Bearer ${token}` });
+
+/** The saved application settings, read straight from the API. */
+export const getSettings = async (request: APIRequestContext, token: string) => {
+  const response = await request.get(`${API_BASE_URL}/settings`, { headers: bearer(token) });
+  expect(response.ok(), `GET /settings failed with ${response.status()}`).toBe(true);
+  return (await response.json()) as { auto_send_enabled: boolean };
+};
+
+/** Creates a user with a system role through the API; returns its id for cleanup. */
+export const createUserWithRole = async (
+  request: APIRequestContext,
+  token: string,
+  user: { email: string; fullName: string; password: string; role: string },
+) => {
+  const roles = await request.get(`${API_BASE_URL}/roles?search=${user.role}`, {
+    headers: bearer(token),
+  });
+  expect(roles.ok()).toBe(true);
+  const { items } = (await roles.json()) as { items: { id: number; name: string }[] };
+  const role = items.find((item) => item.name === user.role);
+  expect(role, `the ${user.role} system role exists`).toBeTruthy();
+  const created = await request.post(`${API_BASE_URL}/users`, {
+    headers: bearer(token),
+    data: {
+      email: user.email,
+      full_name: user.fullName,
+      password: user.password,
+      role_ids: [role!.id],
+    },
+  });
+  expect(created.status()).toBe(201);
+  return ((await created.json()) as { id: number }).id;
+};
+
+/** Soft-deletes users created by a spec so a long-lived database does not collect them. */
+export const deleteUsers = async (request: APIRequestContext, ids: number[]) => {
+  if (ids.length === 0) return;
+  const token = await apiLogin(request);
+  for (const id of ids) {
+    await request.delete(`${API_BASE_URL}/users/${id}`, { headers: bearer(token) });
+  }
 };

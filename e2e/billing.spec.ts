@@ -2,7 +2,12 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import {
   API_BASE_URL,
+  FAKE_PROVIDER_CONFIRMED,
   apiLogin,
+  bearer,
+  createUserWithRole,
+  deleteUsers,
+  getSettings,
   importViaApi,
   signIn,
   signInAt,
@@ -233,6 +238,17 @@ test.describe('import flow', () => {
   });
 });
 
+const createdUserIds: number[] = [];
+
+test.afterAll(async ({ playwright }) => {
+  const request = await playwright.request.newContext();
+  try {
+    await deleteUsers(request, createdUserIds);
+  } finally {
+    await request.dispose();
+  }
+});
+
 test.describe('defaults and permissions', () => {
   test('shows the seeded template and the H-7 to H+7 schedule rules', async ({ page }) => {
     await signInAt(page, '/templates');
@@ -245,11 +261,24 @@ test.describe('defaults and permissions', () => {
     ).toBeVisible();
 
     await openFromSidebar(page, 'Jadwal', 'Jadwal Pengiriman');
-    for (const rule of ['H-7', 'H-3', 'H-1', 'H', 'H+3', 'H+7']) {
-      await expect(
-        page.getByRole('gridcell', { name: rule, exact: true }).first(),
-        rule,
-      ).toBeVisible();
+    // Every default rule shows its own offset label and the right template.
+    const rules: [string, string][] = [
+      ['H-7', 'Pengingat sebelum jatuh tempo'],
+      ['H-3', 'Pengingat sebelum jatuh tempo'],
+      ['H-1', 'Pengingat sebelum jatuh tempo'],
+      ['H', 'Pengingat sebelum jatuh tempo'],
+      ['H+3', 'Tunggakan setelah jatuh tempo'],
+      ['H+7', 'Tunggakan setelah jatuh tempo'],
+    ];
+    for (const [label, template] of rules) {
+      // The rule is named after its offset; the "Waktu kirim" column must show the same label.
+      const row = page
+        .getByRole('row')
+        .filter({ has: page.locator('[data-field="name"]').getByText(label, { exact: true }) })
+        .first();
+      await expect(row, label).toBeVisible();
+      await expect(row.locator('[data-field="offset_days"]'), label).toHaveText(label);
+      await expect(row.locator('[data-field="template"]'), label).toContainText(template);
     }
   });
 
@@ -258,18 +287,14 @@ test.describe('defaults and permissions', () => {
     const email = `pimpinan-${run.toLowerCase()}@example.com`;
     const password = 'Pimpinan-E2e-12345';
     const token = await apiLogin(request);
-    const headers = { Authorization: `Bearer ${token}` };
-
-    const roles = await request.get(`${API_BASE_URL}/roles?search=pimpinan`, { headers });
-    expect(roles.ok()).toBe(true);
-    const { items } = (await roles.json()) as { items: { id: number; name: string }[] };
-    const pimpinan = items.find((role) => role.name === 'pimpinan');
-    expect(pimpinan, 'the pimpinan system role exists').toBeTruthy();
-    const created = await request.post(`${API_BASE_URL}/users`, {
-      headers,
-      data: { email, full_name: `Pimpinan ${run}`, password, role_ids: [pimpinan!.id] },
-    });
-    expect(created.status()).toBe(201);
+    createdUserIds.push(
+      await createUserWithRole(request, token, {
+        email,
+        fullName: `Pimpinan ${run}`,
+        password,
+        role: 'pimpinan',
+      }),
+    );
 
     await page.goto('/login');
     await signIn(page, email, password);
@@ -292,11 +317,38 @@ test.describe('defaults and permissions', () => {
     ).toBeVisible();
     await page.getByRole('link', { name: 'Kembali ke halaman utama' }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
+
+    // The API enforces the same limits: the pimpinan token is refused outside the dashboard.
+    const pimpinanToken = await apiLogin(request, email, password);
+    for (const path of ['/students', '/settings']) {
+      const response = await request.get(`${API_BASE_URL}${path}`, {
+        headers: bearer(pimpinanToken),
+      });
+      expect(response.status(), `GET ${path} as pimpinan`).toBe(403);
+    }
   });
 });
 
 test.describe('settings', () => {
-  test('shows the WhatsApp state and keeps auto-send off unless confirmed', async ({ page }) => {
+  test('shows the WhatsApp state and keeps auto-send off unless confirmed', async ({
+    page,
+    request,
+  }) => {
+    // The API cannot tell a fake provider from a real gateway, so this spec runs only when the
+    // person who started the backend states that it uses WA_PROVIDER=fake.
+    test.skip(
+      !FAKE_PROVIDER_CONFIRMED,
+      'Set E2E_FAKE_PROVIDER=1 (backend started with WA_PROVIDER=fake) to run the settings spec.',
+    );
+
+    const token = await apiLogin(request);
+    const savedAutoSend = async () => (await getSettings(request, token)).auto_send_enabled;
+    const status = await request.get(`${API_BASE_URL}/whatsapp/status`, { headers: bearer(token) });
+    expect(status.ok()).toBe(true);
+    // The fake provider is always connected and has no pairing code.
+    expect(await status.json()).toMatchObject({ state: 'connected', qr: null });
+    expect(await savedAutoSend(), 'auto-send is off before the test').toBe(false);
+
     await signInAt(page, '/settings');
     await expect(page.getByRole('heading', { name: 'Pengaturan', level: 1 })).toBeVisible();
 
@@ -306,8 +358,14 @@ test.describe('settings', () => {
     await expect(page.getByText('WhatsApp tersambung dan siap mengirim pesan.')).toBeVisible();
     await expect(page.getByText('Tidak dapat memuat status WhatsApp.')).toHaveCount(0);
 
+    // The form renders only after the settings loaded; wait for that before asserting "off".
+    const loaded = async () => {
+      await expect(page.getByLabel('Batas harian (pesan per hari)')).not.toHaveValue('');
+      await expect(page.getByRole('button', { name: 'Simpan pengaturan' })).toBeEnabled();
+    };
+    await loaded();
     const autoSend = page.getByRole('switch', { name: 'Pengiriman otomatis' });
-    await expect(autoSend).toBeVisible();
+    await expect(autoSend).toBeEnabled();
     await expect(autoSend).not.toBeChecked();
 
     // Turning it on asks first; cancelling leaves it off. The final confirm is never clicked.
@@ -317,9 +375,12 @@ test.describe('settings', () => {
     await dialog.getByRole('button', { name: 'Batal' }).click();
     await expect(dialog).toBeHidden();
     await expect(autoSend).not.toBeChecked();
+    expect(await savedAutoSend(), 'auto-send is still off after Batal').toBe(false);
 
-    // Reloading shows the saved value: still off.
+    // Reloading shows the saved value: still off, in the UI and in the database.
     await page.reload();
+    await loaded();
     await expect(page.getByRole('switch', { name: 'Pengiriman otomatis' })).not.toBeChecked();
+    expect(await savedAutoSend(), 'auto-send is still off after a reload').toBe(false);
   });
 });

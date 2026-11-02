@@ -10,6 +10,13 @@ End-to-end runs must use `WA_PROVIDER=fake` (the backend records messages in mem
 reach a real phone. The specs also never turn on "Pengiriman otomatis"; the settings spec opens
 the confirmation dialog and cancels it, so auto-send stays off in the database.
 
+### `E2E_FAKE_PROVIDER=1`
+
+The API cannot tell the fake provider from a connected gateway. The settings spec therefore runs only
+when you state, with `E2E_FAKE_PROVIDER=1`, that the backend was started with `WA_PROVIDER=fake`;
+without the flag it is skipped with a message. It also reads `GET /settings` through the API before
+the dialog, after cancelling it and after a reload, and fails if `auto_send_enabled` is ever true.
+
 ## Specs
 
 | File              | Covers                                                                                                                                                                                                                                                                                                  |
@@ -19,7 +26,8 @@ the confirmation dialog and cancels it, so auto-send stays off in the database.
 | `helpers.ts`      | Shared sign-in, API login, in-memory CSV builder and API import (not a spec)                                                                                                                                                                                                                            |
 
 Specs share one database and do not depend on each other or on their order: every run builds its own
-NIMs, invoice codes and e-mail addresses from a unique id. The import CSV is generated in memory
+NIMs, invoice codes and e-mail addresses from a unique id, and the `pimpinan` users a run creates are
+soft-deleted again in an `afterAll` hook (imported students and invoices stay; they are unique per run). The import CSV is generated in memory
 (`toCsv` in `helpers.ts`) and uploaded with `setInputFiles`, so no fixture file is committed.
 
 ## Run
@@ -30,6 +38,9 @@ NIMs, invoice codes and e-mail addresses from a unique id. The import CSV is gen
    outside the repository (`.env` may point to a real database, and environment variables win):
 
    ```bash
+   # Windows: a drive path with forward slashes (sqlite+aiosqlite:///C:/tmp/...). A Git Bash path such
+   # as /c/tmp/... is NOT valid in the URL. POSIX: sqlite+aiosqlite:////tmp/kampusping-e2e.db
+   # (four slashes for an absolute path).
    export DATABASE_ENGINE=sqlite DATABASE_URL=sqlite+aiosqlite:///C:/tmp/kampusping-e2e.db
    export BACKEND_CORS_ORIGINS=http://localhost:3100
    export LOGIN_RATE_LIMIT=1000/minute LOGIN_MAX_ATTEMPTS=1000
@@ -48,12 +59,15 @@ NIMs, invoice codes and e-mail addresses from a unique id. The import CSV is gen
    npx playwright install chromium
    export E2E_BASE_URL=http://localhost:3100
    export NEXT_PUBLIC_API_BASE_URL=http://localhost:8100/api/v1
+   export E2E_FAKE_PROVIDER=1   # the backend above runs with WA_PROVIDER=fake
    npm run test:e2e
    ```
 
    Locally the web app is started for you with `next dev` on the port of `E2E_BASE_URL` (Next.js
    refuses a second dev server in the same folder, so stop any `npm run dev` you have running
-   first). With `CI=1` it is served with `npm run start`, so run `npm run build` first.
+   first). With `CI=1` it is served with `npm run start`, so run `npm run build` first. `CI=1` also turns on
+   `retries: 1`, which can hide flaky tests: when checking for flakiness run
+   `npx playwright test --retries=0`.
 
 3. Stop the backend and the web server when you are done, and delete the throwaway database.
 
