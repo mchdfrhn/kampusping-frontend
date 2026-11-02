@@ -18,3 +18,16 @@ Later releases: `git pull && bash deploy/deploy-prod.sh`.
   different registrable domain would need `COOKIE_SAMESITE=none` on the API, which weakens CSRF
   protection; put both behind one domain instead.
 - Prefer containers? See the repository root `docker-compose.yml`.
+
+## Deploy order
+
+The four processes belong to one release. Roll them out in this order:
+
+1. **Migrate** the database (`--migrate` here).
+2. **API** (`kampusping-backend`, 127.0.0.1:8093).
+3. **Worker** (`kampusping-worker`).
+4. **Gateway** (`kampusping-wa-gateway`, 127.0.0.1:8095, see `kampusping-wa-gateway/deploy/`).
+5. **Web** (`kampusping-frontend`, 127.0.0.1:8094, see `kampusping-frontend/deploy/`).
+
+This repo covers step 5 only. Deploy the web app last, after the API it calls is up. The worker
+(`kampusping-worker`, backend repo) must stay at exactly one instance: **never run two workers**.
