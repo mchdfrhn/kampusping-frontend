@@ -99,11 +99,13 @@ export const WhatsAppPanel = () => {
           <Stack spacing={2}>
             {status.state === 'connected' ? (
               <Stack
-                alignItems={{ xs: 'flex-start', sm: 'center' }}
-                direction={{ xs: 'column', sm: 'row' }}
-                justifyContent="space-between"
                 spacing={2}
-                sx={{ py: 0.5 }}
+                sx={{
+                  alignItems: { xs: 'flex-start', sm: 'center' },
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'space-between',
+                  py: 0.5,
+                }}
               >
                 <Typography color="text.secondary" variant="body2">
                   WhatsApp tersambung dan siap mengirim pesan.
