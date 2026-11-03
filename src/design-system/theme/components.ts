@@ -54,5 +54,9 @@ export const components: Components<Omit<Theme, 'components'>> = {
   MuiTabs: { styleOverrides: { indicator: { height: 3, borderRadius: 3 } } },
   MuiTooltip: { defaultProps: { arrow: true } },
   MuiListItemButton: { styleOverrides: { root: { borderRadius: 8 } } },
-  MuiMenu: { styleOverrides: { paper: { borderRadius: 10 } } },
+  MuiMenu: {
+    // Scroll lock hides the page scrollbar while a menu is open, which shifts the header (avatar).
+    defaultProps: { disableScrollLock: true },
+    styleOverrides: { paper: { borderRadius: 10 } },
+  },
 };

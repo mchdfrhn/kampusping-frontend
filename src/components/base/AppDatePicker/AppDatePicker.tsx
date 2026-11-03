@@ -53,6 +53,8 @@ export const AppDatePicker = ({
         const existingSlotProps = textFieldProps.slotProps ?? {};
 
         return {
+          // The picker's own field ignores the theme's TextField default, so match it here.
+          size: 'small',
           ...textFieldProps,
           slotProps: {
             ...existingSlotProps,

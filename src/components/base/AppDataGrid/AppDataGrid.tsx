@@ -17,7 +17,7 @@ export type AppDataGridProps<R extends GridValidRowModel = GridValidRowModel> = 
 > & {
   columns: GridColDef<R>[];
   pageSizeOptions?: number[];
-  /** When true, columns expand to container width and hide unnecessary horizontal scroll. */
+  /** When true, columns expand to container width when they fit and scroll horizontally when they overflow. */
   fillWidth?: boolean;
 };
 
@@ -84,6 +84,9 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
           minHeight: '44px !important',
           maxHeight: '44px !important',
         },
+        '& .MuiDataGrid-columnHeader--last': {
+          overflow: 'hidden',
+        },
         '& .MuiDataGrid-columnHeaderTitle': {
           fontWeight: 600,
         },
@@ -137,13 +140,18 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
         '& .MuiDataGrid-main': {
           overflowX: 'auto',
         },
-        // Hide MUI overlay scrollbars; use native scrollbars on the scroller instead.
-        '& .MuiDataGrid-scrollbar': {
+        // Hide MUI overlay scrollbars and their header filler; use native scrollbars on the scroller instead.
+        '& .MuiDataGrid-scrollbar, & .MuiDataGrid-scrollbarFiller': {
           display: 'none !important',
+        },
+        '& .MuiDataGrid-filler--horizontal': {
+          width: '0px !important',
+          minWidth: '0px !important',
+          flex: '1 1 0px',
         },
         '& .MuiDataGrid-virtualScroller': {
           overflowY: 'auto !important',
-          overflowX: fillWidth ? 'hidden !important' : 'auto !important',
+          overflowX: 'auto !important',
           msOverflowStyle: 'auto',
           scrollbarColor: `${surfaceTokens.scrollbarThumb} ${surfaceTokens.scrollbarTrack}`,
           scrollbarWidth: 'thin',
@@ -165,13 +173,22 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
         },
         '& .MuiDataGrid-virtualScrollerContent': {
           pb: 0,
+          width: 'var(--DataGrid-columnsTotalWidth) !important',
           ...(fillWidth
             ? {
                 minWidth: '100% !important',
-                width: '100% !important',
               }
             : {}),
         },
+        '& .MuiDataGrid-columnHeaders, & .MuiDataGrid-row, & .MuiDataGrid-filler:not(.MuiDataGrid-filler--horizontal)':
+          {
+            width: 'var(--DataGrid-columnsTotalWidth)',
+            ...(fillWidth
+              ? {
+                  minWidth: '100%',
+                }
+              : {}),
+          },
         '& .MuiDataGrid-cell': {
           display: 'flex',
           alignItems: 'center',
