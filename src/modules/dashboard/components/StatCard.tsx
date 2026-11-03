@@ -16,24 +16,54 @@ export const StatCard = ({ label, value, caption, tone = 'default' }: Props) => 
   <Card
     data-stat=""
     data-tone={tone}
+    variant="outlined"
     sx={{
-      borderColor: tone === 'error' ? 'error.main' : undefined,
-      borderWidth: tone === 'error' ? 1 : undefined,
+      bgcolor: 'background.paper',
+      borderColor: tone === 'error' ? 'error.main' : 'divider',
+      borderRadius: 1.5,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      height: '100%',
     }}
   >
-    <CardContent>
-      <Typography color="text.secondary" sx={{ fontWeight: 600 }} variant="body2">
+    <CardContent
+      sx={{
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        p: '12px 14px !important',
+      }}
+    >
+      <Typography
+        color="text.secondary"
+        sx={{ fontWeight: 600, fontSize: '0.75rem', lineHeight: 1.25, minHeight: 18 }}
+        variant="body2"
+      >
         {label}
       </Typography>
       <Typography
         component="p"
-        sx={{ color: tone === 'error' ? 'error.main' : 'text.primary', mt: 0.5 }}
+        noWrap
+        sx={{
+          color: tone === 'error' ? 'error.main' : 'text.primary',
+          fontSize: '1.45rem',
+          fontWeight: 700,
+          lineHeight: 1.2,
+          mt: 0.25,
+        }}
         variant="h4"
       >
         {value}
       </Typography>
       {caption ? (
-        <Typography color="text.secondary" sx={{ mt: 0.5 }} variant="body2">
+        <Typography
+          color="text.secondary"
+          noWrap
+          sx={{ fontSize: '0.75rem', fontWeight: 500, mt: 0.25 }}
+          variant="body2"
+        >
           {caption}
         </Typography>
       ) : null}

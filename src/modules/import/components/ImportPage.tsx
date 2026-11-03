@@ -98,7 +98,16 @@ export const ImportPage = () => {
       />
 
       {batch ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: 2.5, overflowY: 'auto' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            gap: 2.5,
+            overflowY: 'auto',
+          }}
+        >
           <ImportPreview
             key={`preview-${batch.id}`}
             batch={batch}

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import Page from '@/app/(app)/dashboard/page';
@@ -212,44 +212,10 @@ describe('DashboardPage', () => {
 });
 
 describe('DashboardPage semester filter', () => {
-  it('loads every semester first, then refetches with the typed semester after a pause', async () => {
+  it('does not render a semester filter input', async () => {
     renderPage();
     await screen.findByText('Total tagihan');
-    expect(summaryApi).toHaveBeenLastCalledWith(undefined, expect.anything());
-
-    vi.useFakeTimers();
-    fireEvent.change(screen.getByLabelText('Semester'), { target: { value: '2025/2026-1' } });
-    expect(summaryApi).toHaveBeenCalledTimes(1);
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(500);
-    });
-
-    expect(summaryApi).toHaveBeenCalledTimes(2);
-    expect(summaryApi).toHaveBeenLastCalledWith('2025/2026-1', expect.anything());
-  });
-
-  it('returns to all semesters when the field is cleared', async () => {
-    renderPage();
-    await screen.findByText('Total tagihan');
-    vi.useFakeTimers();
-
-    fireEvent.change(screen.getByLabelText('Semester'), { target: { value: '2025/2026-1' } });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(500);
-    });
-    fireEvent.change(screen.getByLabelText('Semester'), { target: { value: '  ' } });
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(500);
-    });
-
-    expect(summaryApi).toHaveBeenLastCalledWith(undefined, expect.anything());
-  });
-
-  it('limits the semester to 20 characters', async () => {
-    renderPage();
-    await screen.findByText('Total tagihan');
-
-    expect(screen.getByLabelText('Semester')).toHaveAttribute('maxlength', '20');
+    expect(screen.queryByLabelText('Semester')).not.toBeInTheDocument();
   });
 });
 

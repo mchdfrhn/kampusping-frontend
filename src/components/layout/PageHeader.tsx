@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
+import type { SxProps, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import NextLink from 'next/link';
 import type { ReactNode } from 'react';
@@ -13,10 +14,11 @@ type PageHeaderProps = {
   breadcrumbs?: PageCrumb[];
   /** Primary page actions, rendered on the right (e.g. a "Create" button). */
   actions?: ReactNode;
+  sx?: SxProps<Theme>;
 };
 
-export const PageHeader = ({ title, description, breadcrumbs, actions }: PageHeaderProps) => (
-  <Box sx={{ mb: 3 }}>
+export const PageHeader = ({ title, description, breadcrumbs, actions, sx }: PageHeaderProps) => (
+  <Box sx={[{ mb: 3 }, ...(Array.isArray(sx) ? sx : [sx])]}>
     {breadcrumbs && breadcrumbs.length > 0 ? (
       <Breadcrumbs aria-label="Jejak navigasi" sx={{ fontSize: 13, mb: 1 }}>
         {breadcrumbs.map((crumb) =>

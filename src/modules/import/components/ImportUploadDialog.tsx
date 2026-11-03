@@ -16,7 +16,13 @@ type ImportUploadDialogProps = {
 };
 
 export const ImportUploadDialog = ({ open, onClose, onPreviewed }: ImportUploadDialogProps) => (
-  <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth aria-labelledby="import-upload-dialog-title">
+  <Dialog
+    open={open}
+    onClose={onClose}
+    maxWidth="sm"
+    fullWidth
+    aria-labelledby="import-upload-dialog-title"
+  >
     <DialogTitle
       id="import-upload-dialog-title"
       sx={{

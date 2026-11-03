@@ -81,9 +81,7 @@ export const ImportUploadForm = ({ onPreviewed, inDialog = false, onCancel }: Pr
   const formBody = (
     <FormProvider methods={methods} onSubmit={submit}>
       <Stack spacing={2.5} sx={{ maxWidth: inDialog ? '100%' : 560 }}>
-        {errors.root?.server ? (
-          <Alert severity="error">{errors.root.server.message}</Alert>
-        ) : null}
+        {errors.root?.server ? <Alert severity="error">{errors.root.server.message}</Alert> : null}
 
         <Controller
           control={control}
@@ -126,11 +124,7 @@ export const ImportUploadForm = ({ onPreviewed, inDialog = false, onCancel }: Pr
           name="file"
           render={({ field, fieldState }) => (
             <Box>
-              <Stack
-                direction="row"
-                spacing={1.5}
-                sx={{ alignItems: 'center', flexWrap: 'wrap' }}
-              >
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                 <Button
                   component="label"
                   color="inherit"
@@ -148,11 +142,7 @@ export const ImportUploadForm = ({ onPreviewed, inDialog = false, onCancel }: Pr
                     onChange={(event) => field.onChange(event.target.files?.[0] ?? null)}
                   />
                 </Button>
-                <Typography
-                  color="text.secondary"
-                  variant="body2"
-                  sx={{ wordBreak: 'break-all' }}
-                >
+                <Typography color="text.secondary" variant="body2" sx={{ wordBreak: 'break-all' }}>
                   {field.value?.name ?? 'Belum ada berkas dipilih (.csv atau .xlsx, maks. 5 MB)'}
                 </Typography>
               </Stack>

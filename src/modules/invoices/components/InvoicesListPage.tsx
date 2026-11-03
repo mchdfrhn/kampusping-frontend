@@ -25,8 +25,6 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { permissions } from '@/core/auth/permissions';
 import { usePermission } from '@/core/auth/useAuth';
 import { routes } from '@/core/config/route.config';
-import { SEARCH_DEBOUNCE_MS } from '@/core/constants/app.constant';
-import { useDebounce } from '@/core/hooks/useDebounce';
 import { useServerGrid } from '@/core/hooks/useServerGrid';
 import { getErrorMessage } from '@/core/http/api-error';
 import { useNotify } from '@/core/notify/NotifyProvider';
@@ -35,7 +33,6 @@ import { formatRupiah } from '@/core/utils/format.util';
 import { getActionColumnWidth } from '@/core/utils/grid-action-column.util';
 
 import {
-  INVOICE_SEMESTER_MAX,
   INVOICE_SOURCE_LABELS,
   INVOICE_STATUS_LABELS,
   INVOICE_STATUS_OPTIONS,
@@ -57,23 +54,19 @@ export const InvoicesListPage = () => {
   const canUpdate = usePermission(permissions.invoicesUpdate);
 
   const [status, setStatus] = useState<InvoiceStatus | ''>('');
-  const [semester, setSemester] = useState('');
   const [dueFrom, setDueFrom] = useState<Dayjs | null>(null);
   const [dueTo, setDueTo] = useState<Dayjs | null>(null);
   const [target, setTarget] = useState<InvoiceRecord | null>(null);
-
-  const debouncedSemester = useDebounce(semester.trim(), SEARCH_DEBOUNCE_MS);
 
   const dueFromParam = toApiDate(dueFrom);
   const dueToParam = toApiDate(dueTo);
   const filters = useMemo<InvoiceFilters>(
     () => ({
       status: status || undefined,
-      semester: debouncedSemester || undefined,
       due_from: dueFromParam,
       due_to: dueToParam,
     }),
-    [status, debouncedSemester, dueFromParam, dueToParam],
+    [status, dueFromParam, dueToParam],
   );
 
   const grid = useServerGrid<InvoiceRecord, InvoiceFilters>({
@@ -260,13 +253,6 @@ export const InvoicesListPage = () => {
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            label="Semester"
-            value={semester}
-            onChange={(event) => setSemester(event.target.value)}
-            sx={{ width: 140 }}
-            slotProps={{ htmlInput: { maxLength: INVOICE_SEMESTER_MAX } }}
-          />
           <AppDatePicker label="Jatuh tempo dari" value={dueFrom} onChange={setDueFrom} />
           <AppDatePicker label="Jatuh tempo sampai" value={dueTo} onChange={setDueTo} />
         </Box>
