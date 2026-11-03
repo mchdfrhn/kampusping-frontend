@@ -98,7 +98,29 @@ export const WhatsAppPanel = () => {
         ) : (
           <Stack spacing={2}>
             {status.state === 'connected' ? (
-              <Typography variant="body2">WhatsApp tersambung dan siap mengirim pesan.</Typography>
+              <Stack
+                alignItems={{ xs: 'flex-start', sm: 'center' }}
+                direction={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                spacing={2}
+                sx={{ py: 0.5 }}
+              >
+                <Typography color="text.secondary" variant="body2">
+                  WhatsApp tersambung dan siap mengirim pesan.
+                </Typography>
+                {canUpdate ? (
+                  <Button
+                    color="inherit"
+                    size="small"
+                    startIcon={<LinkOffOutlinedIcon />}
+                    sx={{ borderColor: 'divider', flexShrink: 0 }}
+                    variant="outlined"
+                    onClick={() => setConfirmingLogout(true)}
+                  >
+                    Putuskan sesi
+                  </Button>
+                ) : null}
+              </Stack>
             ) : null}
 
             {status.state === 'connecting' ? (
@@ -116,8 +138,12 @@ export const WhatsAppPanel = () => {
 
             {status.state === 'qr' ? (
               <Stack
-                spacing={3}
-                sx={{ alignItems: { sm: 'center' }, flexDirection: { sm: 'row' } }}
+                spacing={4}
+                sx={{
+                  alignItems: { xs: 'flex-start', sm: 'center' },
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  py: 1,
+                }}
               >
                 {status.qr ? (
                   <Box
@@ -125,10 +151,11 @@ export const WhatsAppPanel = () => {
                       bgcolor: 'common.white',
                       border: 1,
                       borderColor: 'divider',
-                      borderRadius: 2,
+                      borderRadius: 2.5,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                       flexShrink: 0,
                       lineHeight: 0,
-                      p: 1.5,
+                      p: 2.5,
                       width: 'fit-content',
                     }}
                   >
@@ -148,12 +175,27 @@ export const WhatsAppPanel = () => {
                     Menyiapkan kode QR…
                   </Typography>
                 )}
-                <Stack spacing={1.5}>
-                  <Typography variant="body2">
-                    Buka WhatsApp di ponsel → Perangkat tertaut → Tautkan perangkat → pindai kode
-                    ini
-                  </Typography>
-                  <Alert severity="warning">
+                <Stack spacing={2} sx={{ flex: 1, maxWidth: 640 }}>
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        display: 'block',
+                        fontWeight: 600,
+                        letterSpacing: 0.5,
+                        mb: 0.75,
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Petunjuk Penautan
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.primary', lineHeight: 1.6 }}>
+                      Buka WhatsApp di ponsel → Perangkat tertaut → Tautkan perangkat → pindai kode
+                      ini
+                    </Typography>
+                  </Box>
+                  <Alert severity="warning" sx={{ borderRadius: 2 }}>
                     Gunakan nomor WhatsApp khusus, bukan nomor utama kampus. Sambungan WhatsApp yang
                     dipakai tidak resmi, sehingga nomor berisiko diblokir.
                   </Alert>
@@ -163,8 +205,8 @@ export const WhatsAppPanel = () => {
           </Stack>
         )}
 
-        {canUpdate ? (
-          <Box sx={{ mt: 2 }}>
+        {canUpdate && status && status.state !== 'connected' ? (
+          <Box sx={{ borderColor: 'divider', borderTop: 1, mt: 3, pt: 2.5 }}>
             <Button
               color="inherit"
               startIcon={<LinkOffOutlinedIcon />}
