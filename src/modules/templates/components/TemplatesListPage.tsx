@@ -180,39 +180,50 @@ export const TemplatesListPage = () => {
         description="Kelola isi pesan WhatsApp yang dipakai aturan jadwal pengiriman."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Template Pesan' }]}
         actions={
-          <Can permission={permissions.templatesCreate}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Button
-              startIcon={<AddOutlinedIcon />}
-              variant="contained"
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
+              color="inherit"
+              variant="outlined"
+              startIcon={<RefreshOutlinedIcon />}
+              onClick={() => void grid.reload()}
+              sx={{ borderColor: 'divider' }}
             >
-              Tambah template
+              Muat ulang
             </Button>
-          </Can>
+            <Can permission={permissions.templatesCreate}>
+              <Button
+                startIcon={<AddOutlinedIcon />}
+                variant="contained"
+                onClick={() => {
+                  setEditing(null);
+                  setFormOpen(true);
+                }}
+              >
+                Tambah template
+              </Button>
+            </Can>
+          </Stack>
         }
       />
 
-      <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
+      <Card
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'column',
+          minHeight: 0,
+          p: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <AppSearchField
             value={grid.search}
             onChange={grid.setSearch}
             placeholder="Cari nama template"
           />
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
-          >
-            Muat ulang
-          </Button>
         </Box>
-        <Box sx={{ flex: 1, minHeight: 360 }}>
+        <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
           <AppDataGrid
             columns={columns}
             fillWidth

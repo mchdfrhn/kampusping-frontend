@@ -31,29 +31,14 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
 }: AppDataGridProps<R>) => {
   const normalizedColumns = useMemo(() => {
     const cols = columns || [];
-    const lastIdx = Math.max(0, cols.length - 1);
 
-    return cols.map((col, idx) => {
-      const field = String(col.field ?? '');
-      const isAction =
-        field === '__actions__' || field === '__action__' || field.startsWith('__action');
-
+    return cols.map((col) => {
       const withFixedWidth =
         col.flex === undefined && (col.width !== undefined || col.minWidth !== undefined)
           ? { ...col, flex: 0 as const }
           : col;
 
-      if (!isAction) return withFixedWidth;
-
-      const stickyClass =
-        idx === 0 ? 'dg-sticky-left-actions' : idx === lastIdx ? 'dg-sticky-actions' : '';
-
-      return {
-        ...withFixedWidth,
-        flex: withFixedWidth.flex ?? 0,
-        headerClassName: [withFixedWidth.headerClassName, stickyClass].filter(Boolean).join(' '),
-        cellClassName: [withFixedWidth.cellClassName, stickyClass].filter(Boolean).join(' '),
-      };
+      return withFixedWidth;
     });
   }, [columns]);
 
@@ -69,7 +54,10 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
       scrollbarSize={10}
       sx={{
         width: '100%',
+        height: '100%',
+        flex: 1,
         minWidth: 0,
+        minHeight: 0,
         border: '1px solid',
         borderColor: 'divider',
         '& .MuiDataGrid-columnHeaders': {
@@ -97,52 +85,10 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
         '& .MuiDataGrid-row:hover, & .MuiDataGrid-row:hover .MuiDataGrid-cell': {
           bgcolor: surfaceTokens.hover,
         },
-        '& .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-cell.dg-sticky-left-actions': {
-          bgcolor: 'background.paper',
-        },
-        '& .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-row:nth-of-type(even) .MuiDataGrid-cell.dg-sticky-left-actions':
-          {
-            bgcolor: surfaceTokens.zebra,
-          },
-        '& .MuiDataGrid-row:hover .MuiDataGrid-cell.dg-sticky-actions, & .MuiDataGrid-row:hover .MuiDataGrid-cell.dg-sticky-left-actions':
-          {
-            bgcolor: surfaceTokens.hover,
-          },
-        '& .MuiDataGrid-columnHeader.dg-sticky-actions': {
-          position: 'sticky',
-          right: 0,
-          zIndex: 3,
-          bgcolor: 'background.paper',
-          boxShadow: '-8px 0 8px -8px rgba(0,0,0,0.20)',
-        },
-        '& .MuiDataGrid-cell.dg-sticky-actions': {
-          position: 'sticky',
-          right: 0,
-          zIndex: 2,
-          boxShadow: '-8px 0 8px -8px rgba(0,0,0,0.12)',
-        },
-        '& .MuiDataGrid-columnHeader.dg-sticky-left-actions': {
-          position: 'sticky',
-          left: 0,
-          zIndex: 3,
-          bgcolor: 'background.paper',
-          boxShadow: '8px 0 8px -8px rgba(0,0,0,0.20)',
-          flexShrink: 0,
-        },
-        '& .MuiDataGrid-cell.dg-sticky-left-actions': {
-          position: 'sticky',
-          left: 0,
-          zIndex: 2,
-          boxShadow: '8px 0 8px -8px rgba(0,0,0,0.12)',
-          flexShrink: 0,
-          overflow: 'visible',
-        },
         '& .MuiDataGrid-main': {
           overflowX: 'auto',
-        },
-        // Hide MUI overlay scrollbars and their header filler; use native scrollbars on the scroller instead.
-        '& .MuiDataGrid-scrollbar, & .MuiDataGrid-scrollbarFiller': {
-          display: 'none !important',
+          flex: 1,
+          minHeight: 0,
         },
         '& .MuiDataGrid-filler--horizontal': {
           width: '0px !important',
@@ -157,8 +103,8 @@ export const AppDataGrid = <R extends GridValidRowModel = GridValidRowModel>({
           scrollbarWidth: 'thin',
           '&::-webkit-scrollbar': {
             display: 'block',
-            height: 10,
-            width: 10,
+            height: 8,
+            width: 8,
           },
           '&::-webkit-scrollbar-track': {
             background: surfaceTokens.scrollbarTrack,

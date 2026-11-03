@@ -1,5 +1,9 @@
 'use client';
 
+import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import { useState } from 'react';
 
@@ -14,7 +18,7 @@ import { importService } from '../services/import.service';
 import type { ImportBatch, ImportSummary } from '../types';
 import { ImportHistory } from './ImportHistory';
 import { ImportPreview } from './ImportPreview';
-import { ImportUploadForm } from './ImportUploadForm';
+import { ImportUploadDialog } from './ImportUploadDialog';
 
 const describeApplied = (summary: ImportSummary) =>
   `Impor diterapkan: ${summary.students_new} mahasiswa baru, ` +
@@ -24,8 +28,8 @@ const describeApplied = (summary: ImportSummary) =>
 export const ImportPage = () => {
   const notify = useNotify();
   const canCreate = usePermission(permissions.importsCreate);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [batch, setBatch] = useState<ImportBatch | null>(null);
-  // Changing the key remounts the history, so it reloads from the first page (newest first).
   const [historyKey, setHistoryKey] = useState(0);
 
   const refreshHistory = () => setHistoryKey((key) => key + 1);
@@ -67,12 +71,34 @@ export const ImportPage = () => {
     <>
       <PageHeader
         title="Impor Data"
-        description="Unggah berkas ekspor CSV atau Excel dari SIAKAD/Civitas dan SIPEMA untuk memperbarui data mahasiswa dan tagihan. Pembayaran tetap dilakukan di SIAKAD/SIPEMA."
+        description="Unggah berkas ekspor SIAKAD atau SIPEMA untuk memperbarui data mahasiswa dan tagihan."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Impor Data' }]}
+        actions={
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<RefreshOutlinedIcon />}
+              onClick={refreshHistory}
+              sx={{ borderColor: 'divider' }}
+            >
+              Muat ulang
+            </Button>
+            {canCreate ? (
+              <Button
+                variant="contained"
+                startIcon={<UploadFileOutlinedIcon />}
+                onClick={() => setUploadOpen(true)}
+              >
+                Unggah berkas
+              </Button>
+            ) : null}
+          </Stack>
+        }
       />
-      <Stack spacing={3}>
-        {canCreate ? <ImportUploadForm onPreviewed={showPreview} /> : null}
-        {batch ? (
+
+      {batch ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: 2.5, overflowY: 'auto' }}>
           <ImportPreview
             key={`preview-${batch.id}`}
             batch={batch}
@@ -80,9 +106,19 @@ export const ImportPage = () => {
             onApply={handleApply}
             onDiscard={handleDiscard}
           />
-        ) : null}
-        <ImportHistory key={`history-${historyKey}`} onOpenPreview={setBatch} />
-      </Stack>
+          <ImportHistory refreshTrigger={historyKey} onOpenPreview={setBatch} />
+        </Box>
+      ) : (
+        <ImportHistory refreshTrigger={historyKey} onOpenPreview={setBatch} />
+      )}
+
+      {canCreate ? (
+        <ImportUploadDialog
+          open={uploadOpen}
+          onClose={() => setUploadOpen(false)}
+          onPreviewed={showPreview}
+        />
+      ) : null}
     </>
   );
 };

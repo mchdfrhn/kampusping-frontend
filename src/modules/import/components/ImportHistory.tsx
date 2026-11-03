@@ -1,14 +1,13 @@
 'use client';
 
-import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import type { GridColDef } from '@mui/x-data-grid';
+import { useEffect, useRef } from 'react';
 
 import { AppDataGrid } from '@/components/base/AppDataGrid';
 import { AppStatusChip } from '@/components/base/AppStatusChip';
@@ -33,15 +32,26 @@ const STATUS_COLOR: Record<ImportStatus, 'info' | 'success' | 'default'> = {
 type Props = {
   /** Called when the user opens an import that is still a preview. */
   onOpenPreview: (batch: ImportBatch) => void;
+  refreshTrigger?: number;
 };
 
-export const ImportHistory = ({ onOpenPreview }: Props) => {
+export const ImportHistory = ({ onOpenPreview, refreshTrigger }: Props) => {
   const notify = useNotify();
+  const isFirstMount = useRef(true);
   const grid = useServerGrid<ImportBatch>({
     fetcher: importService.list,
     defaultSort: DEFAULT_SORT,
     onError: notify.error,
   });
+  const { reload } = grid;
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    void reload();
+  }, [refreshTrigger, reload]);
 
   const columns: GridColDef<ImportBatch>[] = [
     { field: 'file_name', headerName: 'File', minWidth: 200, flex: 1.2 },
@@ -73,7 +83,7 @@ export const ImportHistory = ({ onOpenPreview }: Props) => {
     {
       field: 'rows_valid',
       headerName: 'Baris valid',
-      minWidth: 110,
+      minWidth: 90,
       flex: 0.4,
       sortable: false,
       valueGetter: (_value, row) => row.summary.rows_valid,
@@ -81,7 +91,7 @@ export const ImportHistory = ({ onOpenPreview }: Props) => {
     {
       field: 'rows_error',
       headerName: 'Baris bermasalah',
-      minWidth: 150,
+      minWidth: 120,
       flex: 0.5,
       sortable: false,
       valueGetter: (_value, row) => row.summary.rows_error,
@@ -89,16 +99,16 @@ export const ImportHistory = ({ onOpenPreview }: Props) => {
     {
       field: 'created_by',
       headerName: 'Dibuat oleh',
-      minWidth: 170,
-      flex: 0.8,
+      minWidth: 140,
+      flex: 0.7,
       sortable: false,
       valueFormatter: (value) => (value ? String(value) : '-'),
     },
     {
       field: 'created_at',
       headerName: 'Dibuat pada',
-      minWidth: 170,
-      flex: 0.7,
+      minWidth: 130,
+      flex: 0.6,
       valueFormatter: (value) => formatDisplayDateTime(value ? String(value) : null),
     },
     {
@@ -127,27 +137,27 @@ export const ImportHistory = ({ onOpenPreview }: Props) => {
   ];
 
   return (
-    <Card component="section" aria-label="Riwayat impor" sx={{ p: 2.5 }}>
-      <Box sx={{ alignItems: 'center', display: 'flex', gap: 2, mb: 2 }}>
-        <Box sx={{ flex: 1 }}>
-          <Typography component="h2" variant="h6">
-            Riwayat impor
-          </Typography>
-          <Typography color="text.secondary" variant="body2">
-            Klik impor berstatus Pratinjau untuk membukanya kembali dan menerapkannya.
-          </Typography>
-        </Box>
-        <Button
-          color="inherit"
-          variant="outlined"
-          startIcon={<RefreshOutlinedIcon />}
-          onClick={() => void grid.reload()}
-          sx={{ borderColor: 'divider' }}
-        >
-          Muat ulang
-        </Button>
+    <Card
+      component="section"
+      aria-label="Riwayat impor"
+      sx={{
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'column',
+        minHeight: 0,
+        p: 2,
+        overflow: 'hidden',
+      }}
+    >
+      <Box sx={{ mb: 1.5 }}>
+        <Typography component="h2" variant="h6">
+          Riwayat impor
+        </Typography>
+        <Typography color="text.secondary" variant="body2">
+          Klik impor berstatus Pratinjau untuk membukanya kembali dan menerapkannya.
+        </Typography>
       </Box>
-      <Box sx={{ height: 440 }}>
+      <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
         <AppDataGrid
           columns={columns}
           fillWidth

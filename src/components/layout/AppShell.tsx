@@ -19,9 +19,27 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
   }, [hydrate]);
 
   return (
-    <Box sx={{ bgcolor: 'background.default', display: 'flex', minHeight: '100vh' }}>
+    <Box
+      sx={{
+        bgcolor: 'background.default',
+        display: 'flex',
+        height: '100vh',
+        maxHeight: '100vh',
+        overflow: 'hidden',
+      }}
+    >
       <AppSidebar />
-      <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', minWidth: 0 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'column',
+          minWidth: 0,
+          height: '100%',
+          maxHeight: '100vh',
+          overflow: 'hidden',
+        }}
+      >
         <AppHeader />
         <Box
           component="main"
@@ -31,8 +49,11 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
             flex: 1,
             flexDirection: 'column',
             mx: 'auto',
-            maxWidth: layoutTokens.contentMaxWidth,
+            maxWidth: '100%',
             minWidth: 0,
+            minHeight: 0,
+            overflowY: 'auto',
+            overflowX: 'hidden',
             p: layoutTokens.pagePadding,
             width: '100%',
           }}

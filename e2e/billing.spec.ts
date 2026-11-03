@@ -81,6 +81,10 @@ const openFromSidebar = async (page: Page, label: string, heading: string) => {
 };
 
 const upload = async (page: Page, file: ReturnType<typeof csvFile>) => {
+  const uploadButton = page.getByRole('button', { name: 'Unggah berkas' });
+  if (await uploadButton.isVisible()) {
+    await uploadButton.click();
+  }
   await page.locator('input[type="file"]').setInputFiles(file);
   await page.getByRole('button', { name: 'Unggah dan pratinjau' }).click();
   const preview = page.getByRole('region', { name: 'Pratinjau impor' });

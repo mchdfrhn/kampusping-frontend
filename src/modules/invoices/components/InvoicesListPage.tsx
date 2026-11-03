@@ -103,11 +103,11 @@ export const InvoicesListPage = () => {
 
   const columns = useMemo<GridColDef<InvoiceRecord>[]>(() => {
     const base: GridColDef<InvoiceRecord>[] = [
-      { field: 'invoice_code', headerName: 'Kode tagihan', minWidth: 150, flex: 0.8 },
+      { field: 'invoice_code', headerName: 'Kode tagihan', minWidth: 140, flex: 0.9 },
       {
         field: 'nim',
         headerName: 'NIM',
-        minWidth: 110,
+        minWidth: 95,
         flex: 0.5,
         sortable: false,
         valueGetter: (_value, row) => row.student.nim,
@@ -115,31 +115,31 @@ export const InvoicesListPage = () => {
       {
         field: 'student_name',
         headerName: 'Nama',
-        minWidth: 170,
-        flex: 1,
+        minWidth: 150,
+        flex: 1.1,
         sortable: false,
         valueGetter: (_value, row) => row.student.name,
       },
-      { field: 'semester', headerName: 'Semester', minWidth: 100, flex: 0.4, sortable: false },
+      { field: 'semester', headerName: 'Semester', minWidth: 80, flex: 0.4, sortable: false },
       {
         field: 'amount',
         headerName: 'Nominal',
         type: 'number',
-        minWidth: 130,
+        minWidth: 110,
         flex: 0.6,
         valueFormatter: (value) => formatRupiah(Number(value)),
       },
       {
         field: 'due_date',
         headerName: 'Jatuh tempo',
-        minWidth: 130,
+        minWidth: 110,
         flex: 0.6,
         valueFormatter: (value) => formatDisplayDate(value ? String(value) : null),
       },
       {
         field: 'status',
         headerName: 'Status',
-        minWidth: 130,
+        minWidth: 105,
         flex: 0.5,
         renderCell: ({ row }) => (
           <AppStatusChip
@@ -151,7 +151,7 @@ export const InvoicesListPage = () => {
       {
         field: 'paid_at',
         headerName: 'Dibayar pada',
-        minWidth: 130,
+        minWidth: 110,
         flex: 0.6,
         sortable: false,
         valueFormatter: (value) => formatDisplayDate(value ? String(value) : null),
@@ -159,8 +159,8 @@ export const InvoicesListPage = () => {
       {
         field: 'paid_via',
         headerName: 'Kanal bayar',
-        minWidth: 140,
-        flex: 0.6,
+        minWidth: 95,
+        flex: 0.5,
         sortable: false,
         valueFormatter: (value) =>
           value ? INVOICE_SOURCE_LABELS[value as keyof typeof INVOICE_SOURCE_LABELS] : '-',
@@ -168,8 +168,8 @@ export const InvoicesListPage = () => {
       {
         field: 'source',
         headerName: 'Sumber',
-        minWidth: 140,
-        flex: 0.6,
+        minWidth: 85,
+        flex: 0.4,
         sortable: false,
         valueFormatter: (value) =>
           INVOICE_SOURCE_LABELS[value as keyof typeof INVOICE_SOURCE_LABELS],
@@ -217,9 +217,29 @@ export const InvoicesListPage = () => {
         title="Tagihan"
         description="Tagihan uang kuliah hasil impor. Status pembayaran mengikuti impor SIAKAD/SIPEMA; koreksi manual dicatat dalam jejak audit."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Tagihan' }]}
+        actions={
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<RefreshOutlinedIcon />}
+            onClick={() => void grid.reload()}
+            sx={{ borderColor: 'divider' }}
+          >
+            Muat ulang
+          </Button>
+        }
       />
 
-      <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
+      <Card
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'column',
+          minHeight: 0,
+          p: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <AppSearchField
             placeholder="Cari kode tagihan, NIM, atau nama"
@@ -249,17 +269,8 @@ export const InvoicesListPage = () => {
           />
           <AppDatePicker label="Jatuh tempo dari" value={dueFrom} onChange={setDueFrom} />
           <AppDatePicker label="Jatuh tempo sampai" value={dueTo} onChange={setDueTo} />
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
-          >
-            Muat ulang
-          </Button>
         </Box>
-        <Box sx={{ flex: 1, minHeight: 360 }}>
+        <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
           <AppDataGrid
             columns={columns}
             fillWidth

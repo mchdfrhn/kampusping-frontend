@@ -80,26 +80,26 @@ export const StudentsListPage = () => {
 
   const columns = useMemo<GridColDef<StudentRecord>[]>(() => {
     const base: GridColDef<StudentRecord>[] = [
-      { field: 'nim', headerName: 'NIM', minWidth: 120, flex: 0.5 },
-      { field: 'name', headerName: 'Nama', minWidth: 180, flex: 1 },
+      { field: 'nim', headerName: 'NIM', minWidth: 105, flex: 0.6 },
+      { field: 'name', headerName: 'Nama', minWidth: 150, flex: 1.2 },
       {
         field: 'study_program',
         headerName: 'Prodi',
-        minWidth: 160,
-        flex: 0.9,
+        minWidth: 140,
+        flex: 1.0,
         valueFormatter: (value) => (value ? String(value) : '-'),
       },
       {
         field: 'cohort',
         headerName: 'Angkatan',
-        minWidth: 100,
+        minWidth: 80,
         flex: 0.4,
         valueFormatter: (value) => (value ? String(value) : '-'),
       },
       {
         field: 'phone',
         headerName: 'No. WhatsApp',
-        minWidth: 150,
+        minWidth: 135,
         flex: 0.7,
         sortable: false,
         valueFormatter: (value) => (value ? String(value) : '-'),
@@ -107,7 +107,7 @@ export const StudentsListPage = () => {
       {
         field: 'phone_status',
         headerName: 'Status nomor',
-        minWidth: 130,
+        minWidth: 110,
         flex: 0.5,
         sortable: false,
         renderCell: ({ row }) => (
@@ -120,8 +120,8 @@ export const StudentsListPage = () => {
       {
         field: 'opted_out_at',
         headerName: 'Opt-out',
-        minWidth: 140,
-        flex: 0.5,
+        minWidth: 90,
+        flex: 0.4,
         sortable: false,
         valueGetter: (_value, row) =>
           row.opted_out_at
@@ -131,7 +131,7 @@ export const StudentsListPage = () => {
       {
         field: 'updated_at',
         headerName: 'Diperbarui',
-        minWidth: 170,
+        minWidth: 130,
         flex: 0.7,
         valueFormatter: (value) => formatDisplayDateTime(value ? String(value) : null),
       },
@@ -170,9 +170,29 @@ export const StudentsListPage = () => {
         title="Mahasiswa"
         description="Data mahasiswa dari impor SIAKAD/Civitas dan SIPEMA, termasuk nomor WhatsApp dan status berhenti berlangganan."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Mahasiswa' }]}
+        actions={
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<RefreshOutlinedIcon />}
+            onClick={() => void grid.reload()}
+            sx={{ borderColor: 'divider' }}
+          >
+            Muat ulang
+          </Button>
+        }
       />
 
-      <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
+      <Card
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'column',
+          minHeight: 0,
+          p: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <AppSearchField
             placeholder="Cari NIM atau nama"
@@ -207,17 +227,8 @@ export const StudentsListPage = () => {
               </MenuItem>
             ))}
           </TextField>
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
-          >
-            Muat ulang
-          </Button>
         </Box>
-        <Box sx={{ flex: 1, minHeight: 360 }}>
+        <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
           <AppDataGrid
             columns={columns}
             fillWidth

@@ -55,7 +55,7 @@ const dateTimeColumn = (
 ): GridColDef<MessageRecord> => ({
   field,
   headerName,
-  minWidth: 160,
+  minWidth: 130,
   flex: 0.7,
   sortable,
   valueFormatter: (value) => formatDisplayDateTime(value ? String(value) : null),
@@ -105,8 +105,8 @@ export const MessagesListPage = () => {
       {
         field: 'student',
         headerName: 'Penerima',
-        minWidth: 200,
-        flex: 1,
+        minWidth: 170,
+        flex: 1.1,
         sortable: false,
         valueGetter: (_value, row) => `${row.student.name} ${row.student.nim}`,
         renderCell: ({ row }) => (
@@ -126,7 +126,7 @@ export const MessagesListPage = () => {
       {
         field: 'invoice_id',
         headerName: 'Tagihan',
-        minWidth: 100,
+        minWidth: 85,
         flex: 0.4,
         sortable: false,
         valueFormatter: (value) => `#${value}`,
@@ -134,14 +134,14 @@ export const MessagesListPage = () => {
       {
         field: 'scheduled_date',
         headerName: 'Jadwal',
-        minWidth: 120,
+        minWidth: 105,
         flex: 0.5,
         valueFormatter: (value) => formatDisplayDate(value ? String(value) : null),
       },
       {
         field: 'status',
         headerName: 'Status',
-        minWidth: 130,
+        minWidth: 105,
         flex: 0.5,
         renderCell: ({ row }) => (
           <AppStatusChip
@@ -153,8 +153,8 @@ export const MessagesListPage = () => {
       {
         field: 'cancel_reason',
         headerName: 'Alasan',
-        minWidth: 190,
-        flex: 0.9,
+        minWidth: 150,
+        flex: 0.8,
         sortable: false,
         renderCell: ({ row }) => {
           const reason = row.cancel_reason
@@ -178,7 +178,7 @@ export const MessagesListPage = () => {
         field: 'attempts',
         headerName: 'Percobaan',
         type: 'number',
-        minWidth: 100,
+        minWidth: 85,
         flex: 0.3,
         sortable: false,
       },
@@ -228,9 +228,29 @@ export const MessagesListPage = () => {
         title="Pengiriman"
         description="Log pesan WhatsApp: yang antre, terkirim, gagal, dan dibatalkan beserta alasannya."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Pengiriman' }]}
+        actions={
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<RefreshOutlinedIcon />}
+            onClick={() => void grid.reload()}
+            sx={{ borderColor: 'divider' }}
+          >
+            Muat ulang
+          </Button>
+        }
       />
 
-      <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
+      <Card
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'column',
+          minHeight: 0,
+          p: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <TextField
             select
@@ -248,17 +268,8 @@ export const MessagesListPage = () => {
           </TextField>
           <AppDatePicker label="Jadwal dari" value={dateFrom} onChange={setDateFrom} />
           <AppDatePicker label="Jadwal sampai" value={dateTo} onChange={setDateTo} />
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
-          >
-            Muat ulang
-          </Button>
         </Box>
-        <Box sx={{ flex: 1, minHeight: 360 }}>
+        <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
           <AppDataGrid
             columns={columns}
             fillWidth

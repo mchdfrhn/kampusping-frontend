@@ -70,11 +70,23 @@ const csv = (name = 'tagihan.csv') => new File(['nim,nama\n'], name, { type: 'te
 
 type User = ReturnType<typeof userEvent.setup>;
 
-const pickFile = (user: User, file: File) =>
-  user.upload(screen.getByLabelText('Berkas impor'), file);
+const openUploadDialog = async (user: User) => {
+  const input = screen.queryByLabelText('Berkas impor');
+  if (!input) {
+    const uploadBtn = screen.getByRole('button', { name: 'Unggah berkas' });
+    await user.click(uploadBtn);
+  }
+};
 
-const submitUpload = (user: User) =>
-  user.click(screen.getByRole('button', { name: 'Unggah dan pratinjau' }));
+const pickFile = async (user: User, file: File) => {
+  await openUploadDialog(user);
+  return user.upload(screen.getByLabelText('Berkas impor'), file);
+};
+
+const submitUpload = async (user: User) => {
+  await openUploadDialog(user);
+  return user.click(screen.getByRole('button', { name: 'Unggah dan pratinjau' }));
+};
 
 const previewRegion = () => screen.findByRole('region', { name: 'Pratinjau impor' });
 

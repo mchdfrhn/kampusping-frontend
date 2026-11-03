@@ -117,9 +117,29 @@ export const AuditLogPage = () => {
         title="Log Audit"
         description="Jejak siapa mengubah apa dan kapan: impor, template, jadwal, pengaturan, dan lainnya."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Log Audit' }]}
+        actions={
+          <Button
+            color="inherit"
+            variant="outlined"
+            startIcon={<RefreshOutlinedIcon />}
+            onClick={() => void grid.reload()}
+            sx={{ borderColor: 'divider' }}
+          >
+            Muat ulang
+          </Button>
+        }
       />
 
-      <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
+      <Card
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'column',
+          minHeight: 0,
+          p: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <TextField
             label="Aksi"
@@ -137,17 +157,8 @@ export const AuditLogPage = () => {
             sx={{ width: 240 }}
             slotProps={{ htmlInput: { maxLength: 100 } }}
           />
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
-          >
-            Muat ulang
-          </Button>
         </Box>
-        <Box sx={{ flex: 1, minHeight: 360 }}>
+        <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
           <AppDataGrid
             columns={gridColumns}
             fillWidth

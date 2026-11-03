@@ -179,22 +179,42 @@ export const RolesListPage = () => {
         description="Peran mengelompokkan izin. Berikan peran ke pengguna untuk mengatur apa yang dapat mereka lakukan."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Peran' }]}
         actions={
-          <Can permission={permissions.rolesCreate}>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Button
-              startIcon={<AddOutlinedIcon />}
-              variant="contained"
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
+              color="inherit"
+              variant="outlined"
+              startIcon={<RefreshOutlinedIcon />}
+              onClick={() => void grid.reload()}
+              sx={{ borderColor: 'divider' }}
             >
-              Tambah peran
+              Muat ulang
             </Button>
-          </Can>
+            <Can permission={permissions.rolesCreate}>
+              <Button
+                startIcon={<AddOutlinedIcon />}
+                variant="contained"
+                onClick={() => {
+                  setEditing(null);
+                  setFormOpen(true);
+                }}
+              >
+                Tambah peran
+              </Button>
+            </Can>
+          </Stack>
         }
       />
 
-      <Card sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0, p: 2 }}>
+      <Card
+        sx={{
+          display: 'flex',
+          flex: 1,
+          flexDirection: 'column',
+          minHeight: 0,
+          p: 2,
+          overflow: 'hidden',
+        }}
+      >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
           <TextField
             placeholder="Cari peran"
@@ -223,17 +243,8 @@ export const RolesListPage = () => {
               },
             }}
           />
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider', ml: { md: 'auto' } }}
-          >
-            Muat ulang
-          </Button>
         </Box>
-        <Box sx={{ flex: 1, minHeight: 360 }}>
+        <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
           <AppDataGrid
             columns={columns}
             fillWidth
