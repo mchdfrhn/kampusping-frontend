@@ -102,13 +102,13 @@ page reload         -> access token is gone; /auth/refresh restores it from the 
 `NEXT_PUBLIC_*` variables are inlined at build time and visible in the browser: never put secrets
 in them. See `.env.example`.
 
-| Variable                                                                      | Purpose                                                   |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `NEXT_PUBLIC_API_BASE_URL`                                                    | Backend API base URL including `/api/v1`                  |
-| `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_DESCRIPTION`, `NEXT_PUBLIC_APP_LOGO` | Branding (logo is optional; a monogram is used otherwise) |
-| `NEXT_PUBLIC_PRIMARY_COLOR`                                                   | Brand color; dark mode derives a lighter variant          |
-| `NEXT_PUBLIC_DEFAULT_THEME_MODE`                                              | `light`, `dark` or `system`                               |
-| `NEXT_PUBLIC_LOCALE`                                                          | Date/number locale (`en` or `id` bundled)                 |
+| Variable                                                                      | Purpose                                                         |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_BASE_URL`                                                    | Backend API base URL including `/api/v1`                        |
+| `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_DESCRIPTION`, `NEXT_PUBLIC_APP_LOGO` | Branding (logo defaults to `/logo.png`; empty shows a monogram) |
+| `NEXT_PUBLIC_PRIMARY_COLOR`                                                   | Brand color; dark mode derives a lighter variant                |
+| `NEXT_PUBLIC_DEFAULT_THEME_MODE`                                              | `light`, `dark` or `system`                                     |
+| `NEXT_PUBLIC_LOCALE`                                                          | Date/number locale (`en` or `id` bundled)                       |
 
 ## Deploy
 

@@ -12,8 +12,9 @@ COPY . .
 # NEXT_PUBLIC_* values are inlined into the browser bundle at build time, so they are build args.
 ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8000/api/v1
 ARG NEXT_PUBLIC_APP_NAME=KampusPing
-ARG NEXT_PUBLIC_APP_DESCRIPTION
-ARG NEXT_PUBLIC_APP_LOGO
+ARG NEXT_PUBLIC_APP_DESCRIPTION="Sistem penagihan uang kuliah via WhatsApp untuk Bagian Keuangan."
+# An unset ARG would become an empty ENV, which beats the code default; keep the bundled logo.
+ARG NEXT_PUBLIC_APP_LOGO=/logo.png
 ARG NEXT_PUBLIC_PRIMARY_COLOR=#0F766E
 ARG NEXT_PUBLIC_DEFAULT_THEME_MODE=system
 ARG NEXT_PUBLIC_LOCALE=id
