@@ -90,7 +90,18 @@ describe('WhatsAppPanel states', () => {
     expect(await screen.findByText('Terputus')).toBeInTheDocument();
     expect(screen.getByText(/dijeda otomatis/)).toBeInTheDocument();
     expect(screen.getByText(/restart gateway/i)).toBeInTheDocument();
-    expect(screen.getByText(/tekan Putuskan sesi/)).toBeInTheDocument();
+    expect(screen.getByText(/tekan Buat ulang kode QR/)).toBeInTheDocument();
+  });
+
+  it('keeps a gap between the QR and its instructions', async () => {
+    // Stack `spacing` puts its margin on the wrong axis once sx switches the row direction.
+    service.status.mockResolvedValue(status({ state: 'qr', qr: QR_SECRET }));
+    renderPanel();
+
+    const code = await screen.findByRole('img', { name: /kode QR/i });
+    const row = code.parentElement?.parentElement;
+
+    expect(row).toHaveStyle({ gap: '32px' });
   });
 
   it('renders the QR as an svg, with instructions, and never as plain text', async () => {
@@ -117,6 +128,16 @@ describe('WhatsAppPanel states', () => {
 
     expect(await screen.findByText('Menyiapkan kode QR…')).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('does not shrink inside the flex column of the page shell', async () => {
+    // AppShell's <main> is a scrolling flex column and a MUI Card is overflow:hidden, so its
+    // min-height is 0: without flex-shrink:0 a tall page squeezes the card (and the QR) to 2px.
+    renderPanel();
+
+    const card = (await screen.findByText('Koneksi WhatsApp')).closest('.MuiPaper-root');
+
+    expect(card).toHaveStyle({ flexShrink: '0' });
   });
 
   it('drops the QR as soon as the state is no longer qr', async () => {
@@ -289,6 +310,30 @@ describe('WhatsAppPanel logout', () => {
     expect(await screen.findByText('Sesi WhatsApp diputus.')).toBeInTheDocument();
     // the status is refreshed straight away
     await waitFor(() => expect(service.status.mock.calls.length).toBeGreaterThanOrEqual(2));
+  });
+
+  it('offers to recreate the QR, not to disconnect, when WhatsApp is not connected', async () => {
+    service.status.mockResolvedValue(status({ state: 'disconnected' }));
+    service.logout.mockResolvedValue({ status: 'logged_out' });
+    const user = userEvent.setup();
+    renderPanel();
+    await screen.findByText('Terputus');
+
+    expect(screen.queryByRole('button', { name: 'Putuskan sesi' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Buat ulang kode QR' }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      within(dialog).getByText(
+        'Sesi WhatsApp yang tersimpan akan dihapus dan kode QR baru dibuat. Anda perlu memindai ulang.',
+      ),
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Buat ulang' }));
+
+    await waitFor(() => expect(service.logout).toHaveBeenCalledTimes(1));
+    expect(
+      await screen.findByText('Sesi diatur ulang. Kode QR baru akan muncul sebentar lagi.'),
+    ).toBeInTheDocument();
   });
 
   it('does not disconnect when the confirmation is cancelled', async () => {

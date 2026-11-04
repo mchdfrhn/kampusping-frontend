@@ -46,10 +46,17 @@ export const WhatsAppPanel = () => {
 
   if (!canRead) return null;
 
+  // Not connected means there is no live session to cut: the button only starts a fresh QR.
+  const connected = status?.state === 'connected';
+
   const handleLogout = async () => {
     try {
       await whatsappService.logout();
-      notify.success('Sesi WhatsApp diputus.');
+      notify.success(
+        connected
+          ? 'Sesi WhatsApp diputus.'
+          : 'Sesi diatur ulang. Kode QR baru akan muncul sebentar lagi.',
+      );
       refresh();
     } catch (error) {
       notify.error(getErrorMessage(error, 'Gagal memutuskan sesi WhatsApp.'));
@@ -59,7 +66,7 @@ export const WhatsAppPanel = () => {
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card sx={{ flexShrink: 0, mb: 3 }}>
       <CardHeader
         title="Koneksi WhatsApp"
         subheader="Nomor yang dipakai untuk mengirim pengingat tagihan."
@@ -134,16 +141,16 @@ export const WhatsAppPanel = () => {
             {status.state === 'disconnected' ? (
               <Typography variant="body2">
                 Pengiriman pesan dijeda otomatis selama WhatsApp terputus. Bila tetap terputus,
-                restart gateway WhatsApp atau tekan Putuskan sesi lalu pindai ulang kode QR.
+                restart gateway WhatsApp atau tekan Buat ulang kode QR lalu pindai kodenya.
               </Typography>
             ) : null}
 
             {status.state === 'qr' ? (
               <Stack
-                spacing={4}
                 sx={{
                   alignItems: { xs: 'flex-start', sm: 'center' },
                   flexDirection: { xs: 'column', sm: 'row' },
+                  gap: 4,
                   py: 1,
                 }}
               >
@@ -208,15 +215,15 @@ export const WhatsAppPanel = () => {
         )}
 
         {canUpdate && status && status.state !== 'connected' ? (
-          <Box sx={{ borderColor: 'divider', borderTop: 1, mt: 3, pt: 2.5 }}>
+          <Box sx={{ borderTop: 1, borderTopColor: 'divider', mt: 3, pt: 2.5 }}>
             <Button
               color="inherit"
-              startIcon={<LinkOffOutlinedIcon />}
+              startIcon={<RefreshOutlinedIcon />}
               sx={{ borderColor: 'divider' }}
               variant="outlined"
               onClick={() => setConfirmingLogout(true)}
             >
-              Putuskan sesi
+              Buat ulang kode QR
             </Button>
           </Box>
         ) : null}
@@ -224,9 +231,13 @@ export const WhatsAppPanel = () => {
 
       <AppConfirmDialog
         open={confirmingLogout}
-        title="Putuskan sesi WhatsApp?"
-        message="Sesi WhatsApp akan diputus dan Anda perlu memindai ulang kode QR."
-        confirmText="Putuskan sesi"
+        title={connected ? 'Putuskan sesi WhatsApp?' : 'Buat ulang kode QR?'}
+        message={
+          connected
+            ? 'Sesi WhatsApp akan diputus dan Anda perlu memindai ulang kode QR.'
+            : 'Sesi WhatsApp yang tersimpan akan dihapus dan kode QR baru dibuat. Anda perlu memindai ulang.'
+        }
+        confirmText={connected ? 'Putuskan sesi' : 'Buat ulang'}
         confirmColor="error"
         onClose={() => setConfirmingLogout(false)}
         onConfirm={handleLogout}
