@@ -615,6 +615,10 @@ export const ManualSendPage = () => {
                     size="small"
                     label={`No. HP Invalid: ${previewData.excluded_breakdown.invalid_phone}`}
                   />
+                  <Chip
+                    size="small"
+                    label={`Sudah dalam antrean: ${previewData.excluded_breakdown.already_queued}`}
+                  />
                 </Stack>
               </Card>
             </Box>

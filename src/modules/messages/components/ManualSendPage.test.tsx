@@ -64,6 +64,7 @@ const mockPreview: ManualMessagePreviewResponse = {
     opted_out: 0,
     exempt: 0,
     invalid_phone: 0,
+    already_queued: 2,
   },
   sample_preview: {
     student_name: 'Budi Santoso',
@@ -170,6 +171,7 @@ describe('ManualSendPage', () => {
     expect(await screen.findByText('Total Tagihan Cocok')).toBeInTheDocument();
     expect(screen.getByText('Siap Dikirim (Memenuhi Syarat)')).toBeInTheDocument();
     expect(screen.getByText('Lunas: 1')).toBeInTheDocument();
+    expect(screen.getByText('Sudah dalam antrean: 2')).toBeInTheDocument();
 
     // Verify table items
     expect(screen.getAllByText('Budi Santoso').length).toBeGreaterThan(0);

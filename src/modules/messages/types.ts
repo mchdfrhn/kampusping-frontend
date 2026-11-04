@@ -70,6 +70,7 @@ export type ExcludedBreakdown = {
   opted_out: number;
   exempt: number;
   invalid_phone: number;
+  already_queued: number;
 };
 
 export type SamplePreview = {
