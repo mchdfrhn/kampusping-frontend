@@ -8,6 +8,7 @@ export const routes = {
   templates: '/templates',
   schedules: '/schedules',
   messages: '/messages',
+  manualSend: '/messages/manual',
   settings: '/settings',
   audit: '/audit',
   users: '/users',

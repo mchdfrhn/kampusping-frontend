@@ -2,6 +2,7 @@
 
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
+import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -14,6 +15,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import type { GridColDef } from '@mui/x-data-grid';
 import type { Dayjs } from 'dayjs';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { AppConfirmDialog } from '@/components/base/AppConfirmDialog';
@@ -64,6 +66,7 @@ const dateTimeColumn = (
 export const MessagesListPage = () => {
   const notify = useNotify();
   const canCancel = usePermission(permissions.messagesCancel);
+  const canSend = usePermission(permissions.messagesSend);
 
   const [status, setStatus] = useState<MessageStatus | ''>('');
   const [dateFrom, setDateFrom] = useState<Dayjs | null>(null);
@@ -229,15 +232,27 @@ export const MessagesListPage = () => {
         description="Log pesan WhatsApp: yang antre, terkirim, gagal, dan dibatalkan beserta alasannya."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Pengiriman' }]}
         actions={
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider' }}
-          >
-            Muat ulang
-          </Button>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<RefreshOutlinedIcon />}
+              onClick={() => void grid.reload()}
+              sx={{ borderColor: 'divider' }}
+            >
+              Muat ulang
+            </Button>
+            {canSend ? (
+              <Button
+                component={Link}
+                href={routes.manualSend}
+                variant="contained"
+                startIcon={<SendOutlinedIcon />}
+              >
+                Kirim Manual
+              </Button>
+            ) : null}
+          </Stack>
         }
       />
 

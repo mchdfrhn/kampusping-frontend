@@ -42,13 +42,24 @@ const SettingsLink = () => (
 );
 
 const LoadingState = () => (
-  <Box aria-label="Memuat ringkasan" aria-busy="true" sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 2 }}>
+  <Box
+    aria-label="Memuat ringkasan"
+    aria-busy="true"
+    sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 2 }}
+  >
     <Box sx={{ display: 'grid', gap: 1.75, gridTemplateColumns: 'repeat(4, 1fr)' }}>
       {Array.from({ length: 4 }, (_, index) => (
         <Skeleton key={index} height={92} variant="rounded" />
       ))}
     </Box>
-    <Box sx={{ display: 'grid', gap: 1.75, gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' }, flex: 1 }}>
+    <Box
+      sx={{
+        display: 'grid',
+        gap: 1.75,
+        gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' },
+        flex: 1,
+      }}
+    >
       <Skeleton height="100%" variant="rounded" />
       <Skeleton height="100%" variant="rounded" />
     </Box>
@@ -71,7 +82,15 @@ const InvoiceStatusChart = ({ invoices }: { invoices: DashboardSummary['invoices
           subheader: { variant: 'caption', fontSize: '0.8125rem', color: 'text.secondary' },
         }}
       />
-      <CardContent sx={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', p: '16px 24px 20px 24px !important' }}>
+      <CardContent
+        sx={{
+          display: 'flex',
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: '16px 24px 20px 24px !important',
+        }}
+      >
         {hasData ? (
           <Stack
             direction="row"
@@ -123,7 +142,13 @@ const InvoiceStatusChart = ({ invoices }: { invoices: DashboardSummary['invoices
                         }}
                       />
                       <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
-                        {slice.label}: {formatNumber(slice.value)} <Typography component="span" sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>({pct}%)</Typography>
+                        {slice.label}: {formatNumber(slice.value)}{' '}
+                        <Typography
+                          component="span"
+                          sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}
+                        >
+                          ({pct}%)
+                        </Typography>
                       </Typography>
                     </Stack>
                   </Stack>
@@ -177,7 +202,7 @@ export const DashboardPage = () => {
       .then((status) => {
         if (!controller.signal.aborted) setWhatsappState(status.state);
       })
-      .catch(() => { });
+      .catch(() => {});
     return () => controller.abort();
   }, [canReadSettings]);
 
@@ -200,19 +225,31 @@ export const DashboardPage = () => {
 
       <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0 }}>
         {data?.warnings.paused_reason ? (
-          <Alert action={canReadSettings ? <SettingsLink /> : undefined} severity="warning" sx={{ mb: 1.5, py: 0.5, flexShrink: 0 }}>
+          <Alert
+            action={canReadSettings ? <SettingsLink /> : undefined}
+            severity="warning"
+            sx={{ mb: 1.5, py: 0.5, flexShrink: 0 }}
+          >
             Pengiriman otomatis dijeda ({describePausedReason(data.warnings.paused_reason)}). Buka
             Pengaturan untuk melanjutkan.
           </Alert>
         ) : null}
         {data && !data.warnings.auto_send_enabled ? (
-          <Alert action={canReadSettings ? <SettingsLink /> : undefined} severity="info" sx={{ mb: 1.5, py: 0.5, flexShrink: 0 }}>
+          <Alert
+            action={canReadSettings ? <SettingsLink /> : undefined}
+            severity="info"
+            sx={{ mb: 1.5, py: 0.5, flexShrink: 0 }}
+          >
             Pengiriman otomatis belum diaktifkan. Pesan tidak akan dikirim sampai diaktifkan di
             Pengaturan.
           </Alert>
         ) : null}
         {whatsappState && whatsappState !== 'connected' ? (
-          <Alert action={<SettingsLink />} severity="warning" sx={{ mb: 1.5, py: 0.5, flexShrink: 0 }}>
+          <Alert
+            action={<SettingsLink />}
+            severity="warning"
+            sx={{ mb: 1.5, py: 0.5, flexShrink: 0 }}
+          >
             WhatsApp belum terhubung ({whatsappStateLabel(whatsappState)}).
           </Alert>
         ) : null}
@@ -301,7 +338,11 @@ export const DashboardPage = () => {
                   subheader="Performa pengiriman pengingat jatuh tempo."
                   slotProps={{
                     title: { variant: 'subtitle1', fontWeight: 600, fontSize: '1rem' },
-                    subheader: { variant: 'caption', fontSize: '0.8125rem', color: 'text.secondary' },
+                    subheader: {
+                      variant: 'caption',
+                      fontSize: '0.8125rem',
+                      color: 'text.secondary',
+                    },
                   }}
                 />
                 <CardContent
@@ -345,7 +386,11 @@ export const DashboardPage = () => {
               </Card>
             </Box>
 
-            <Typography color="text.secondary" variant="caption" sx={{ flexShrink: 0, display: 'block' }}>
+            <Typography
+              color="text.secondary"
+              variant="caption"
+              sx={{ flexShrink: 0, display: 'block' }}
+            >
               Diperbarui {formatDisplayDateTime(data.generated_at)}
             </Typography>
           </Box>

@@ -6,6 +6,7 @@ import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import MarkChatReadOutlinedIcon from '@mui/icons-material/MarkChatReadOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import SmsOutlinedIcon from '@mui/icons-material/SmsOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
@@ -53,6 +54,12 @@ export const menuConfig: MenuGroupConfig[] = [
         path: routes.messages,
         icon: MarkChatReadOutlinedIcon,
         permission: permissions.messagesRead,
+      },
+      {
+        label: 'Kirim Manual',
+        path: routes.manualSend,
+        icon: SendOutlinedIcon,
+        permission: permissions.messagesSend,
       },
     ],
   },

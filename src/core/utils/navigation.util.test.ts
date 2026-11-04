@@ -69,7 +69,7 @@ describe('filterMenuByPermission', () => {
     });
 
     expect(groups.map((group) => [group.title, group.items.map((item) => item.label)])).toEqual([
-      ['Penagihan', ['Dasbor', 'Impor Data', 'Mahasiswa', 'Tagihan', 'Pengiriman']],
+      ['Penagihan', ['Dasbor', 'Impor Data', 'Mahasiswa', 'Tagihan', 'Pengiriman', 'Kirim Manual']],
       ['Pengaturan Pesan', ['Template Pesan', 'Jadwal']],
       ['Administrasi', ['Pengaturan', 'Pengguna', 'Peran', 'Audit']],
     ]);

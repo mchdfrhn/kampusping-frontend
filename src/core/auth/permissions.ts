@@ -29,6 +29,7 @@ export const permissions = {
   schedulesUpdate: 'schedules:update',
   schedulesDelete: 'schedules:delete',
   messagesRead: 'messages:read',
+  messagesSend: 'messages:send',
   messagesCancel: 'messages:cancel',
   settingsRead: 'settings:read',
   settingsUpdate: 'settings:update',
