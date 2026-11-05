@@ -20,7 +20,7 @@ import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 import { PageHeader } from '@/components/layout/PageHeader';
 import { permissions } from '@/core/auth/permissions';
@@ -44,25 +44,51 @@ const formatPercentValue = (value: number): string => `${percentFormat.format(va
 
 type Outcome = { key: string; preview: ReportPreview | null; error: string | null };
 
+const cardGridSx = (columns: number) => ({
+  display: 'grid',
+  gap: 1.75,
+  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: `repeat(${columns}, 1fr)` },
+});
+
+const CardGroup = ({
+  title,
+  columns,
+  children,
+}: {
+  title: string;
+  columns: number;
+  children: ReactNode;
+}) => (
+  <Box component="section">
+    <Typography
+      component="h2"
+      sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: 0.6, mb: 1 }}
+      variant="overline"
+    >
+      {title}
+    </Typography>
+    <Box sx={cardGridSx(columns)}>{children}</Box>
+  </Box>
+);
+
 const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
   const { invoices, payments_in_period: payments } = preview.summary;
+  const periodTitle =
+    preview.preset === 'weekly'
+      ? `7 hari terakhir (${formatDisplayDate(preview.period_start)} sampai ${formatDisplayDate(preview.period_end)})`
+      : `Semester ${preview.semester}`;
   return (
     <Stack spacing={3}>
-      <Typography color="text.secondary" variant="body2">
-        {preview.preset === 'weekly'
-          ? `Periode: 7 hari terakhir (${formatDisplayDate(preview.period_start)} sampai ${formatDisplayDate(preview.period_end)})`
-          : `Semester: ${preview.semester}`}
-        {' · '}
-        Dibuat {formatDisplayDateTime(preview.generated_at)} oleh {preview.generated_by}
-      </Typography>
+      <Box>
+        <Typography component="p" sx={{ fontWeight: 600 }} variant="subtitle1">
+          {periodTitle}
+        </Typography>
+        <Typography color="text.secondary" variant="caption">
+          Dibuat {formatDisplayDateTime(preview.generated_at)} oleh {preview.generated_by}
+        </Typography>
+      </Box>
 
-      <Box
-        sx={{
-          display: 'grid',
-          gap: 1.75,
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-        }}
-      >
+      <CardGroup title="Status tagihan" columns={4}>
         <StatCard
           label="Total tagihan"
           value={formatNumber(invoices.total)}
@@ -84,6 +110,9 @@ const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
           value={formatNumber(invoices.overdue)}
           caption={formatRupiah(invoices.overdue_amount)}
         />
+      </CardGroup>
+
+      <CardGroup title="Pengecualian dan aktivitas" columns={payments ? 3 : 2}>
         <StatCard
           label="Dikecualikan"
           value={formatNumber(invoices.exempt)}
@@ -92,6 +121,7 @@ const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
         <StatCard
           label="Lunas setelah pesan"
           value={formatNumber(preview.summary.paid_after_message)}
+          caption={`dari ${formatNumber(invoices.paid)} tagihan lunas`}
         />
         {payments ? (
           <StatCard
@@ -100,7 +130,7 @@ const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
             caption={formatRupiah(payments.amount)}
           />
         ) : null}
-      </Box>
+      </CardGroup>
 
       <Card variant="outlined">
         <CardContent>
@@ -146,9 +176,9 @@ const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
         </CardContent>
       </Card>
 
-      <Typography color="text.secondary" variant="body2">
+      <Alert severity="info" variant="outlined">
         {formatNumber(preview.arrears_count)} tagihan menunggak; rincian nama ada di berkas unduhan.
-      </Typography>
+      </Alert>
     </Stack>
   );
 };
@@ -226,44 +256,53 @@ export const ReportsPage = () => {
       />
 
       <Stack
+        direction={{ xs: 'column', md: 'row' }}
         spacing={2}
-        sx={{ alignItems: { sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, mb: 3 }}
+        sx={{ alignItems: { xs: 'stretch', md: 'center' }, justifyContent: 'space-between', mb: 3 }}
       >
-        <ToggleButtonGroup
-          aria-label="Cakupan laporan"
-          exclusive
-          size="small"
-          value={preset}
-          onChange={(_, value: ReportPreset | null) => {
-            if (value) setPreset(value);
-          }}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
         >
-          <ToggleButton value="weekly">7 hari terakhir</ToggleButton>
-          <ToggleButton value="semester">Per semester</ToggleButton>
-        </ToggleButtonGroup>
-
-        {preset === 'semester' ? (
-          <TextField
-            select
-            label="Semester"
-            size="small"
-            sx={{ minWidth: 220 }}
-            value={semester}
-            onChange={(event) => setSemester(event.target.value)}
+          <ToggleButtonGroup
+            aria-label="Cakupan laporan"
+            color="primary"
+            exclusive
+            value={preset}
+            sx={{ '& .MuiToggleButton-root': { fontWeight: 600, height: 40, px: 2 } }}
+            onChange={(_, value: ReportPreset | null) => {
+              if (value) setPreset(value);
+            }}
           >
-            {semesters.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
-        ) : null}
+            <ToggleButton value="weekly">7 hari terakhir</ToggleButton>
+            <ToggleButton value="semester">Per semester</ToggleButton>
+          </ToggleButtonGroup>
+
+          {preset === 'semester' ? (
+            <TextField
+              select
+              label="Semester"
+              size="small"
+              sx={{ minWidth: 240 }}
+              value={semester}
+              onChange={(event) => setSemester(event.target.value)}
+            >
+              {semesters.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          ) : null}
+        </Stack>
 
         {canExport ? (
-          <Stack direction="row" spacing={1} sx={{ ml: { sm: 'auto' } }}>
+          <Stack direction="row" spacing={1}>
             <Button
               disabled={!canDownload}
               startIcon={<TableChartOutlinedIcon />}
+              sx={{ height: 40 }}
               variant="outlined"
               onClick={() => void handleDownload('xlsx')}
             >
@@ -272,6 +311,7 @@ export const ReportsPage = () => {
             <Button
               disabled={!canDownload}
               startIcon={<PictureAsPdfOutlinedIcon />}
+              sx={{ height: 40 }}
               variant="outlined"
               onClick={() => void handleDownload('pdf')}
             >
@@ -284,10 +324,20 @@ export const ReportsPage = () => {
       {needsSemester ? (
         <Alert severity="info">Pilih semester untuk melihat laporan.</Alert>
       ) : loading ? (
-        <Box aria-busy="true" aria-label="Memuat laporan" sx={{ display: 'grid', gap: 1.75 }}>
-          <Skeleton height={92} variant="rounded" />
+        <Stack aria-busy="true" aria-label="Memuat laporan" spacing={3}>
+          <Skeleton height={44} variant="rounded" width={320} />
+          <Box sx={cardGridSx(4)}>
+            {Array.from({ length: 4 }, (_, index) => (
+              <Skeleton key={index} height={92} variant="rounded" />
+            ))}
+          </Box>
+          <Box sx={cardGridSx(3)}>
+            {Array.from({ length: 3 }, (_, index) => (
+              <Skeleton key={index} height={92} variant="rounded" />
+            ))}
+          </Box>
           <Skeleton height={180} variant="rounded" />
-        </Box>
+        </Stack>
       ) : settled?.error ? (
         <Alert
           severity="error"

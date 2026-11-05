@@ -94,8 +94,13 @@ describe('ReportsPage', () => {
     expect(screen.getByText('Dikecualikan')).toBeInTheDocument();
     expect(screen.getByText('Lunas setelah pesan')).toBeInTheDocument();
     expect(screen.getByText('Pembayaran 7 hari terakhir')).toBeInTheDocument();
+    // The cards are grouped under headings, and every card carries a second line.
+    expect(screen.getByRole('heading', { name: 'Status tagihan' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Pengecualian dan aktivitas' })).toBeInTheDocument();
+    expect(screen.getByText('dari 4 tagihan lunas')).toBeInTheDocument();
     expect(screen.getByText(/27 Okt 2026/)).toBeInTheDocument();
     expect(screen.getByText(/3 tagihan menunggak/)).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/rincian nama ada di berkas unduhan/);
     const table = screen.getByRole('table');
     expect(within(table).getByText('Teknik Informatika')).toBeInTheDocument();
     expect(within(table).getByText('25,0%')).toBeInTheDocument();
