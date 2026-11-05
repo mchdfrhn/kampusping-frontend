@@ -155,6 +155,26 @@ describe('ManualSendPage', () => {
     });
   });
 
+  it('has no semester filter; prodi and angkatan are dropdowns and the preview request omits semester', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Tampilkan Pratinjau/i })).not.toBeDisabled();
+    });
+
+    expect(screen.queryByRole('combobox', { name: /Semester/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Program Studi/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Angkatan/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Tampilkan Pratinjau/i }));
+
+    expect(messagesService.previewManual).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(messagesService.previewManual).mock.calls[0][0]).not.toHaveProperty(
+      'semester',
+    );
+  });
+
   it('fetches and displays preview with KPI cards and WhatsApp preview', async () => {
     const user = userEvent.setup();
     renderComponent();

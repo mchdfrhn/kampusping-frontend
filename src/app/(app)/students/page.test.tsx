@@ -9,7 +9,7 @@ import { studentsService } from '@/modules/students/services/students.service';
 import Page from './page';
 
 vi.mock('@/modules/students/services/students.service', () => ({
-  studentsService: { list: vi.fn(), updatePhone: vi.fn() },
+  studentsService: { list: vi.fn(), updatePhone: vi.fn(), filterOptions: vi.fn() },
 }));
 
 const signIn = (permissions: string[]) =>
@@ -33,6 +33,10 @@ beforeEach(() => {
     total: 0,
     page: 1,
     page_size: 20,
+  });
+  vi.mocked(studentsService.filterOptions).mockResolvedValue({
+    study_programs: [],
+    cohorts: [],
   });
 });
 

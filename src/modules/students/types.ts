@@ -14,6 +14,12 @@ export type StudentRecord = {
   updated_at: string;
 };
 
+/** Values the list can be filtered by (GET /students/filter-options). */
+export type StudentFilterOptions = {
+  study_programs: string[];
+  cohorts: string[];
+};
+
 export type StudentFilters = {
   study_program?: string;
   cohort?: string;

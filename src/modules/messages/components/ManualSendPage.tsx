@@ -62,7 +62,6 @@ export const ManualSendPage = () => {
   const [templateId, setTemplateId] = useState<number | ''>('');
   const [studyProgram, setStudyProgram] = useState('');
   const [cohort, setCohort] = useState('');
-  const [semester, setSemester] = useState('');
   const [invoiceStatus, setInvoiceStatus] = useState('unpaid');
   const [amountMin, setAmountMin] = useState('');
   const [amountMax, setAmountMax] = useState('');
@@ -109,7 +108,6 @@ export const ManualSendPage = () => {
   const handleResetFilters = () => {
     setStudyProgram('');
     setCohort('');
-    setSemester('');
     setInvoiceStatus('unpaid');
     setAmountMin('');
     setAmountMax('');
@@ -132,7 +130,6 @@ export const ManualSendPage = () => {
         template_id: Number(templateId),
         study_program: studyProgram || undefined,
         cohort: cohort || undefined,
-        semester: semester || undefined,
         status: invoiceStatus || undefined,
         amount_min: amountMin ? Number(amountMin) : undefined,
         amount_max: amountMax ? Number(amountMax) : undefined,
@@ -438,24 +435,6 @@ export const ManualSendPage = () => {
                 {filterOptions.cohorts.map((c) => (
                   <MenuItem key={c} value={c}>
                     {c}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Box>
-
-            <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 1', md: 'span 3' } }}>
-              <TextField
-                select
-                fullWidth
-                size="small"
-                label="Semester"
-                value={semester}
-                onChange={(e) => setSemester(e.target.value)}
-              >
-                <MenuItem value="">Semua Semester</MenuItem>
-                {filterOptions.semesters.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
                   </MenuItem>
                 ))}
               </TextField>

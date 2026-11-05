@@ -13,7 +13,7 @@ import { PhoneDialog } from './PhoneDialog';
 import { StudentsListPage } from './StudentsListPage';
 
 vi.mock('../services/students.service', () => ({
-  studentsService: { list: vi.fn(), updatePhone: vi.fn() },
+  studentsService: { list: vi.fn(), updatePhone: vi.fn(), filterOptions: vi.fn() },
 }));
 
 const service = vi.mocked(studentsService);
@@ -52,6 +52,10 @@ const renderPage = () =>
 beforeEach(() => {
   vi.resetAllMocks();
   signIn(['students:read', 'students:update']);
+  service.filterOptions.mockResolvedValue({
+    study_programs: ['Akuntansi', 'Teknik Informatika'],
+    cohorts: ['2023', '2022'],
+  });
   service.list.mockResolvedValue(
     pageOf([
       makeStudent(),
@@ -113,19 +117,60 @@ describe('StudentsListPage', () => {
     );
   });
 
-  it('sends the text filters (prodi, angkatan) after typing', async () => {
+  it('offers the stored study programs and cohorts as dropdown filters', async () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('Budi Santoso');
 
-    await user.type(screen.getByLabelText('Prodi'), 'Hukum');
-    await user.type(screen.getByLabelText('Angkatan'), '2023');
+    await user.click(screen.getByRole('combobox', { name: 'Prodi' }));
+    expect(
+      within(await screen.findByRole('listbox'))
+        .getAllByRole('option')
+        .map((o) => o.textContent),
+    ).toEqual(['Semua', 'Akuntansi', 'Teknik Informatika']);
+    await user.keyboard('{Escape}');
+
+    await user.click(screen.getByRole('combobox', { name: 'Angkatan' }));
+    expect(
+      within(await screen.findByRole('listbox'))
+        .getAllByRole('option')
+        .map((o) => o.textContent),
+    ).toEqual(['Semua', '2023', '2022']);
+  });
+
+  it('sends the selected prodi and angkatan to the service, and clears them with Semua', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('Budi Santoso');
+
+    await user.click(screen.getByRole('combobox', { name: 'Prodi' }));
+    await user.click(await screen.findByRole('option', { name: 'Akuntansi' }));
+    await user.click(screen.getByRole('combobox', { name: 'Angkatan' }));
+    await user.click(await screen.findByRole('option', { name: '2023' }));
 
     await waitFor(() =>
       expect(service.list).toHaveBeenLastCalledWith(
-        expect.objectContaining({ study_program: 'Hukum', cohort: '2023' }),
+        expect.objectContaining({ study_program: 'Akuntansi', cohort: '2023', page: 1 }),
       ),
     );
+
+    await user.click(screen.getByRole('combobox', { name: 'Prodi' }));
+    await user.click(await screen.findByRole('option', { name: 'Semua' }));
+
+    // "Semua" drops the filter from the request instead of sending an empty value.
+    await waitFor(() => {
+      const query = service.list.mock.lastCall?.[0];
+      expect(query).toMatchObject({ cohort: '2023' });
+      expect(query).not.toHaveProperty('study_program');
+    });
+  });
+
+  it('still lists students when the filter options cannot be loaded', async () => {
+    service.filterOptions.mockRejectedValue(new ApiError('boom', 500));
+    renderPage();
+
+    expect(await screen.findByText('Budi Santoso')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Prodi' })).toBeInTheDocument();
   });
 
   it('updates the phone number from the dialog and reloads the list', async () => {

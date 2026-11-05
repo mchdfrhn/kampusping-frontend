@@ -11,7 +11,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AppDataGrid } from '@/components/base/AppDataGrid';
 import { AppSearchField } from '@/components/base/AppSearchField';
@@ -21,9 +21,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { permissions } from '@/core/auth/permissions';
 import { usePermission } from '@/core/auth/useAuth';
 import { routes } from '@/core/config/route.config';
-import { useDebounce } from '@/core/hooks/useDebounce';
 import { useServerGrid } from '@/core/hooks/useServerGrid';
-import { SEARCH_DEBOUNCE_MS } from '@/core/constants/app.constant';
 import { useNotify } from '@/core/notify/NotifyProvider';
 import { formatDisplayDate, formatDisplayDateTime } from '@/core/utils/date.util';
 import { getActionColumnWidth } from '@/core/utils/grid-action-column.util';
@@ -36,10 +34,11 @@ import {
   PHONE_STATUS_TONES,
 } from '../constants';
 import { studentsService } from '../services/students.service';
-import type { PhoneStatus, StudentFilters, StudentRecord } from '../types';
+import type { PhoneStatus, StudentFilterOptions, StudentFilters, StudentRecord } from '../types';
 import { PhoneDialog } from './PhoneDialog';
 
 const DEFAULT_SORT = { field: 'updated_at', order: 'desc' } as const;
+const NO_FILTER_OPTIONS: StudentFilterOptions = { study_programs: [], cohorts: [] };
 
 export const StudentsListPage = () => {
   const notify = useNotify();
@@ -50,17 +49,31 @@ export const StudentsListPage = () => {
   const [phoneStatus, setPhoneStatus] = useState<PhoneStatus | ''>('');
   const [editing, setEditing] = useState<StudentRecord | null>(null);
 
-  // Typing in a text filter should not fire one request per keystroke.
-  const debouncedProgram = useDebounce(studyProgram.trim(), SEARCH_DEBOUNCE_MS);
-  const debouncedCohort = useDebounce(cohort.trim(), SEARCH_DEBOUNCE_MS);
+  const [filterOptions, setFilterOptions] = useState<StudentFilterOptions>(NO_FILTER_OPTIONS);
+
+  // The dropdowns are a convenience: if they cannot load, the list itself still works.
+  useEffect(() => {
+    let cancelled = false;
+    studentsService
+      .filterOptions()
+      .then((options) => {
+        if (!cancelled) setFilterOptions(options);
+      })
+      .catch(() => {
+        if (!cancelled) setFilterOptions(NO_FILTER_OPTIONS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filters = useMemo<StudentFilters>(
     () => ({
-      study_program: debouncedProgram || undefined,
-      cohort: debouncedCohort || undefined,
+      study_program: studyProgram || undefined,
+      cohort: cohort || undefined,
       phone_status: phoneStatus || undefined,
     }),
-    [debouncedProgram, debouncedCohort, phoneStatus],
+    [studyProgram, cohort, phoneStatus],
   );
 
   const grid = useServerGrid<StudentRecord, StudentFilters>({
@@ -200,19 +213,33 @@ export const StudentsListPage = () => {
             onChange={grid.setSearch}
           />
           <TextField
+            select
             label="Prodi"
             value={studyProgram}
             onChange={(event) => setStudyProgram(event.target.value)}
-            sx={{ width: 200 }}
-            slotProps={{ htmlInput: { maxLength: 150 } }}
-          />
+            sx={{ width: 240 }}
+          >
+            <MenuItem value="">Semua</MenuItem>
+            {filterOptions.study_programs.map((program) => (
+              <MenuItem key={program} value={program}>
+                {program}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField
+            select
             label="Angkatan"
             value={cohort}
             onChange={(event) => setCohort(event.target.value)}
-            sx={{ width: 120 }}
-            slotProps={{ htmlInput: { maxLength: 20 } }}
-          />
+            sx={{ width: 140 }}
+          >
+            <MenuItem value="">Semua</MenuItem>
+            {filterOptions.cohorts.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField
             select
             label="Status nomor"
