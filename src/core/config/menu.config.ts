@@ -1,4 +1,5 @@
 import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import EventRepeatOutlinedIcon from '@mui/icons-material/EventRepeatOutlined';
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
@@ -30,6 +31,12 @@ export const menuConfig: MenuGroupConfig[] = [
         path: routes.dashboard,
         icon: DashboardOutlinedIcon,
         permission: permissions.dashboardRead,
+      },
+      {
+        label: 'Laporan',
+        path: routes.reports,
+        icon: AssessmentOutlinedIcon,
+        permission: permissions.reportsRead,
       },
       {
         label: 'Impor Data',

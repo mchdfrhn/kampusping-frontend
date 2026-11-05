@@ -46,6 +46,16 @@ describe('filterMenuByPermission', () => {
     expect(labelsOf(withRead)).toContain('Impor Data');
   });
 
+  it('shows Laporan right after Dasbor only with reports:read', () => {
+    const without = filterMenuByPermission(menuConfig, { permissions: ['dashboard:read'] });
+    const withRead = filterMenuByPermission(menuConfig, {
+      permissions: ['dashboard:read', permissions.reportsRead],
+    });
+
+    expect(labelsOf(without)).not.toContain('Laporan');
+    expect(labelsOf(withRead).slice(0, 2)).toEqual(['Dasbor', 'Laporan']);
+  });
+
   it('drops groups that end up empty and shows nothing without a user', () => {
     const groups = filterMenuByPermission(menuConfig, { permissions: [permissions.usersRead] });
 
@@ -69,7 +79,10 @@ describe('filterMenuByPermission', () => {
     });
 
     expect(groups.map((group) => [group.title, group.items.map((item) => item.label)])).toEqual([
-      ['Penagihan', ['Dasbor', 'Impor Data', 'Mahasiswa', 'Tagihan', 'Pengiriman', 'Kirim Manual']],
+      [
+        'Penagihan',
+        ['Dasbor', 'Laporan', 'Impor Data', 'Mahasiswa', 'Tagihan', 'Pengiriman', 'Kirim Manual'],
+      ],
       ['Pengaturan Pesan', ['Template Pesan', 'Jadwal']],
       ['Administrasi', ['Pengaturan', 'Pengguna', 'Peran', 'Audit']],
     ]);
@@ -79,6 +92,18 @@ describe('filterMenuByPermission', () => {
 describe('firstAccessibleRoute', () => {
   it('sends an administrator with every permission to the dashboard', () => {
     expect(firstAccessibleRoute({ permissions: Object.values(permissions) })).toBe('/dashboard');
+  });
+
+  it('keeps the dashboard as the landing page of a pimpinan who also has the report permissions', () => {
+    const pimpinan = [
+      permissions.dashboardRead,
+      permissions.reportsRead,
+      permissions.reportsExport,
+    ];
+
+    expect(firstAccessibleRoute({ permissions: pimpinan })).toBe('/dashboard');
+    expect(firstAccessibleRoute({ permissions: [permissions.reportsRead] })).toBe('/reports');
+    expect(firstAccessibleRoute({ permissions: [permissions.reportsExport] })).toBe('/profile');
   });
 
   it('sends a user who may only read students to the student list', () => {

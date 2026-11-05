@@ -34,6 +34,8 @@ export const permissions = {
   settingsRead: 'settings:read',
   settingsUpdate: 'settings:update',
   auditRead: 'audit:read',
+  reportsRead: 'reports:read',
+  reportsExport: 'reports:export',
 } as const;
 
 export type PermissionCode = (typeof permissions)[keyof typeof permissions];

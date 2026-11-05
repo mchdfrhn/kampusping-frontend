@@ -18,6 +18,7 @@ const GROUP_TITLES: Record<string, string> = {
   messages: 'Riwayat pesan',
   settings: 'Pengaturan',
   audit: 'Jejak audit',
+  reports: 'Laporan penagihan',
 };
 
 const catalog: Permission[] = Object.values(permissions).map((code, index) => ({

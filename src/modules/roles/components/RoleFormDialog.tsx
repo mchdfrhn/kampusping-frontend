@@ -41,6 +41,7 @@ const RESOURCE_LABELS: Record<string, string> = {
   messages: 'Riwayat pesan',
   settings: 'Pengaturan',
   audit: 'Jejak audit',
+  reports: 'Laporan penagihan',
 };
 
 const FIELDS = ['name', 'description', 'permissions'] as const;

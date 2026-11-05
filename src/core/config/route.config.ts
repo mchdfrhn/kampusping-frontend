@@ -2,6 +2,7 @@ export const routes = {
   home: '/',
   login: '/login',
   dashboard: '/dashboard',
+  reports: '/reports',
   import: '/import',
   students: '/students',
   invoices: '/invoices',
