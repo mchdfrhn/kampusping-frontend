@@ -135,7 +135,8 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
         <Alert role="note" severity="info" sx={{ mb: 2 }}>
           Belum ada data yang disimpan. Periksa ringkasan dan baris bermasalah di bawah, lalu pilih
           Terapkan untuk menyimpan atau Batalkan untuk membuang pratinjau ini. Hanya baris valid
-          yang diterapkan.
+          yang diterapkan. Tagihan dengan kode sama akan diperbarui, dan tagihan lama belum lunas
+          milik mahasiswa yang menerima tagihan baru akan otomatis ditandai lunas.
         </Alert>
       ) : null}
       {isPreview && batch.summary.rows_valid === 0 ? (
