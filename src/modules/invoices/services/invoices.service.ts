@@ -4,6 +4,7 @@ import type { ListQuery, Page } from '@/core/types/common.type';
 import type {
   InvoiceDeleteByFilePreview,
   InvoiceDeleteByFileResult,
+  InvoiceFilterOptions,
   InvoiceFilters,
   InvoiceRecord,
   InvoiceStatus,
@@ -12,6 +13,8 @@ import type {
 export const invoicesService = {
   list: (query: ListQuery & InvoiceFilters) =>
     apiClient.get<Page<InvoiceRecord>>(`/invoices${toQueryString(query)}`),
+  /** Distinct semesters available for filtering. */
+  filterOptions: () => apiClient.get<InvoiceFilterOptions>('/invoices/filter-options'),
   /** Manual correction of a payment status; the server records it in the audit trail. */
   setStatus: (id: number, status: InvoiceStatus) =>
     apiClient.patch<InvoiceRecord>(`/invoices/${id}/status`, { status }),

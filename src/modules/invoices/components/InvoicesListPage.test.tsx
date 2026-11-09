@@ -16,6 +16,7 @@ import { InvoicesListPage } from './InvoicesListPage';
 vi.mock('../services/invoices.service', () => ({
   invoicesService: {
     list: vi.fn(),
+    filterOptions: vi.fn(),
     setStatus: vi.fn(),
     previewDeleteByFile: vi.fn(),
     deleteByFile: vi.fn(),
@@ -76,6 +77,7 @@ const renderPage = () =>
 beforeEach(() => {
   vi.resetAllMocks();
   signIn(['invoices:read', 'invoices:update']);
+  service.filterOptions.mockResolvedValue({ semesters: ['2026/1', '2025/2'] });
   service.list.mockResolvedValue(pageOf([makeInvoice(), paidInvoice]));
 });
 
@@ -115,15 +117,17 @@ describe('InvoicesListPage', () => {
     );
   });
 
-  it('sends the status and due date filters to the service and has no semester filter', async () => {
+  it('sends the status, semester and due date filters to the service', async () => {
     const user = userEvent.setup();
     renderPage();
     await screen.findByText('INV-2026-001');
 
-    expect(screen.queryByLabelText('Semester')).not.toBeInTheDocument();
-
     await user.click(screen.getByRole('combobox', { name: 'Status' }));
     await user.click(await screen.findByRole('option', { name: 'Lunas' }));
+
+    await user.click(screen.getByRole('combobox', { name: 'Semester' }));
+    await user.click(await screen.findByRole('option', { name: '2026/1' }));
+
     fireEvent.change(screen.getByLabelText('Jatuh tempo dari', { selector: 'input' }), {
       target: { value: '01 Nov 2026' },
     });
@@ -135,6 +139,7 @@ describe('InvoicesListPage', () => {
       expect(service.list).toHaveBeenLastCalledWith(
         expect.objectContaining({
           status: 'paid',
+          semester: '2026/1',
           due_from: '2026-11-01',
           due_to: '2026-11-30',
         }),

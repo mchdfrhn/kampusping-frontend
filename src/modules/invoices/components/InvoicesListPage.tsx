@@ -14,7 +14,7 @@ import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import type { GridColDef } from '@mui/x-data-grid';
 import type { Dayjs } from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AppConfirmDialog } from '@/components/base/AppConfirmDialog';
 import { AppDataGrid } from '@/components/base/AppDataGrid';
@@ -42,7 +42,7 @@ import {
   MARK_UNPAID_TEXT,
 } from '../constants';
 import { invoicesService } from '../services/invoices.service';
-import type { InvoiceFilters, InvoiceRecord, InvoiceStatus } from '../types';
+import type { InvoiceFilterOptions, InvoiceFilters, InvoiceRecord, InvoiceStatus } from '../types';
 import { DeleteInvoicesFileDialog } from './DeleteInvoicesFileDialog';
 
 const DEFAULT_SORT = { field: 'due_date', order: 'desc' } as const;
@@ -56,20 +56,38 @@ export const InvoicesListPage = () => {
   const canUpdate = usePermission(permissions.invoicesUpdate);
 
   const [status, setStatus] = useState<InvoiceStatus | ''>('');
+  const [semester, setSemester] = useState('');
   const [dueFrom, setDueFrom] = useState<Dayjs | null>(null);
   const [dueTo, setDueTo] = useState<Dayjs | null>(null);
   const [target, setTarget] = useState<InvoiceRecord | null>(null);
   const [deleteFileOpen, setDeleteFileOpen] = useState(false);
+  const [filterOptions, setFilterOptions] = useState<InvoiceFilterOptions>({ semesters: [] });
+
+  useEffect(() => {
+    let cancelled = false;
+    invoicesService
+      .filterOptions()
+      .then((options) => {
+        if (!cancelled) setFilterOptions(options);
+      })
+      .catch(() => {
+        if (!cancelled) setFilterOptions({ semesters: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const dueFromParam = toApiDate(dueFrom);
   const dueToParam = toApiDate(dueTo);
   const filters = useMemo<InvoiceFilters>(
     () => ({
       status: status || undefined,
+      semester: semester || undefined,
       due_from: dueFromParam,
       due_to: dueToParam,
     }),
-    [status, dueFromParam, dueToParam],
+    [status, semester, dueFromParam, dueToParam],
   );
 
   const grid = useServerGrid<InvoiceRecord, InvoiceFilters>({
@@ -265,6 +283,20 @@ export const InvoicesListPage = () => {
             {INVOICE_STATUS_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            label="Semester"
+            value={semester}
+            onChange={(event) => setSemester(event.target.value)}
+            sx={{ width: 180 }}
+          >
+            <MenuItem value="">Semua</MenuItem>
+            {filterOptions.semesters.map((item) => (
+              <MenuItem key={item} value={item}>
+                {item}
               </MenuItem>
             ))}
           </TextField>

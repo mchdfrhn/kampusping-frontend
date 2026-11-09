@@ -36,6 +36,10 @@ export type InvoiceFilters = {
   due_to?: string;
 };
 
+export type InvoiceFilterOptions = {
+  semesters: string[];
+};
+
 export type InvoiceDeletePreviewItem = {
   id: number;
   invoice_code: string;
