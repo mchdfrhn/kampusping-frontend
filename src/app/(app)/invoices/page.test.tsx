@@ -11,7 +11,7 @@ import { invoicesService } from '@/modules/invoices/services/invoices.service';
 import Page from './page';
 
 vi.mock('@/modules/invoices/services/invoices.service', () => ({
-  invoicesService: { list: vi.fn(), setStatus: vi.fn() },
+  invoicesService: { list: vi.fn(), filterOptions: vi.fn(), setStatus: vi.fn() },
 }));
 
 const signIn = (permissions: string[]) =>
@@ -38,6 +38,7 @@ beforeEach(() => {
     page: 1,
     page_size: 20,
   });
+  vi.mocked(invoicesService.filterOptions).mockResolvedValue({ semesters: [] });
 });
 
 describe('invoices page guard', () => {
