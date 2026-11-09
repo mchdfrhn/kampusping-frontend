@@ -1,6 +1,7 @@
 'use client';
 
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import Box from '@mui/material/Box';
@@ -42,6 +43,7 @@ import {
 } from '../constants';
 import { invoicesService } from '../services/invoices.service';
 import type { InvoiceFilters, InvoiceRecord, InvoiceStatus } from '../types';
+import { DeleteInvoicesFileDialog } from './DeleteInvoicesFileDialog';
 
 const DEFAULT_SORT = { field: 'due_date', order: 'desc' } as const;
 
@@ -57,6 +59,7 @@ export const InvoicesListPage = () => {
   const [dueFrom, setDueFrom] = useState<Dayjs | null>(null);
   const [dueTo, setDueTo] = useState<Dayjs | null>(null);
   const [target, setTarget] = useState<InvoiceRecord | null>(null);
+  const [deleteFileOpen, setDeleteFileOpen] = useState(false);
 
   const dueFromParam = toApiDate(dueFrom);
   const dueToParam = toApiDate(dueTo);
@@ -211,15 +214,27 @@ export const InvoicesListPage = () => {
         description="Tagihan uang kuliah hasil impor. Status pembayaran mengikuti impor SIAKAD/SIPEMA; koreksi manual dicatat dalam jejak audit."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Tagihan' }]}
         actions={
-          <Button
-            color="inherit"
-            variant="outlined"
-            startIcon={<RefreshOutlinedIcon />}
-            onClick={() => void grid.reload()}
-            sx={{ borderColor: 'divider' }}
-          >
-            Muat ulang
-          </Button>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Button
+              color="inherit"
+              variant="outlined"
+              startIcon={<RefreshOutlinedIcon />}
+              onClick={() => void grid.reload()}
+              sx={{ borderColor: 'divider' }}
+            >
+              Muat ulang
+            </Button>
+            {canUpdate ? (
+              <Button
+                color="error"
+                variant="outlined"
+                startIcon={<DeleteOutlineOutlinedIcon />}
+                onClick={() => setDeleteFileOpen(true)}
+              >
+                Hapus via berkas
+              </Button>
+            ) : null}
+          </Stack>
         }
       />
 
@@ -275,6 +290,12 @@ export const InvoicesListPage = () => {
         confirmColor={nextStatus === 'paid' ? 'success' : 'primary'}
         onConfirm={handleConfirm}
         onClose={() => setTarget(null)}
+      />
+
+      <DeleteInvoicesFileDialog
+        open={deleteFileOpen}
+        onClose={() => setDeleteFileOpen(false)}
+        onSuccess={() => void grid.reload()}
       />
     </>
   );
