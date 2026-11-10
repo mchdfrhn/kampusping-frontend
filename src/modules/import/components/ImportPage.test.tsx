@@ -42,6 +42,9 @@ const makeBatch = (overrides: Partial<ImportBatch> = {}): ImportBatch => ({
   created_at: '2026-10-31T01:00:00Z',
   created_by: 'staf@kampus.ac.id',
   applied_at: null,
+  has_change_log: true,
+  rolled_back_at: null,
+  rollback_block: null,
   ...overrides,
 });
 

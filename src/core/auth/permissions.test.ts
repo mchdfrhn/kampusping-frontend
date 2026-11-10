@@ -34,7 +34,7 @@ describe('permissions catalog', () => {
   it('mirrors the backend codes as unique resource:action strings', () => {
     const codes = Object.values(permissions);
 
-    expect(codes).toHaveLength(31);
+    expect(codes).toHaveLength(32);
     expect(new Set(codes).size).toBe(codes.length);
     for (const code of codes) expect(code).toMatch(/^[a-z]+:[a-z]+$/);
     expect(permissions.dashboardRead).toBe('dashboard:read');

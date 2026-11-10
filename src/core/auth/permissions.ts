@@ -16,6 +16,7 @@ export const permissions = {
   dashboardRead: 'dashboard:read',
   importsRead: 'imports:read',
   importsCreate: 'imports:create',
+  importsRollback: 'imports:rollback',
   studentsRead: 'students:read',
   studentsUpdate: 'students:update',
   invoicesRead: 'invoices:read',

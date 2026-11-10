@@ -23,10 +23,11 @@ import type { ImportBatch, ImportStatus } from '../types';
 
 const DEFAULT_SORT = { field: 'created_at', order: 'desc' } as const;
 
-const STATUS_COLOR: Record<ImportStatus, 'info' | 'success' | 'default'> = {
+const STATUS_COLOR: Record<ImportStatus, 'info' | 'success' | 'warning' | 'default'> = {
   preview: 'info',
   applied: 'success',
   discarded: 'default',
+  rolled_back: 'warning',
 };
 
 type Props = {
