@@ -5,7 +5,7 @@ import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { PageHeader } from '@/components/layout/PageHeader';
 import { permissions } from '@/core/auth/permissions';
@@ -18,6 +18,7 @@ import { importService } from '../services/import.service';
 import type { ImportBatch, ImportSummary } from '../types';
 import { ImportHistory } from './ImportHistory';
 import { ImportPreview } from './ImportPreview';
+import { ImportRollbackDialog } from './ImportRollbackDialog';
 import { ImportUploadDialog } from './ImportUploadDialog';
 
 const describeApplied = (summary: ImportSummary) =>
@@ -28,11 +29,14 @@ const describeApplied = (summary: ImportSummary) =>
 export const ImportPage = () => {
   const notify = useNotify();
   const canCreate = usePermission(permissions.importsCreate);
+  const canRollback = usePermission(permissions.importsRollback);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [batch, setBatch] = useState<ImportBatch | null>(null);
+  const [rollbackTarget, setRollbackTarget] = useState<ImportBatch | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
 
-  const refreshHistory = () => setHistoryKey((key) => key + 1);
+  const refreshHistory = useCallback(() => setHistoryKey((key) => key + 1), []);
+  const closeRollback = useCallback(() => setRollbackTarget(null), []);
 
   const showPreview = (next: ImportBatch) => {
     setBatch(next);
@@ -115,11 +119,29 @@ export const ImportPage = () => {
             onApply={handleApply}
             onDiscard={handleDiscard}
           />
-          <ImportHistory refreshTrigger={historyKey} onOpenPreview={setBatch} />
+          <ImportHistory
+            refreshTrigger={historyKey}
+            onOpenPreview={setBatch}
+            canRollback={canRollback}
+            onRollback={setRollbackTarget}
+          />
         </Box>
       ) : (
-        <ImportHistory refreshTrigger={historyKey} onOpenPreview={setBatch} />
+        <ImportHistory
+          refreshTrigger={historyKey}
+          onOpenPreview={setBatch}
+          canRollback={canRollback}
+          onRollback={setRollbackTarget}
+        />
       )}
+
+      {canRollback ? (
+        <ImportRollbackDialog
+          batch={rollbackTarget}
+          onClose={closeRollback}
+          onChanged={refreshHistory}
+        />
+      ) : null}
 
       {canCreate ? (
         <ImportUploadDialog

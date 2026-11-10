@@ -1,5 +1,6 @@
 'use client';
 
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -17,25 +18,39 @@ import { useNotify } from '@/core/notify/NotifyProvider';
 import { formatDisplayDateTime } from '@/core/utils/date.util';
 import { getActionColumnWidth } from '@/core/utils/grid-action-column.util';
 
-import { IMPORT_SOURCE_LABELS, IMPORT_STATUS_LABELS } from '../constants';
+import {
+  IMPORT_ROLLBACK_BLOCK_LABELS,
+  IMPORT_SOURCE_LABELS,
+  IMPORT_STATUS_LABELS,
+} from '../constants';
 import { importService } from '../services/import.service';
 import type { ImportBatch, ImportStatus } from '../types';
 
 const DEFAULT_SORT = { field: 'created_at', order: 'desc' } as const;
 
-const STATUS_COLOR: Record<ImportStatus, 'info' | 'success' | 'default'> = {
+const STATUS_COLOR: Record<ImportStatus, 'info' | 'success' | 'warning' | 'default'> = {
   preview: 'info',
   applied: 'success',
   discarded: 'default',
+  rolled_back: 'warning',
 };
 
 type Props = {
   /** Called when the user opens an import that is still a preview. */
   onOpenPreview: (batch: ImportBatch) => void;
+  /** Whether the user holds `imports:rollback`; hides the rollback action otherwise. */
+  canRollback?: boolean;
+  /** Called when the user asks to roll back an applied import. */
+  onRollback?: (batch: ImportBatch) => void;
   refreshTrigger?: number;
 };
 
-export const ImportHistory = ({ onOpenPreview, refreshTrigger }: Props) => {
+export const ImportHistory = ({
+  onOpenPreview,
+  canRollback = false,
+  onRollback,
+  refreshTrigger,
+}: Props) => {
   const notify = useNotify();
   const isFirstMount = useRef(true);
   const grid = useServerGrid<ImportBatch>({
@@ -117,22 +132,48 @@ export const ImportHistory = ({ onOpenPreview, refreshTrigger }: Props) => {
       sortable: false,
       filterable: false,
       width: getActionColumnWidth(1),
-      renderCell: ({ row }) =>
-        row.status === 'preview' ? (
-          <Tooltip title="Buka pratinjau">
-            <IconButton
-              aria-label={`Buka pratinjau ${row.file_name}`}
-              size="small"
-              sx={gridActionButtonSx.view}
-              onClick={(event) => {
-                event.stopPropagation(); // the row click would open it a second time
-                onOpenPreview(row);
-              }}
-            >
-              <VisibilityOutlinedIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        ) : null,
+      renderCell: ({ row }) => {
+        if (row.status === 'preview') {
+          return (
+            <Tooltip title="Buka pratinjau">
+              <IconButton
+                aria-label={`Buka pratinjau ${row.file_name}`}
+                size="small"
+                sx={gridActionButtonSx.view}
+                onClick={(event) => {
+                  event.stopPropagation(); // the row click would open it a second time
+                  onOpenPreview(row);
+                }}
+              >
+                <VisibilityOutlinedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          );
+        }
+        if (row.status === 'applied' && canRollback) {
+          const block = row.rollback_block;
+          return (
+            <Tooltip title={block ? IMPORT_ROLLBACK_BLOCK_LABELS[block] : 'Batalkan impor'}>
+              {/* a disabled button swallows pointer events, so the tooltip hangs on the wrapper */}
+              <span>
+                <IconButton
+                  aria-label={`Batalkan impor ${row.file_name}`}
+                  disabled={Boolean(block)}
+                  size="small"
+                  sx={gridActionButtonSx.delete}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRollback?.(row);
+                  }}
+                >
+                  <DeleteOutlineOutlinedIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          );
+        }
+        return null;
+      },
     },
   ];
 

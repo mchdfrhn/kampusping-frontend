@@ -8,7 +8,7 @@ import { ApiError } from '@/core/http/api-error';
 import { NotifyProvider } from '@/core/notify/NotifyProvider';
 
 import { importService } from '../services/import.service';
-import type { ImportBatch, ImportRowError } from '../types';
+import type { ImportBatch, ImportRowError, RollbackPreview } from '../types';
 import { ImportPage } from './ImportPage';
 
 vi.mock('../services/import.service', () => ({
@@ -18,6 +18,8 @@ vi.mock('../services/import.service', () => ({
     discard: vi.fn(),
     list: vi.fn(),
     errors: vi.fn(),
+    rollbackPreview: vi.fn(),
+    rollback: vi.fn(),
   },
 }));
 
@@ -42,6 +44,9 @@ const makeBatch = (overrides: Partial<ImportBatch> = {}): ImportBatch => ({
   created_at: '2026-10-31T01:00:00Z',
   created_by: 'staf@kampus.ac.id',
   applied_at: null,
+  has_change_log: true,
+  rolled_back_at: null,
+  rollback_block: null,
   ...overrides,
 });
 
@@ -378,5 +383,158 @@ describe('ImportPage without imports:create', () => {
     expect(stat(region, 'Baris valid')).toHaveTextContent('9');
     expect(within(region).queryByRole('button', { name: 'Terapkan' })).not.toBeInTheDocument();
     expect(within(region).queryByRole('button', { name: 'Batalkan' })).not.toBeInTheDocument();
+  });
+});
+
+const rollbackPreviewOf = (overrides: Partial<RollbackPreview> = {}): RollbackPreview => ({
+  students_deleted: 2,
+  invoices_deleted: 6,
+  students_reverted: 1,
+  invoices_reverted: 2,
+  queued_messages_cancelled: 3,
+  sent_messages: 0,
+  conflicts: [],
+  conflicts_total: 0,
+  ...overrides,
+});
+
+const applied = (overrides: Partial<ImportBatch> = {}) =>
+  makeBatch({ id: 9, file_name: 'terbaru.csv', status: 'applied', ...overrides });
+
+// The grid renders slowly under a parallel test run, hence the generous timeout on the role query.
+const rollbackButton = (fileName: string) =>
+  screen.findByRole('button', { name: `Batalkan impor ${fileName}` }, { timeout: 8000 });
+
+describe('ImportPage rollback', () => {
+  beforeEach(() => {
+    signIn(['imports:read', 'imports:create', 'imports:rollback']);
+    service.rollbackPreview.mockResolvedValue(rollbackPreviewOf());
+  });
+
+  it('shows no rollback button without imports:rollback', async () => {
+    signIn(['imports:read', 'imports:create']);
+    service.list.mockResolvedValue(pageOf([applied()]));
+    renderPage();
+
+    expect(await screen.findByText('terbaru.csv')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Batalkan impor/ })).not.toBeInTheDocument();
+  });
+
+  it('offers rollback only for applied imports and explains a blocked one', async () => {
+    service.list.mockResolvedValue(
+      pageOf([
+        applied(),
+        applied({ id: 8, file_name: 'lama.csv', rollback_block: 'not_latest' }),
+        applied({ id: 7, file_name: 'tanpa-log.csv', rollback_block: 'no_change_log' }),
+        makeBatch({ id: 6, file_name: 'pratinjau.csv', status: 'preview' }),
+        makeBatch({ id: 5, file_name: 'selesai.csv', status: 'rolled_back' }),
+      ]),
+    );
+    const user = newUser();
+    renderPage();
+
+    expect(await rollbackButton('terbaru.csv')).toBeEnabled();
+    const blocked = screen.getByRole('button', { name: 'Batalkan impor lama.csv' });
+    expect(blocked).toBeDisabled();
+    await user.hover(blocked.parentElement as HTMLElement);
+    expect(
+      await screen.findByText('Batalkan impor yang lebih baru lebih dulu.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Batalkan impor tanpa-log.csv' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Batalkan impor pratinjau.csv' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Batalkan impor selesai.csv' })).toBeNull();
+    expect(screen.getByText('Dikembalikan')).toBeInTheDocument();
+  });
+
+  it('shows the impact before asking for confirmation', async () => {
+    service.list.mockResolvedValue(pageOf([applied()]));
+    service.rollbackPreview.mockResolvedValue(rollbackPreviewOf({ sent_messages: 4 }));
+    const user = newUser();
+    renderPage();
+
+    await user.click(await rollbackButton('terbaru.csv'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(service.rollbackPreview).toHaveBeenCalledWith(9);
+    expect(await within(dialog).findByText(/2 mahasiswa baru dihapus/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/6 tagihan baru dihapus/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/1 mahasiswa dikembalikan/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/2 tagihan dikembalikan/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/3 pesan antre dibatalkan/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/4 pesan sudah terkirim/)).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/Pesan WhatsApp yang sudah terkirim tidak dapat ditarik kembali/),
+    ).toBeInTheDocument();
+    expect(service.rollback).not.toHaveBeenCalled();
+  });
+
+  it('rolls back on confirmation and reloads the history', async () => {
+    service.list.mockResolvedValue(pageOf([applied()]));
+    service.rollback.mockResolvedValue(applied({ status: 'rolled_back' }));
+    const user = newUser();
+    renderPage();
+    await user.click(await rollbackButton('terbaru.csv'));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(/2 mahasiswa baru dihapus/);
+    const listCalls = service.list.mock.calls.length;
+
+    await user.click(within(dialog).getByRole('button', { name: 'Batalkan impor' }));
+
+    await waitFor(() => expect(service.rollback).toHaveBeenCalledWith(9));
+    expect(await screen.findByText('Impor dikembalikan.')).toBeInTheDocument();
+    await waitFor(() => expect(service.list.mock.calls.length).toBeGreaterThan(listCalls));
+  });
+
+  it('lists conflicts and blocks the confirmation', async () => {
+    service.list.mockResolvedValue(pageOf([applied()]));
+    service.rollbackPreview.mockResolvedValue(
+      rollbackPreviewOf({
+        conflicts: [{ entity: 'invoice', label: 'INV-1', fields: ['status', 'paid_at'] }],
+        conflicts_total: 3,
+      }),
+    );
+    const user = newUser();
+    renderPage();
+
+    await user.click(await rollbackButton('terbaru.csv'));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText(/INV-1/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Status, Tanggal bayar/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/dan 2 lainnya/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Batalkan impor' })).toBeDisabled();
+  });
+
+  it('shows the server message and closes when the rollback is refused (409)', async () => {
+    service.list.mockResolvedValue(pageOf([applied()]));
+    service.rollback.mockRejectedValue(
+      new ApiError('Batalkan impor yang lebih baru lebih dulu.', 409, 'conflict'),
+    );
+    const user = newUser();
+    renderPage();
+    await user.click(await rollbackButton('terbaru.csv'));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText(/2 mahasiswa baru dihapus/);
+
+    await user.click(within(dialog).getByRole('button', { name: 'Batalkan impor' }));
+
+    expect(await screen.findByText('Batalkan impor yang lebih baru lebih dulu.')).toBeVisible();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('closes the dialog with the server message when the preview is refused', async () => {
+    service.list.mockResolvedValue(pageOf([applied()]));
+    service.rollbackPreview.mockRejectedValue(
+      new ApiError('Hanya impor berstatus Diterapkan yang dapat dibatalkan.', 409, 'conflict'),
+    );
+    const user = newUser();
+    renderPage();
+
+    await user.click(await rollbackButton('terbaru.csv'));
+
+    expect(
+      await screen.findByText('Hanya impor berstatus Diterapkan yang dapat dibatalkan.'),
+    ).toBeVisible();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });

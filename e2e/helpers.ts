@@ -94,6 +94,7 @@ export const importViaApi = async (
   const batch = (await preview.json()) as { id: number };
   const applied = await request.post(`${API_BASE_URL}/imports/${batch.id}/apply`, { headers });
   expect(applied.ok(), `import apply failed with ${applied.status()}`).toBe(true);
+  return batch.id;
 };
 
 export const bearer = (token: string) => ({ Authorization: `Bearer ${token}` });
