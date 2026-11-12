@@ -312,11 +312,10 @@ export const ImportHistory = ({
           deleteTarget?.status === 'preview'
             ? `Hapus pratinjau impor "${deleteTarget.file_name}"? Berkas ini belum diterapkan dan akan dihapus dari riwayat.`
             : deleteTarget?.status === 'applied'
-              ? `Impor "${deleteTarget.file_name}" berstatus Diterapkan${
-                  deleteTarget.rollback_block
-                    ? ` (${IMPORT_ROLLBACK_BLOCK_LABELS[deleteTarget.rollback_block]})`
-                    : ''
-                }. Hapus paksa riwayat impor ini beserta datanya dari sistem?`
+              ? `Impor "${deleteTarget.file_name}" berstatus Diterapkan${deleteTarget.rollback_block
+                ? ` (${IMPORT_ROLLBACK_BLOCK_LABELS[deleteTarget.rollback_block]})`
+                : ''
+              }. Hapus paksa riwayat impor ini beserta datanya dari sistem?`
               : `Hapus riwayat impor "${deleteTarget?.file_name}" dari daftar?`
         }
         confirmText={deleteTarget?.status === 'applied' ? 'Hapus paksa' : 'Hapus'}
