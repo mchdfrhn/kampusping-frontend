@@ -5,15 +5,18 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import { AppConfirmDialog } from '@/components/base/AppConfirmDialog';
 import { AppDataGrid } from '@/components/base/AppDataGrid';
 import { AppStatusChip } from '@/components/base/AppStatusChip';
 import { gridActionButtonSx } from '@/components/base/styles/gridActionButtonStyles';
 import { useServerGrid } from '@/core/hooks/useServerGrid';
+import { getErrorMessage } from '@/core/http/api-error';
 import { useNotify } from '@/core/notify/NotifyProvider';
 import { formatDisplayDateTime } from '@/core/utils/date.util';
 import { getActionColumnWidth } from '@/core/utils/grid-action-column.util';
@@ -40,19 +43,27 @@ type Props = {
   onOpenPreview: (batch: ImportBatch) => void;
   /** Whether the user holds `imports:rollback`; hides the rollback action otherwise. */
   canRollback?: boolean;
+  /** Whether the user can delete non-applied/read-only batches (needs `imports:create`). */
+  canDelete?: boolean;
   /** Called when the user asks to roll back an applied import. */
   onRollback?: (batch: ImportBatch) => void;
+  /** Called after a batch is deleted from history. */
+  onDeleted?: (batch: ImportBatch) => void;
   refreshTrigger?: number;
 };
 
 export const ImportHistory = ({
   onOpenPreview,
   canRollback = false,
+  canDelete = false,
   onRollback,
+  onDeleted,
   refreshTrigger,
 }: Props) => {
   const notify = useNotify();
   const isFirstMount = useRef(true);
+  const [deleteTarget, setDeleteTarget] = useState<ImportBatch | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const grid = useServerGrid<ImportBatch>({
     fetcher: importService.list,
     defaultSort: DEFAULT_SORT,
@@ -67,6 +78,24 @@ export const ImportHistory = ({
     }
     void reload();
   }, [refreshTrigger, reload]);
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    try {
+      await importService.delete(deleteTarget.id);
+      notify.success(
+        deleteTarget.status === 'preview' ? 'Pratinjau impor dihapus.' : 'Riwayat impor dihapus.',
+      );
+      onDeleted?.(deleteTarget);
+      await reload();
+    } catch (error) {
+      notify.error(getErrorMessage(error, 'Gagal menghapus riwayat impor.'));
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const columns: GridColDef<ImportBatch>[] = [
     { field: 'file_name', headerName: 'File', minWidth: 200, flex: 1.2 },
@@ -131,23 +160,40 @@ export const ImportHistory = ({
       headerName: 'Aksi',
       sortable: false,
       filterable: false,
-      width: getActionColumnWidth(1),
+      width: getActionColumnWidth(2),
       renderCell: ({ row }) => {
         if (row.status === 'preview') {
           return (
-            <Tooltip title="Buka pratinjau">
-              <IconButton
-                aria-label={`Buka pratinjau ${row.file_name}`}
-                size="small"
-                sx={gridActionButtonSx.view}
-                onClick={(event) => {
-                  event.stopPropagation(); // the row click would open it a second time
-                  onOpenPreview(row);
-                }}
-              >
-                <VisibilityOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Stack direction="row" spacing={0.5}>
+              <Tooltip title="Buka pratinjau">
+                <IconButton
+                  aria-label={`Buka pratinjau ${row.file_name}`}
+                  size="small"
+                  sx={gridActionButtonSx.view}
+                  onClick={(event) => {
+                    event.stopPropagation(); // the row click would open it a second time
+                    onOpenPreview(row);
+                  }}
+                >
+                  <VisibilityOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              {canDelete ? (
+                <Tooltip title="Hapus pratinjau">
+                  <IconButton
+                    aria-label={`Hapus pratinjau ${row.file_name}`}
+                    size="small"
+                    sx={gridActionButtonSx.delete}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setDeleteTarget(row);
+                    }}
+                  >
+                    <DeleteOutlineOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              ) : null}
+            </Stack>
           );
         }
         if (row.status === 'applied' && canRollback) {
@@ -169,6 +215,23 @@ export const ImportHistory = ({
                   <DeleteOutlineOutlinedIcon fontSize="small" />
                 </IconButton>
               </span>
+            </Tooltip>
+          );
+        }
+        if ((row.status === 'discarded' || row.status === 'rolled_back') && canDelete) {
+          return (
+            <Tooltip title="Hapus dari riwayat">
+              <IconButton
+                aria-label={`Hapus riwayat ${row.file_name}`}
+                size="small"
+                sx={gridActionButtonSx.delete}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setDeleteTarget(row);
+                }}
+              >
+                <DeleteOutlineOutlinedIcon fontSize="small" />
+              </IconButton>
             </Tooltip>
           );
         }
@@ -212,6 +275,19 @@ export const ImportHistory = ({
           {...grid.gridProps}
         />
       </Box>
+      <AppConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={deleteTarget?.status === 'preview' ? 'Hapus pratinjau impor' : 'Hapus riwayat impor'}
+        message={
+          deleteTarget?.status === 'preview'
+            ? `Hapus pratinjau impor "${deleteTarget.file_name}"? Berkas ini belum diterapkan dan akan dihapus dari riwayat.`
+            : `Hapus riwayat impor "${deleteTarget?.file_name}" dari daftar?`
+        }
+        confirmText="Hapus"
+        cancelText="Batal"
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </Card>
   );
 };

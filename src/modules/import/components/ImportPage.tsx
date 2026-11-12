@@ -38,6 +38,14 @@ export const ImportPage = () => {
   const refreshHistory = useCallback(() => setHistoryKey((key) => key + 1), []);
   const closeRollback = useCallback(() => setRollbackTarget(null), []);
 
+  const handleDeleted = useCallback(
+    (deleted: ImportBatch) => {
+      setBatch((current) => (current?.id === deleted.id ? null : current));
+      refreshHistory();
+    },
+    [refreshHistory],
+  );
+
   const showPreview = (next: ImportBatch) => {
     setBatch(next);
     refreshHistory();
@@ -123,7 +131,9 @@ export const ImportPage = () => {
             refreshTrigger={historyKey}
             onOpenPreview={setBatch}
             canRollback={canRollback}
+            canDelete={canCreate}
             onRollback={setRollbackTarget}
+            onDeleted={handleDeleted}
           />
         </Box>
       ) : (
@@ -131,7 +141,9 @@ export const ImportPage = () => {
           refreshTrigger={historyKey}
           onOpenPreview={setBatch}
           canRollback={canRollback}
+          canDelete={canCreate}
           onRollback={setRollbackTarget}
+          onDeleted={handleDeleted}
         />
       )}
 

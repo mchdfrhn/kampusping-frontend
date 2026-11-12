@@ -16,6 +16,7 @@ vi.mock('../services/import.service', () => ({
     preview: vi.fn(),
     apply: vi.fn(),
     discard: vi.fn(),
+    delete: vi.fn(),
     list: vi.fn(),
     errors: vi.fn(),
     rollbackPreview: vi.fn(),
@@ -363,6 +364,28 @@ describe('ImportPage history', () => {
     expect(within(region).getByText(/tagihan-ganjil\.csv/)).toBeInTheDocument();
     expect(within(region).getByRole('button', { name: 'Terapkan' })).toBeEnabled();
     expect(service.errors).toHaveBeenCalledWith(5, expect.anything());
+  });
+
+  it('deletes a preview import directly from the history table after confirmation', async () => {
+    service.list.mockResolvedValue(
+      pageOf([makeBatch({ id: 5, file_name: 'tagihan-ganjil.csv', status: 'preview' })]),
+    );
+    service.delete.mockResolvedValue();
+    const user = newUser();
+    renderPage();
+
+    expect(await screen.findByText('tagihan-ganjil.csv')).toBeInTheDocument();
+    const deleteBtn = screen.getByRole('button', { name: 'Hapus pratinjau tagihan-ganjil.csv' });
+    expect(deleteBtn).toBeInTheDocument();
+
+    await user.click(deleteBtn);
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      within(dialog).getByRole('heading', { name: 'Hapus pratinjau impor' }),
+    ).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Hapus' }));
+    expect(service.delete).toHaveBeenCalledWith(5);
   });
 });
 
