@@ -385,7 +385,7 @@ describe('ImportPage history', () => {
     ).toBeInTheDocument();
 
     await user.click(within(dialog).getByRole('button', { name: 'Hapus' }));
-    expect(service.delete).toHaveBeenCalledWith(5);
+    expect(service.delete).toHaveBeenCalledWith(5, false);
   });
 });
 

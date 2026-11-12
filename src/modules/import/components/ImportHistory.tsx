@@ -83,9 +83,14 @@ export const ImportHistory = ({
     if (!deleteTarget || deleting) return;
     setDeleting(true);
     try {
-      await importService.delete(deleteTarget.id);
+      const isApplied = deleteTarget.status === 'applied';
+      await importService.delete(deleteTarget.id, isApplied);
       notify.success(
-        deleteTarget.status === 'preview' ? 'Pratinjau impor dihapus.' : 'Riwayat impor dihapus.',
+        deleteTarget.status === 'preview'
+          ? 'Pratinjau impor dihapus.'
+          : isApplied
+            ? 'Riwayat dan data impor berhasil dihapus.'
+            : 'Riwayat impor dihapus.',
       );
       onDeleted?.(deleteTarget);
       await reload();
@@ -196,26 +201,45 @@ export const ImportHistory = ({
             </Stack>
           );
         }
-        if (row.status === 'applied' && canRollback) {
+        if (row.status === 'applied') {
           const block = row.rollback_block;
           return (
-            <Tooltip title={block ? IMPORT_ROLLBACK_BLOCK_LABELS[block] : 'Batalkan impor'}>
-              {/* a disabled button swallows pointer events, so the tooltip hangs on the wrapper */}
-              <span>
-                <IconButton
-                  aria-label={`Batalkan impor ${row.file_name}`}
-                  disabled={Boolean(block)}
-                  size="small"
-                  sx={gridActionButtonSx.delete}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRollback?.(row);
-                  }}
-                >
-                  <DeleteOutlineOutlinedIcon fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
+            <Stack direction="row" spacing={0.5}>
+              {canRollback ? (
+                <Tooltip title={block ? IMPORT_ROLLBACK_BLOCK_LABELS[block] : 'Batalkan impor'}>
+                  {/* a disabled button swallows pointer events, so the tooltip hangs on the wrapper */}
+                  <span>
+                    <IconButton
+                      aria-label={`Batalkan impor ${row.file_name}`}
+                      disabled={Boolean(block)}
+                      size="small"
+                      sx={gridActionButtonSx.delete}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRollback?.(row);
+                      }}
+                    >
+                      <DeleteOutlineOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              ) : null}
+              {block && canDelete ? (
+                <Tooltip title="Hapus paksa riwayat dan data impor">
+                  <IconButton
+                    aria-label={`Hapus paksa ${row.file_name}`}
+                    size="small"
+                    sx={gridActionButtonSx.delete}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setDeleteTarget(row);
+                    }}
+                  >
+                    <DeleteOutlineOutlinedIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              ) : null}
+            </Stack>
           );
         }
         if ((row.status === 'discarded' || row.status === 'rolled_back') && canDelete) {
@@ -277,13 +301,25 @@ export const ImportHistory = ({
       </Box>
       <AppConfirmDialog
         open={Boolean(deleteTarget)}
-        title={deleteTarget?.status === 'preview' ? 'Hapus pratinjau impor' : 'Hapus riwayat impor'}
+        title={
+          deleteTarget?.status === 'preview'
+            ? 'Hapus pratinjau impor'
+            : deleteTarget?.status === 'applied'
+              ? 'Hapus paksa riwayat & data impor'
+              : 'Hapus riwayat impor'
+        }
         message={
           deleteTarget?.status === 'preview'
             ? `Hapus pratinjau impor "${deleteTarget.file_name}"? Berkas ini belum diterapkan dan akan dihapus dari riwayat.`
-            : `Hapus riwayat impor "${deleteTarget?.file_name}" dari daftar?`
+            : deleteTarget?.status === 'applied'
+              ? `Impor "${deleteTarget.file_name}" berstatus Diterapkan${
+                  deleteTarget.rollback_block
+                    ? ` (${IMPORT_ROLLBACK_BLOCK_LABELS[deleteTarget.rollback_block]})`
+                    : ''
+                }. Hapus paksa riwayat impor ini beserta datanya dari sistem?`
+              : `Hapus riwayat impor "${deleteTarget?.file_name}" dari daftar?`
         }
-        confirmText="Hapus"
+        confirmText={deleteTarget?.status === 'applied' ? 'Hapus paksa' : 'Hapus'}
         cancelText="Batal"
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteTarget(null)}

@@ -15,8 +15,9 @@ export const importService = {
   },
   apply: (id: number) => apiClient.post<ImportBatch>(`/imports/${id}/apply`),
   discard: (id: number) => apiClient.post<ImportBatch>(`/imports/${id}/discard`),
-  /** Delete a non-applied (preview, discarded, or rolled-back) import from history. */
-  delete: (id: number) => apiClient.delete<void>(`/imports/${id}`),
+  /** Delete an import from history (applied batches require force=true). */
+  delete: (id: number, force = false) =>
+    apiClient.delete<void>(`/imports/${id}${force ? '?force=true' : ''}`),
   /** Impact of rolling the import back, without changing anything (needs `imports:rollback`). */
   rollbackPreview: (id: number) =>
     apiClient.get<RollbackPreview>(`/imports/${id}/rollback-preview`),

@@ -102,6 +102,25 @@ export const ImportRollbackDialog = ({ batch, onClose, onChanged }: Props) => {
     }
   };
 
+  const handleForceDelete = async () => {
+    if (!batch || submitting) return;
+    setSubmitting(true);
+    try {
+      await importService.delete(batch.id, true);
+      notify.success('Riwayat dan data impor berhasil dihapus.');
+      onClose();
+      onChanged();
+    } catch (error) {
+      notify.error(getErrorMessage(error, 'Gagal menghapus paksa impor.'));
+      if (error instanceof ApiError && error.status === 409) {
+        onClose();
+        onChanged();
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const blocked = !preview || preview.conflicts_total > 0;
   const hiddenConflicts = preview ? preview.conflicts_total - preview.conflicts.length : 0;
 
@@ -168,6 +187,14 @@ export const ImportRollbackDialog = ({ batch, onClose, onChanged }: Props) => {
       </DialogContent>
       <DialogActions sx={appDialogActionsSx}>
         <AppDialogCancelButton disabled={submitting} label="Kembali" onClick={onClose} />
+        {blocked && preview ? (
+          <AppDialogConfirmButton
+            color="error"
+            label="Hapus paksa"
+            loading={submitting}
+            onClick={() => void handleForceDelete()}
+          />
+        ) : null}
         <AppDialogConfirmButton
           color="error"
           disabled={blocked}
