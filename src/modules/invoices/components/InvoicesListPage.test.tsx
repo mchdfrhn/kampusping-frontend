@@ -18,9 +18,6 @@ vi.mock('../services/invoices.service', () => ({
     list: vi.fn(),
     filterOptions: vi.fn(),
     setStatus: vi.fn(),
-    previewDeleteByFile: vi.fn(),
-    deleteByFile: vi.fn(),
-    deleteByCodes: vi.fn(),
   },
 }));
 
@@ -226,18 +223,5 @@ describe('InvoicesListPage', () => {
 
     expect(await screen.findByText('INV-2026-001')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Tandai/ })).not.toBeInTheDocument();
-  });
-
-  it('renders the "Hapus via berkas" button for users with invoices:update permission', async () => {
-    signIn(['invoices:read', 'invoices:update']);
-    renderPage();
-
-    const deleteBtn = await screen.findByRole('button', { name: /hapus via berkas/i });
-    expect(deleteBtn).toBeInTheDocument();
-
-    await userEvent.click(deleteBtn);
-    expect(
-      await screen.findByRole('dialog', { name: /hapus tagihan via berkas/i }),
-    ).toBeInTheDocument();
   });
 });

@@ -39,29 +39,3 @@ export type InvoiceFilters = {
 export type InvoiceFilterOptions = {
   semesters: string[];
 };
-
-export type InvoiceDeletePreviewItem = {
-  id: number;
-  invoice_code: string;
-  student_nim: string;
-  student_name: string;
-  semester: string;
-  amount: number;
-  due_date: string;
-  status: string;
-};
-
-export type InvoiceDeleteByFilePreview = {
-  total_codes_in_file: number;
-  found_count: number;
-  not_found_count: number;
-  affected_messages_count: number;
-  found_invoices: InvoiceDeletePreviewItem[];
-  not_found_codes: string[];
-};
-
-export type InvoiceDeleteByFileResult = {
-  deleted_invoices_count: number;
-  affected_messages_count: number;
-  not_found_count: number;
-};
