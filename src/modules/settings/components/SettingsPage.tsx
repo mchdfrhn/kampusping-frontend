@@ -12,7 +12,7 @@ import { routes } from '@/core/config/route.config';
 import { getErrorMessage } from '@/core/http/api-error';
 import { useNotify } from '@/core/notify/NotifyProvider';
 
-import { describePausedReason } from '../paused-reason';
+import { describePausedReason, formatWorkerOfflineMessage } from '../paused-reason';
 import { settingsService } from '../services/settings.service';
 import type { SettingsPayload, SettingsRecord } from '../types';
 import { SettingsForm } from './SettingsForm';
@@ -97,6 +97,11 @@ export const SettingsPage = () => {
         <AppLoading fullScreen={false} label="Memuat pengaturan..." />
       ) : (
         <>
+          {settings.worker_alive === false ? (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {formatWorkerOfflineMessage(settings.worker_last_seen_at)}
+            </Alert>
+          ) : null}
           {pausedReason ? (
             <Alert
               severity="warning"

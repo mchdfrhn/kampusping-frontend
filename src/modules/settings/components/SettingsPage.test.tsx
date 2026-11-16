@@ -398,6 +398,13 @@ describe('SettingsPage', () => {
 
     expect(await screen.findByDisplayValue('Kampus Contoh')).toBeInTheDocument();
   });
+
+  it('warns when the worker is offline', async () => {
+    service.get.mockResolvedValue(makeSettings({ worker_alive: false, worker_last_seen_at: null }));
+    renderPage();
+
+    expect(await screen.findByText(/Worker pengirim pesan sedang tidak aktif/)).toBeInTheDocument();
+  });
 });
 
 describe('settings page guard', () => {

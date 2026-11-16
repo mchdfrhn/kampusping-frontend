@@ -23,6 +23,8 @@ export type MessageSummary = {
 export type WarningsSummary = {
   paused_reason: string | null;
   auto_send_enabled: boolean;
+  worker_alive?: boolean;
+  worker_last_seen_at?: string | null;
 };
 
 /** `GET /dashboard/summary`: aggregates only, never student, invoice or message detail. */

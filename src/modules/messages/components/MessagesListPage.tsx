@@ -9,6 +9,7 @@ import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
@@ -35,7 +36,7 @@ import { useNotify } from '@/core/notify/NotifyProvider';
 import { DATE_API_FORMAT, formatDisplayDate, formatDisplayDateTime } from '@/core/utils/date.util';
 import { getActionColumnWidth } from '@/core/utils/grid-action-column.util';
 import { whatsappStateLabel } from '@/modules/dashboard/dashboard.utils';
-import { describePausedReason } from '@/modules/settings/paused-reason';
+import { describePausedReason, formatWorkerOfflineMessage } from '@/modules/settings/paused-reason';
 import { settingsService } from '@/modules/settings/services/settings.service';
 import { whatsappService } from '@/modules/settings/services/whatsapp.service';
 import type { SettingsRecord, WhatsAppState } from '@/modules/settings/types';
@@ -295,7 +296,15 @@ export const MessagesListPage = () => {
         description="Log pesan WhatsApp: yang antre, terkirim, gagal, dan dibatalkan beserta alasannya."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Pengiriman' }]}
         actions={
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+            {sendSettings && sendSettings.worker_alive !== undefined ? (
+              <Chip
+                color={sendSettings.worker_alive ? 'success' : 'error'}
+                label={sendSettings.worker_alive ? 'Worker aktif' : 'Worker mati'}
+                size="small"
+                variant="outlined"
+              />
+            ) : null}
             <Button
               color="inherit"
               variant="outlined"
@@ -322,6 +331,11 @@ export const MessagesListPage = () => {
         }
       />
 
+      {sendSettings?.worker_alive === false ? (
+        <Alert severity="error" sx={{ mb: 1.5 }}>
+          {formatWorkerOfflineMessage(sendSettings.worker_last_seen_at)}
+        </Alert>
+      ) : null}
       {sendSettings?.paused_reason ? (
         <Alert
           action={
@@ -383,7 +397,7 @@ export const MessagesListPage = () => {
             label="Status"
             value={status}
             onChange={(event) => setStatus(event.target.value as MessageStatus | '')}
-            sx={{ width: 180 }}
+            sx={{ width: { xs: '100%', sm: 180 } }}
           >
             <MenuItem value="">Semua</MenuItem>
             {MESSAGE_STATUS_OPTIONS.map((option) => (

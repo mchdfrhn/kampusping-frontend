@@ -338,6 +338,8 @@ describe('MessagesListPage', () => {
       paused_reason: 'circuit_breaker',
       consecutive_failures: 5,
       updated_at: '2026-11-16T01:00:00Z',
+      worker_alive: false,
+      worker_last_seen_at: null,
     } as SettingsRecord);
     mockedWhatsapp.status.mockResolvedValue({
       state: 'disconnected',
@@ -347,8 +349,45 @@ describe('MessagesListPage', () => {
 
     renderPage();
 
+    expect(await screen.findByText(/Worker pengirim pesan sedang tidak aktif/)).toBeInTheDocument();
+    expect(screen.getByText('Worker mati')).toBeInTheDocument();
     expect(await screen.findByText(/Pengiriman dijeda otomatis/)).toBeInTheDocument();
     expect(await screen.findByText(/WhatsApp belum terhubung/)).toBeInTheDocument();
     expect(await screen.findByText(/Pengiriman otomatis terjadwal masih mati/)).toBeInTheDocument();
+  });
+
+  it('shows Worker aktif chip and no worker error banner when worker is alive', async () => {
+    signIn(['messages:read', 'settings:read']);
+    mockedSettings.get.mockResolvedValue({
+      campus_name: 'Kampus',
+      finance_contact: '',
+      payment_link_siakad: '',
+      payment_guide_sipema: '',
+      window_start: '08:00:00',
+      window_end: '17:00:00',
+      working_days: [1, 2, 3, 4, 5],
+      auto_send_enabled: true,
+      daily_cap: 200,
+      throttle_min_s: 8,
+      throttle_max_s: 20,
+      max_attempts: 3,
+      consecutive_failure_limit: 5,
+      escalation_offset_days: 14,
+      paused_reason: null,
+      consecutive_failures: 0,
+      updated_at: '2026-11-16T01:00:00Z',
+      worker_alive: true,
+      worker_last_seen_at: '2026-11-16T06:20:00Z',
+    } as SettingsRecord);
+    mockedWhatsapp.status.mockResolvedValue({
+      state: 'connected',
+      qr: null,
+      paused_reason: null,
+    });
+
+    renderPage();
+
+    expect(await screen.findByText('Worker aktif')).toBeInTheDocument();
+    expect(screen.queryByText(/Worker pengirim pesan sedang tidak aktif/)).not.toBeInTheDocument();
   });
 });

@@ -18,12 +18,14 @@ export type SettingsRecord = {
   paused_reason: string | null;
   consecutive_failures: number;
   updated_at: string;
+  worker_last_seen_at?: string | null;
+  worker_alive?: boolean;
 };
 
-/** The editable part: the pause state and the failure counter are owned by the server. */
+/** The editable part: the pause state, failure counter, and worker heartbeat are owned by the server. */
 export type SettingsPayload = Omit<
   SettingsRecord,
-  'paused_reason' | 'consecutive_failures' | 'updated_at'
+  'paused_reason' | 'consecutive_failures' | 'updated_at' | 'worker_last_seen_at' | 'worker_alive'
 >;
 
 export type WhatsAppState = 'connected' | 'connecting' | 'qr' | 'disconnected';

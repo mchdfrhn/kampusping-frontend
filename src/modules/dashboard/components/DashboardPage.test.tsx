@@ -307,6 +307,22 @@ describe('DashboardPage warnings', () => {
     expect(whatsappApi).not.toHaveBeenCalled();
     expect(screen.queryByText(/WhatsApp belum terhubung/)).not.toBeInTheDocument();
   });
+
+  it('warns when the worker heartbeat is offline', async () => {
+    summaryApi.mockResolvedValue(
+      makeSummary({
+        warnings: {
+          paused_reason: null,
+          auto_send_enabled: true,
+          worker_alive: false,
+          worker_last_seen_at: '2026-11-02T03:00:00Z',
+        },
+      }),
+    );
+    renderPage();
+
+    expect(await screen.findByText(/Worker pengirim pesan sedang tidak aktif/)).toBeInTheDocument();
+  });
 });
 
 describe('dashboard page guard', () => {

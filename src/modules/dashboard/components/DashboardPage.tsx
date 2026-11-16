@@ -20,7 +20,7 @@ import { routes } from '@/core/config/route.config';
 import { getErrorMessage } from '@/core/http/api-error';
 import { formatDisplayDateTime } from '@/core/utils/date.util';
 import { formatNumber, formatRupiah } from '@/core/utils/format.util';
-import { describePausedReason } from '@/modules/settings/paused-reason';
+import { describePausedReason, formatWorkerOfflineMessage } from '@/modules/settings/paused-reason';
 import { whatsappService } from '@/modules/settings/services/whatsapp.service';
 import type { WhatsAppState } from '@/modules/settings/types';
 
@@ -47,7 +47,13 @@ const LoadingState = () => (
     aria-busy="true"
     sx={{ display: 'flex', flex: 1, flexDirection: 'column', gap: 2 }}
   >
-    <Box sx={{ display: 'grid', gap: 1.75, gridTemplateColumns: 'repeat(4, 1fr)' }}>
+    <Box
+      sx={{
+        display: 'grid',
+        gap: 1.75,
+        gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+      }}
+    >
       {Array.from({ length: 4 }, (_, index) => (
         <Skeleton key={index} height={92} variant="rounded" />
       ))}
@@ -93,8 +99,8 @@ const InvoiceStatusChart = ({ invoices }: { invoices: DashboardSummary['invoices
       >
         {hasData ? (
           <Stack
-            direction="row"
-            spacing={3.5}
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={{ xs: 2, sm: 3.5 }}
             sx={{ alignItems: 'center', justifyContent: 'center', width: '100%' }}
           >
             <Box aria-label={summary} role="img" sx={{ flexShrink: 0, lineHeight: 0 }}>
@@ -118,7 +124,11 @@ const InvoiceStatusChart = ({ invoices }: { invoices: DashboardSummary['invoices
                 ]}
               />
             </Box>
-            <Stack component="ul" spacing={2} sx={{ listStyle: 'none', m: 0, p: 0, flex: 1 }}>
+            <Stack
+              component="ul"
+              spacing={2}
+              sx={{ listStyle: 'none', m: 0, p: 0, flex: 1, width: { xs: '100%', sm: 'auto' } }}
+            >
               {slices.map((slice) => {
                 const total = invoices.total || 1;
                 const pct = Math.round((slice.value / total) * 100);
@@ -224,6 +234,11 @@ export const DashboardPage = () => {
       />
 
       <Box sx={{ display: 'flex', flex: 1, flexDirection: 'column', minHeight: 0 }}>
+        {data?.warnings.worker_alive === false ? (
+          <Alert severity="error" sx={{ mb: 1.5, py: 0.5, flexShrink: 0 }}>
+            {formatWorkerOfflineMessage(data.warnings.worker_last_seen_at)}
+          </Alert>
+        ) : null}
         {data?.warnings.paused_reason ? (
           <Alert
             action={canReadSettings ? <SettingsLink /> : undefined}
@@ -359,7 +374,7 @@ export const DashboardPage = () => {
                     sx={{
                       display: 'grid',
                       gap: 1.5,
-                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
                       flex: 1,
                     }}
                   >
@@ -375,7 +390,7 @@ export const DashboardPage = () => {
                     sx={{
                       display: 'grid',
                       gap: 1.5,
-                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
                       flex: 1,
                     }}
                   >
