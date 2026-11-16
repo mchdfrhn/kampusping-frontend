@@ -115,8 +115,15 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
     }
   };
 
+  // flexShrink 0: a Card clips its content (overflow hidden), so as a flex item it would shrink to
+  // the viewport and hide the action buttons instead of letting the page scroll.
   return (
-    <Card component="section" aria-label="Pratinjau impor" ref={rootRef} sx={{ p: 2.5 }}>
+    <Card
+      component="section"
+      aria-label="Pratinjau impor"
+      ref={rootRef}
+      sx={{ p: 2.5, flexShrink: 0 }}
+    >
       <Typography component="h2" variant="h6">
         Pratinjau impor
       </Typography>

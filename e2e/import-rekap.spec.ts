@@ -111,4 +111,36 @@ test.describe('rekap import review', () => {
     expect(await invoiceStatus(request, token, code(leaves))).toBe('paid');
     for (const nim of stays) expect(await invoiceStatus(request, token, code(nim))).toBe('unpaid');
   });
+
+  test('keeps the action buttons and the history reachable by scrolling', async ({ page }) => {
+    const run = uniqueRunId().replace(/\D/g, '').padEnd(4, '5').slice(0, 4);
+    const year = 2000 + (parseInt(run, 10) % 900);
+    const students = [1, 2, 3].map((n) => ({ nim: `5${run}00${n}`, amount: 100000 * n }));
+
+    await signInAt(page, '/import');
+    const preview = await upload(
+      page,
+      csvFile(`rekap-scroll-${run}.csv`, rekapCsv(`${year}/${year + 1} Ganjil`, students)),
+    );
+
+    // The preview card shows all of its content: nothing is squashed to fit the viewport.
+    const clipped = await preview.evaluate((el) => el.scrollHeight - el.clientHeight);
+    expect(clipped).toBeLessThanOrEqual(1);
+
+    // The page scrolls instead, down to the import history below the preview.
+    const scroller = preview.locator('xpath=..');
+    expect(await scroller.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
+    await scroller.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await expect(page.getByRole('region', { name: 'Riwayat impor' })).toBeInViewport({
+      ratio: 0.9,
+    });
+
+    // And the buttons that apply or discard the preview can be brought into view.
+    const apply = preview.getByRole('button', { name: 'Terapkan' });
+    await apply.scrollIntoViewIfNeeded();
+    await expect(apply).toBeInViewport();
+    await expect(preview.getByRole('button', { name: 'Batalkan' })).toBeInViewport();
+  });
 });

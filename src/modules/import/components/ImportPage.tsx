@@ -133,14 +133,17 @@ export const ImportPage = () => {
             onApply={handleApply}
             onDiscard={handleDiscard}
           />
-          <ImportHistory
-            refreshTrigger={historyKey}
-            onOpenPreview={setBatch}
-            canRollback={canRollback}
-            canDelete={canCreate}
-            onRollback={setRollbackTarget}
-            onDeleted={handleDeleted}
-          />
+          {/* Below a preview the history keeps a fixed height and the page scrolls to it. */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flexShrink: 0, height: 420 }}>
+            <ImportHistory
+              refreshTrigger={historyKey}
+              onOpenPreview={setBatch}
+              canRollback={canRollback}
+              canDelete={canCreate}
+              onRollback={setRollbackTarget}
+              onDeleted={handleDeleted}
+            />
+          </Box>
         </Box>
       ) : (
         <ImportHistory
