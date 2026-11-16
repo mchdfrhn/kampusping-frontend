@@ -178,7 +178,7 @@ test.describe('import flow', () => {
     await expect(invoiceRow(paid.code).getByText('Lunas', { exact: true })).toBeVisible();
     await expect(invoiceRow(rows[3].code)).toHaveCount(0);
 
-    // Importing the same file again changes nothing new: every valid row is an update.
+    // Importing the same file again changes nothing: every valid row is unchanged.
     await openFromSidebar(page, 'Impor Data', 'Impor Data');
     preview = await upload(page, csvFile(`siakad-${run}-ulang.csv`, rows));
     await expectCounts(preview, {
@@ -187,7 +187,8 @@ test.describe('import flow', () => {
       'Mahasiswa baru': '0',
       'Mahasiswa diperbarui': '3',
       'Tagihan baru': '0',
-      'Tagihan diperbarui': '3',
+      'Tagihan diperbarui': '0',
+      'Tagihan tidak berubah': '3',
       'Tagihan dilewati': '0',
     });
     await preview.getByRole('button', { name: 'Batalkan' }).click();
@@ -201,12 +202,13 @@ test.describe('import flow', () => {
     preview = await upload(page, csvFile(`siakad-${run}-mundur.csv`, regressed));
     await expectCounts(preview, {
       'Tagihan baru': '0',
-      'Tagihan diperbarui': '2',
+      'Tagihan diperbarui': '0',
+      'Tagihan tidak berubah': '2',
       'Tagihan dilewati': '1',
     });
     await preview.getByRole('button', { name: 'Terapkan' }).click();
     await expect(
-      page.getByRole('alert').filter({ hasText: '2 tagihan diperbarui, 1 tagihan dilewati.' }),
+      page.getByRole('alert').filter({ hasText: '0 tagihan diperbarui, 1 tagihan dilewati.' }),
     ).toBeVisible();
 
     await openFromSidebar(page, 'Tagihan', 'Tagihan');
