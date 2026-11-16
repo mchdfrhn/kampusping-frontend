@@ -203,7 +203,7 @@ export const UsersListPage = () => {
         description="Kelola siapa yang dapat masuk dan apa yang boleh mereka lakukan."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Pengguna' }]}
         actions={
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
             <Button
               color="inherit"
               variant="outlined"
@@ -245,7 +245,7 @@ export const UsersListPage = () => {
             aria-label="Cari"
             value={grid.search}
             onChange={(event) => grid.setSearch(event.target.value)}
-            sx={{ minWidth: 320 }}
+            sx={{ maxWidth: '100%', minWidth: { xs: '100%', sm: 320 } }}
             slotProps={{
               input: {
                 startAdornment: (

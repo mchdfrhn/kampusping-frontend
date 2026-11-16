@@ -179,7 +179,7 @@ export const RolesListPage = () => {
         description="Peran mengelompokkan izin. Berikan peran ke pengguna untuk mengatur apa yang dapat mereka lakukan."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Peran' }]}
         actions={
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
             <Button
               color="inherit"
               variant="outlined"
@@ -221,7 +221,7 @@ export const RolesListPage = () => {
             aria-label="Cari"
             value={grid.search}
             onChange={(event) => grid.setSearch(event.target.value)}
-            sx={{ minWidth: 300 }}
+            sx={{ maxWidth: '100%', minWidth: { xs: '100%', sm: 300 } }}
             slotProps={{
               input: {
                 startAdornment: (

@@ -497,7 +497,10 @@ export const ManualSendPage = () => {
             </Box>
           </Box>
 
-          <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, justifyContent: 'flex-end' }}>
+          <Stack
+            direction="row"
+            sx={{ flexWrap: 'wrap', gap: 1.5, justifyContent: 'flex-end', mt: 2.5 }}
+          >
             <Button
               variant="outlined"
               color="inherit"
@@ -645,7 +648,7 @@ export const ManualSendPage = () => {
                     </Typography>
                   </Box>
 
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                     <Button
                       size="small"
                       variant="outlined"

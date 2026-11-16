@@ -217,7 +217,7 @@ export const StudentsListPage = () => {
             label="Prodi"
             value={studyProgram}
             onChange={(event) => setStudyProgram(event.target.value)}
-            sx={{ width: 240 }}
+            sx={{ width: { xs: '100%', sm: 240 } }}
           >
             <MenuItem value="">Semua</MenuItem>
             {filterOptions.study_programs.map((program) => (
@@ -231,7 +231,7 @@ export const StudentsListPage = () => {
             label="Angkatan"
             value={cohort}
             onChange={(event) => setCohort(event.target.value)}
-            sx={{ width: 140 }}
+            sx={{ width: { xs: '100%', sm: 140 } }}
           >
             <MenuItem value="">Semua</MenuItem>
             {filterOptions.cohorts.map((option) => (
@@ -245,7 +245,7 @@ export const StudentsListPage = () => {
             label="Status nomor"
             value={phoneStatus}
             onChange={(event) => setPhoneStatus(event.target.value as PhoneStatus | '')}
-            sx={{ width: 180 }}
+            sx={{ width: { xs: '100%', sm: 180 } }}
           >
             <MenuItem value="">Semua</MenuItem>
             {PHONE_STATUS_OPTIONS.map((option) => (

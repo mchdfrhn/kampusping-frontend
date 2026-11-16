@@ -146,7 +146,7 @@ export const AuditLogPage = () => {
             placeholder="mis. import.applied"
             value={action}
             onChange={(event) => setAction(event.target.value)}
-            sx={{ width: 240 }}
+            sx={{ width: { xs: '100%', sm: 240 } }}
             slotProps={{ htmlInput: { maxLength: 100 } }}
           />
           <TextField
@@ -154,7 +154,7 @@ export const AuditLogPage = () => {
             placeholder="mis. import_batch"
             value={entity}
             onChange={(event) => setEntity(event.target.value)}
-            sx={{ width: 240 }}
+            sx={{ width: { xs: '100%', sm: 240 } }}
             slotProps={{ htmlInput: { maxLength: 100 } }}
           />
         </Box>

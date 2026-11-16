@@ -211,7 +211,7 @@ export const SchedulesListPage = () => {
         description="Atur kapan pengingat dikirim terhadap tanggal jatuh tempo, dan template mana yang dipakai."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Jadwal Pengiriman' }]}
         actions={
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
             <Button
               color="inherit"
               variant="outlined"

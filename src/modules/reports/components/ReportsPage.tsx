@@ -325,7 +325,7 @@ export const ReportsPage = () => {
         <Alert severity="info">Pilih semester untuk melihat laporan.</Alert>
       ) : loading ? (
         <Stack aria-busy="true" aria-label="Memuat laporan" spacing={3}>
-          <Skeleton height={44} variant="rounded" width={320} />
+          <Skeleton height={44} variant="rounded" sx={{ maxWidth: '100%' }} width={320} />
           <Box sx={cardGridSx(4)}>
             {Array.from({ length: 4 }, (_, index) => (
               <Skeleton key={index} height={92} variant="rounded" />

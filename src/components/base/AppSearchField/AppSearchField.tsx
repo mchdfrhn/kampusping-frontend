@@ -19,7 +19,7 @@ export const AppSearchField = ({ value, onChange, placeholder }: AppSearchFieldP
     aria-label="Cari"
     value={value}
     onChange={(event) => onChange(event.target.value)}
-    sx={{ minWidth: 320 }}
+    sx={{ maxWidth: '100%', minWidth: { xs: '100%', sm: 320 } }}
     slotProps={{
       input: {
         startAdornment: (

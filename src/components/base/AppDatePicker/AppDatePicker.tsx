@@ -4,7 +4,8 @@ import { DATE_INPUT_FORMAT } from '@/core/utils/date.util';
 
 export type AppDatePickerProps = DatePickerProps;
 
-const FIELD_WIDTH = 220;
+/** Full width on phones, fixed width in desktop filter rows. */
+const FIELD_WIDTH = { xs: '100%', sm: 220 };
 
 const mergeSx = (...parts: Array<AppDatePickerProps['sx'] | undefined>) =>
   parts.flatMap((part) => {

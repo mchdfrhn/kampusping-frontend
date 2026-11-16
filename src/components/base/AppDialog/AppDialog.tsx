@@ -23,11 +23,12 @@ export const AppDialog = ({
   actions,
   showCloseButton = true,
   contentDividers = true,
+  fullWidth = true,
   children,
   onClose,
   ...props
 }: AppDialogProps) => (
-  <Dialog {...props} onClose={onClose}>
+  <Dialog fullWidth={fullWidth} {...props} onClose={onClose}>
     {(title != null || showCloseButton) && (
       <DialogTitle sx={{ fontSize: 16, pr: showCloseButton ? 6 : undefined, py: 1.5 }}>
         <Stack

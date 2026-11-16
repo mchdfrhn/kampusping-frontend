@@ -262,7 +262,7 @@ export const InvoicesListPage = () => {
             label="Status"
             value={status}
             onChange={(event) => setStatus(event.target.value as InvoiceStatus | '')}
-            sx={{ width: 160 }}
+            sx={{ width: { xs: '100%', sm: 160 } }}
           >
             <MenuItem value="">Semua</MenuItem>
             {INVOICE_STATUS_OPTIONS.map((option) => (
@@ -276,7 +276,7 @@ export const InvoicesListPage = () => {
             label="Semester"
             value={semester}
             onChange={(event) => setSemester(event.target.value)}
-            sx={{ width: 180 }}
+            sx={{ width: { xs: '100%', sm: 180 } }}
           >
             <MenuItem value="">Semua</MenuItem>
             {filterOptions.semesters.map((item) => (

@@ -86,7 +86,7 @@ export const ImportPage = () => {
         description="Unggah berkas ekspor SIAKAD atau SIPEMA untuk memperbarui data mahasiswa dan tagihan."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Impor Data' }]}
         actions={
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
             <Button
               color="inherit"
               variant="outlined"

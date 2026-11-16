@@ -180,7 +180,7 @@ export const TemplatesListPage = () => {
         description="Kelola isi pesan WhatsApp yang dipakai aturan jadwal pengiriman."
         breadcrumbs={[{ label: 'Dasbor', href: routes.dashboard }, { label: 'Template Pesan' }]}
         actions={
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
             <Button
               color="inherit"
               variant="outlined"
