@@ -18,7 +18,7 @@ import type { MessageRecord } from '../types';
 import { MessagesListPage } from './MessagesListPage';
 
 vi.mock('../services/messages.service', () => ({
-  messagesService: { list: vi.fn(), cancel: vi.fn() },
+  messagesService: { list: vi.fn(), cancel: vi.fn(), delete: vi.fn() },
 }));
 vi.mock('@/modules/settings/services/settings.service', () => ({
   settingsService: { get: vi.fn() },
@@ -215,13 +215,33 @@ describe('MessagesListPage', () => {
     expect(screen.getByRole('button', { name: 'Batalkan pesan Budi Santoso' })).toBeInTheDocument();
   });
 
-  it('hides Batalkan without messages:cancel but keeps Lihat pesan', async () => {
+  it('hides Batalkan and Hapus without messages:cancel but keeps Lihat pesan', async () => {
     signIn(['messages:read']);
     renderPage();
 
     expect(await screen.findByText('Siti Aminah')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Batalkan/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Hapus pesan/ })).not.toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^Lihat pesan/ })).toHaveLength(rows.length);
+  });
+
+  it('shows Hapus on queued, sending, failed, and cancelled rows and calls delete on confirm', async () => {
+    service.delete.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('Siti Aminah');
+
+    // rows: queued (1), failed (2), cancelled (3), sending (5) are deletable; read (4), sent (6), delivered (7) are not
+    expect(screen.getAllByRole('button', { name: /^Hapus pesan/ })).toHaveLength(4);
+
+    await user.click(screen.getByRole('button', { name: 'Hapus pesan Siti Aminah' }));
+
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Hapus pesan' }));
+
+    await waitFor(() => expect(service.delete).toHaveBeenCalledWith(2));
+    expect(await screen.findByText('Pesan dihapus.')).toBeInTheDocument();
+    await waitFor(() => expect(service.list).toHaveBeenCalledTimes(2));
   });
 
   it('shows the rendered body and timestamps in the Lihat pesan dialog', async () => {

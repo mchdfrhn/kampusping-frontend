@@ -16,6 +16,8 @@ export const messagesService = {
     apiClient.get<Page<MessageRecord>>(`/messages${toQueryString(query)}`),
   /** Only a queued message can be cancelled; anything else is a 409 from the server. */
   cancel: (id: number) => apiClient.post<MessageRecord>(`/messages/${id}/cancel`),
+  /** Soft-delete a queued, cancelled, failed, or stale sending message. */
+  delete: (id: number) => apiClient.delete<void>(`/messages/${id}`),
   getFilterOptions: () => apiClient.get<ManualFilterOptions>('/messages/manual/options'),
   previewManual: (payload: ManualMessagePreviewRequest) =>
     apiClient.post<ManualMessagePreviewResponse>('/messages/manual/preview', payload),

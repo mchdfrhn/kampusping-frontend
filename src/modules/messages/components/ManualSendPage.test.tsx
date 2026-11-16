@@ -243,10 +243,13 @@ describe('ManualSendPage', () => {
       });
     });
 
-    // Alert showing success
+    // Alert showing success and preview refreshed to sync queue status
     expect(
       await screen.findByText(/Pengiriman pesan manual berhasil dijadwalkan!/i),
     ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(messagesService.previewManual).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('resets filters and clears preview when reset is clicked', async () => {

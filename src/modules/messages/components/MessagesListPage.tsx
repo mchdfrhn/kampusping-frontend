@@ -1,6 +1,7 @@
 'use client';
 
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
@@ -52,6 +53,8 @@ import { MessageBodyDialog } from './MessageBodyDialog';
 
 const DEFAULT_SORT = { field: 'queued_at', order: 'desc' } as const;
 
+const DELETABLE_STATUSES = new Set<MessageStatus>(['queued', 'sending', 'failed', 'cancelled']);
+
 /** A half-typed date is an invalid Dayjs; it must not reach the API. */
 const toApiDate = (value: Dayjs | null): string | undefined =>
   value?.isValid() ? value.format(DATE_API_FORMAT) : undefined;
@@ -80,6 +83,7 @@ export const MessagesListPage = () => {
   const [dateTo, setDateTo] = useState<Dayjs | null>(null);
   const [viewing, setViewing] = useState<MessageRecord | null>(null);
   const [cancelTarget, setCancelTarget] = useState<MessageRecord | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MessageRecord | null>(null);
   const [sendSettings, setSendSettings] = useState<SettingsRecord | null>(null);
   const [whatsappState, setWhatsappState] = useState<WhatsAppState | null>(null);
 
@@ -133,6 +137,19 @@ export const MessagesListPage = () => {
     } finally {
       setCancelTarget(null);
       await grid.reload(); // the row on screen may be stale either way
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await messagesService.delete(deleteTarget.id);
+      notify.success('Pesan dihapus.');
+    } catch (error) {
+      notify.error(getErrorMessage(error, 'Gagal menghapus pesan.'));
+    } finally {
+      setDeleteTarget(null);
+      await grid.reload();
     }
   };
 
@@ -227,7 +244,7 @@ export const MessagesListPage = () => {
         headerName: 'Aksi',
         sortable: false,
         filterable: false,
-        width: getActionColumnWidth(canCancel ? 2 : 1),
+        width: getActionColumnWidth(canCancel ? 3 : 1),
         renderCell: ({ row }) => (
           <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', height: '100%' }}>
             <Tooltip title="Lihat pesan">
@@ -249,6 +266,18 @@ export const MessagesListPage = () => {
                   onClick={() => setCancelTarget(row)}
                 >
                   <CancelOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            ) : null}
+            {canCancel && DELETABLE_STATUSES.has(row.status) ? (
+              <Tooltip title="Hapus">
+                <IconButton
+                  aria-label={`Hapus pesan ${row.student.name}`}
+                  size="small"
+                  sx={gridActionButtonSx.delete}
+                  onClick={() => setDeleteTarget(row)}
+                >
+                  <DeleteOutlineOutlinedIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             ) : null}
@@ -388,6 +417,17 @@ export const MessagesListPage = () => {
         confirmColor="error"
         onConfirm={handleCancel}
         onClose={() => setCancelTarget(null)}
+      />
+
+      <AppConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Hapus pesan"
+        message={`Pesan akan dihapus dari daftar log/antrean. Penerima: ${deleteTarget?.student.name ?? ''} (${deleteTarget?.student.nim ?? ''}).`}
+        confirmText="Hapus pesan"
+        cancelText="Kembali"
+        confirmColor="error"
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
       />
     </>
   );

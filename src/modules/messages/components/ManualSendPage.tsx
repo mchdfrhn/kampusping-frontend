@@ -117,14 +117,16 @@ export const ManualSendPage = () => {
     setSendResult(null);
   };
 
-  const handleFetchPreview = async () => {
+  const fetchPreview = async (clearResult: boolean) => {
     if (!templateId) {
       notify.error('Pilih templat pesan terlebih dahulu.');
       return;
     }
 
     setLoadingPreview(true);
-    setSendResult(null);
+    if (clearResult) {
+      setSendResult(null);
+    }
     try {
       const res = await messagesService.previewManual({
         template_id: Number(templateId),
@@ -136,17 +138,20 @@ export const ManualSendPage = () => {
         search: search.trim() || undefined,
       });
       setPreviewData(res);
-      // Select all eligible invoices by default
       const eligibleIds = new Set(
         res.items.filter((item) => item.is_eligible).map((item) => item.invoice_id),
       );
       setSelectedIds(eligibleIds);
     } catch (err) {
-      notify.error(getErrorMessage(err, 'Gagal memuat pratinjau penerima pesan.'));
+      if (clearResult) {
+        notify.error(getErrorMessage(err, 'Gagal memuat pratinjau penerima pesan.'));
+      }
     } finally {
       setLoadingPreview(false);
     }
   };
+
+  const handleFetchPreview = () => fetchPreview(true);
 
   const eligibleItems = useMemo(() => {
     if (!previewData) return [];
@@ -189,6 +194,7 @@ export const ManualSendPage = () => {
       );
       setConfirmOpen(false);
       setSelectedIds(new Set());
+      await fetchPreview(false);
     } catch (err) {
       notify.error(getErrorMessage(err, 'Gagal mengeksekusi pengiriman pesan manual.'));
     } finally {
@@ -599,6 +605,13 @@ export const ManualSendPage = () => {
                     label={`Sudah dalam antrean: ${previewData.excluded_breakdown.already_queued}`}
                   />
                 </Stack>
+                {previewData.excluded_breakdown.already_queued > 0 ? (
+                  <Box sx={{ mt: 1, textAlign: 'center' }}>
+                    <Button component={Link} href={routes.messages} size="small">
+                      Lihat Antrean
+                    </Button>
+                  </Box>
+                ) : null}
               </Card>
             </Box>
 
