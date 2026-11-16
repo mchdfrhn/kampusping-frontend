@@ -9,6 +9,10 @@ import type { AuthUser } from '@/core/auth/auth.type';
 import { ApiError } from '@/core/http/api-error';
 import { NotifyProvider } from '@/core/notify/NotifyProvider';
 
+import { settingsService } from '@/modules/settings/services/settings.service';
+import { whatsappService } from '@/modules/settings/services/whatsapp.service';
+import type { SettingsRecord } from '@/modules/settings/types';
+
 import { messagesService } from '../services/messages.service';
 import type { MessageRecord } from '../types';
 import { MessagesListPage } from './MessagesListPage';
@@ -16,8 +20,16 @@ import { MessagesListPage } from './MessagesListPage';
 vi.mock('../services/messages.service', () => ({
   messagesService: { list: vi.fn(), cancel: vi.fn() },
 }));
+vi.mock('@/modules/settings/services/settings.service', () => ({
+  settingsService: { get: vi.fn() },
+}));
+vi.mock('@/modules/settings/services/whatsapp.service', () => ({
+  whatsappService: { status: vi.fn() },
+}));
 
 const service = vi.mocked(messagesService);
+const mockedSettings = vi.mocked(settingsService);
+const mockedWhatsapp = vi.mocked(whatsappService);
 
 const BODY =
   'Yth. Budi Santoso,\nTagihan Anda Rp1.250.000 jatuh tempo 15 Nov.\n\nBalas STOP untuk berhenti.';
@@ -284,5 +296,39 @@ describe('MessagesListPage', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Kembali' }));
 
     expect(service.cancel).not.toHaveBeenCalled();
+  });
+
+  it('shows delivery warnings when settings:read is present and sending is blocked', async () => {
+    signIn(['messages:read', 'settings:read']);
+    mockedSettings.get.mockResolvedValue({
+      campus_name: 'Kampus',
+      finance_contact: '',
+      payment_link_siakad: '',
+      payment_guide_sipema: '',
+      window_start: '08:00:00',
+      window_end: '17:00:00',
+      working_days: [1, 2, 3, 4, 5],
+      auto_send_enabled: false,
+      daily_cap: 200,
+      throttle_min_s: 8,
+      throttle_max_s: 20,
+      max_attempts: 3,
+      consecutive_failure_limit: 5,
+      escalation_offset_days: 14,
+      paused_reason: 'circuit_breaker',
+      consecutive_failures: 5,
+      updated_at: '2026-11-16T01:00:00Z',
+    } as SettingsRecord);
+    mockedWhatsapp.status.mockResolvedValue({
+      state: 'disconnected',
+      qr: null,
+      paused_reason: 'circuit_breaker',
+    });
+
+    renderPage();
+
+    expect(await screen.findByText(/Pengiriman dijeda otomatis/)).toBeInTheDocument();
+    expect(await screen.findByText(/WhatsApp belum terhubung/)).toBeInTheDocument();
+    expect(await screen.findByText(/Pengiriman otomatis terjadwal masih mati/)).toBeInTheDocument();
   });
 });

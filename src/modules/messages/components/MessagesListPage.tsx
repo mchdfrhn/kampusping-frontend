@@ -4,6 +4,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -16,7 +17,7 @@ import Typography from '@mui/material/Typography';
 import type { GridColDef } from '@mui/x-data-grid';
 import type { Dayjs } from 'dayjs';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AppConfirmDialog } from '@/components/base/AppConfirmDialog';
 import { AppDataGrid } from '@/components/base/AppDataGrid';
@@ -32,6 +33,11 @@ import { getErrorMessage } from '@/core/http/api-error';
 import { useNotify } from '@/core/notify/NotifyProvider';
 import { DATE_API_FORMAT, formatDisplayDate, formatDisplayDateTime } from '@/core/utils/date.util';
 import { getActionColumnWidth } from '@/core/utils/grid-action-column.util';
+import { whatsappStateLabel } from '@/modules/dashboard/dashboard.utils';
+import { describePausedReason } from '@/modules/settings/paused-reason';
+import { settingsService } from '@/modules/settings/services/settings.service';
+import { whatsappService } from '@/modules/settings/services/whatsapp.service';
+import type { SettingsRecord, WhatsAppState } from '@/modules/settings/types';
 
 import {
   CANCEL_REASON_LABELS,
@@ -67,12 +73,40 @@ export const MessagesListPage = () => {
   const notify = useNotify();
   const canCancel = usePermission(permissions.messagesCancel);
   const canSend = usePermission(permissions.messagesSend);
+  const canReadSettings = usePermission(permissions.settingsRead);
 
   const [status, setStatus] = useState<MessageStatus | ''>('');
   const [dateFrom, setDateFrom] = useState<Dayjs | null>(null);
   const [dateTo, setDateTo] = useState<Dayjs | null>(null);
   const [viewing, setViewing] = useState<MessageRecord | null>(null);
   const [cancelTarget, setCancelTarget] = useState<MessageRecord | null>(null);
+  const [sendSettings, setSendSettings] = useState<SettingsRecord | null>(null);
+  const [whatsappState, setWhatsappState] = useState<WhatsAppState | null>(null);
+
+  const loadDeliveryStatus = useCallback(
+    (signal?: AbortSignal) => {
+      if (!canReadSettings) return;
+      settingsService
+        .get()
+        .then((loaded) => {
+          if (!signal?.aborted) setSendSettings(loaded);
+        })
+        .catch(() => {});
+      whatsappService
+        .status(signal)
+        .then((wa) => {
+          if (!signal?.aborted) setWhatsappState(wa.state);
+        })
+        .catch(() => {});
+    },
+    [canReadSettings],
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    loadDeliveryStatus(controller.signal);
+    return () => controller.abort();
+  }, [loadDeliveryStatus]);
 
   const dateFromParam = toApiDate(dateFrom);
   const dateToParam = toApiDate(dateTo);
@@ -237,7 +271,10 @@ export const MessagesListPage = () => {
               color="inherit"
               variant="outlined"
               startIcon={<RefreshOutlinedIcon />}
-              onClick={() => void grid.reload()}
+              onClick={() => {
+                loadDeliveryStatus();
+                void grid.reload();
+              }}
               sx={{ borderColor: 'divider' }}
             >
               Muat ulang
@@ -255,6 +292,51 @@ export const MessagesListPage = () => {
           </Stack>
         }
       />
+
+      {sendSettings?.paused_reason ? (
+        <Alert
+          action={
+            <Button color="inherit" component={Link} href={routes.settings} size="small">
+              Buka Pengaturan
+            </Button>
+          }
+          severity="warning"
+          sx={{ mb: 1.5 }}
+        >
+          Pengiriman dijeda otomatis ({describePausedReason(sendSettings.paused_reason)}). Buka
+          Pengaturan untuk melanjutkan pengiriman antrean.
+        </Alert>
+      ) : null}
+      {whatsappState && whatsappState !== 'connected' ? (
+        <Alert
+          action={
+            <Button color="inherit" component={Link} href={routes.settings} size="small">
+              Buka Pengaturan
+            </Button>
+          }
+          severity="warning"
+          sx={{ mb: 1.5 }}
+        >
+          WhatsApp belum terhubung ({whatsappStateLabel(whatsappState)}). Pesan dalam antrean akan
+          tertahan sampai tersambung kembali.
+        </Alert>
+      ) : null}
+      {sendSettings && !sendSettings.auto_send_enabled ? (
+        <Alert
+          action={
+            <Button color="inherit" component={Link} href={routes.settings} size="small">
+              Buka Pengaturan
+            </Button>
+          }
+          severity="info"
+          sx={{ mb: 1.5 }}
+        >
+          Pengiriman otomatis terjadwal masih mati — pesan terjadwal (auto) menunggu di antrean,
+          sedangkan pesan manual tetap dikirim pada jam kirim (
+          {sendSettings.window_start.slice(0, 5)}–{sendSettings.window_end.slice(0, 5)} WIB) selama
+          worker aktif.
+        </Alert>
+      ) : null}
 
       <Card
         sx={{
