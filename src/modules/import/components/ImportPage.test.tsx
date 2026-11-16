@@ -19,6 +19,8 @@ vi.mock('../services/import.service', () => ({
     delete: vi.fn(),
     list: vi.fn(),
     errors: vi.fn(),
+    details: vi.fn(),
+    detailIds: vi.fn(),
     rollbackPreview: vi.fn(),
     rollback: vi.fn(),
   },
@@ -32,6 +34,7 @@ const makeBatch = (overrides: Partial<ImportBatch> = {}): ImportBatch => ({
   file_name: 'tagihan.csv',
   semester: '2026/1',
   status: 'preview',
+  kind: 'standard',
   summary: {
     rows_total: 12,
     rows_valid: 9,
@@ -108,6 +111,8 @@ beforeEach(() => {
   signIn(['imports:read', 'imports:create']);
   service.list.mockResolvedValue(pageOf<ImportBatch>([]));
   service.errors.mockResolvedValue(pageOf(rowErrors));
+  service.details.mockResolvedValue(pageOf([]));
+  service.detailIds.mockResolvedValue({ ids: [] });
 });
 
 describe('ImportPage upload and preview', () => {
@@ -324,6 +329,92 @@ describe('ImportPage apply and discard', () => {
     expect(service.discard).not.toHaveBeenCalled();
     // the page is hidden from assistive tech until the dialog has finished closing
     expect(await previewRegion()).toBeInTheDocument();
+  });
+});
+
+describe('ImportPage rekap review', () => {
+  const makeRekap = (summary: Partial<ImportBatch['summary']> = {}): ImportBatch =>
+    makeBatch({
+      kind: 'rekap',
+      summary: {
+        ...makeBatch().summary,
+        rows_error: 0,
+        invoices_unchanged: 150,
+        paid_suspected: 3,
+        incomplete_warning: 0,
+        ...summary,
+      },
+    });
+
+  const upload = async (batch: ImportBatch) => {
+    service.preview.mockResolvedValue(batch);
+    const user = newUser();
+    renderPage();
+    await pickFile(user, csv());
+    await submitUpload(user);
+    const region = await previewRegion();
+    return { user, region };
+  };
+
+  it('selects every suspected invoice by default and confirms the count before applying', async () => {
+    service.detailIds.mockResolvedValue({ ids: [11, 12, 13] });
+    service.apply.mockResolvedValue(makeRekap({ invoices_paid_by_absence: 3 }));
+    const { user, region } = await upload(makeRekap());
+    expect(await within(region).findByText('Dipilih 3 dari 3')).toBeInTheDocument();
+    expect(stat(region, 'Diduga lunas')).toHaveTextContent('3');
+    expect(stat(region, 'Tagihan tidak berubah')).toHaveTextContent('150');
+
+    await user.click(within(region).getByRole('button', { name: 'Terapkan' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/3 tagihan akan ditandai lunas/)).toBeInTheDocument();
+    expect(service.apply).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole('button', { name: /terapkan/i }));
+
+    await waitFor(() => expect(service.apply).toHaveBeenCalledWith(5, [11, 12, 13]));
+    expect(await screen.findByText(/3 ditandai lunas/)).toBeInTheDocument();
+  });
+
+  it('selects nothing and warns when the export looks incomplete', async () => {
+    service.detailIds.mockResolvedValue({ ids: [11, 12, 13] });
+    service.apply.mockResolvedValue(makeRekap());
+    const { user, region } = await upload(makeRekap({ incomplete_warning: 1 }));
+
+    expect(await within(region).findByText(/Kemungkinan ekspor tidak lengkap/)).toBeInTheDocument();
+    expect(await within(region).findByText('Dipilih 0 dari 3')).toBeInTheDocument();
+
+    await user.click(within(region).getByRole('button', { name: 'Terapkan' }));
+
+    await waitFor(() => expect(service.apply).toHaveBeenCalledWith(5, []));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('keeps Terapkan disabled until the suspected ids are loaded', async () => {
+    let finish: (value: { ids: number[] }) => void = () => undefined;
+    service.detailIds.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    const { region } = await upload(makeRekap());
+
+    expect(within(region).getByRole('button', { name: 'Terapkan' })).toBeDisabled();
+
+    finish({ ids: [11] });
+    await waitFor(() =>
+      expect(within(region).getByRole('button', { name: 'Terapkan' })).toBeEnabled(),
+    );
+  });
+
+  it('does not ask for suspected ids when nothing is suspected', async () => {
+    service.apply.mockResolvedValue(makeRekap());
+    const { user, region } = await upload(makeRekap({ paid_suspected: 0 }));
+
+    await user.click(within(region).getByRole('button', { name: 'Terapkan' }));
+
+    await waitFor(() => expect(service.apply).toHaveBeenCalledWith(5, []));
+    expect(service.detailIds).not.toHaveBeenCalled();
+  });
+
+  it('explains how rekap files are read', async () => {
+    const { region } = await upload(makeRekap());
+
+    expect(within(region).getByText(/hanya ditandai lunas bila dipilih/i)).toBeInTheDocument();
   });
 });
 

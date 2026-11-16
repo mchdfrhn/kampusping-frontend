@@ -24,7 +24,10 @@ import { ImportUploadDialog } from './ImportUploadDialog';
 const describeApplied = (summary: ImportSummary) =>
   `Impor diterapkan: ${summary.students_new} mahasiswa baru, ` +
   `${summary.students_updated} mahasiswa diperbarui, ${summary.invoices_new} tagihan baru, ` +
-  `${summary.invoices_updated} tagihan diperbarui, ${summary.invoices_skipped} tagihan dilewati.`;
+  `${summary.invoices_updated} tagihan diperbarui, ${summary.invoices_skipped} tagihan dilewati` +
+  (summary.invoices_paid_by_absence
+    ? `, ${summary.invoices_paid_by_absence} ditandai lunas.`
+    : '.');
 
 export const ImportPage = () => {
   const notify = useNotify();
@@ -56,9 +59,12 @@ export const ImportPage = () => {
     refreshHistory();
   };
 
-  const handleApply = async (target: ImportBatch) => {
+  const handleApply = async (target: ImportBatch, markPaidInvoiceIds?: number[]) => {
     try {
-      const applied = await importService.apply(target.id);
+      const applied =
+        markPaidInvoiceIds === undefined
+          ? await importService.apply(target.id)
+          : await importService.apply(target.id, markPaidInvoiceIds);
       notify.success(describeApplied(applied.summary));
       closePreview();
     } catch (error) {
