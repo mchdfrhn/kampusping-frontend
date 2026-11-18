@@ -19,6 +19,3 @@ export const TEMPLATE_VARIABLES = [
   'kontak_keuangan',
   'nama_kampus',
 ] as const;
-
-export const OPT_OUT_FOOTER_NOTE =
-  'Kalimat «Balas STOP untuk berhenti.» ditambahkan otomatis di akhir setiap pesan.';

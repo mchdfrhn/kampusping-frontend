@@ -22,7 +22,7 @@ vi.mock('../services/templates.service', () => ({
 const service = vi.mocked(templatesService);
 
 const okPreview = (rendered = 'Pratinjau'): TemplatePreview => ({
-  rendered: `${rendered}\n\nBalas STOP untuk berhenti.`,
+  rendered,
   unknown_variables: [],
 });
 
@@ -102,14 +102,10 @@ describe('TemplateFormDialog', () => {
     }
   });
 
-  it('says that the opt-out sentence is added automatically', () => {
+  it('does not show an automatic opt-out footer notice', () => {
     renderDialog();
 
-    expect(
-      screen.getByText(
-        'Kalimat «Balas STOP untuk berhenti.» ditambahkan otomatis di akhir setiap pesan.',
-      ),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/Balas STOP/i)).not.toBeInTheDocument();
   });
 
   it('calls the preview once, after the debounce, with the final text', async () => {
@@ -122,9 +118,6 @@ describe('TemplateFormDialog', () => {
     await waitFor(() => expect(service.preview).toHaveBeenCalledTimes(1));
     expect(service.preview).toHaveBeenCalledWith('Yth. {{nama}}');
     expect(await screen.findByLabelText('Pratinjau pesan')).toHaveTextContent('Pratinjau');
-    expect(screen.getByLabelText('Pratinjau pesan')).toHaveTextContent(
-      'Balas STOP untuk berhenti.',
-    );
   });
 
   it('does not request a preview for an empty body', async () => {
@@ -162,7 +155,7 @@ describe('TemplateFormDialog', () => {
 
   it('warns about unknown variables and disables the save button while they are present', async () => {
     service.preview.mockResolvedValue({
-      rendered: 'Yth. {{foo}}\n\nBalas STOP untuk berhenti.',
+      rendered: 'Yth. {{foo}}',
       unknown_variables: ['foo', 'bar'],
     });
     renderDialog();

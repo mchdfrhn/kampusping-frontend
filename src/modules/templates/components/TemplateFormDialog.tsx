@@ -24,7 +24,6 @@ import { ApiError } from '@/core/http/api-error';
 import { handleFormApiError } from '@/core/http/form-errors';
 
 import {
-  OPT_OUT_FOOTER_NOTE,
   PREVIEW_DEBOUNCE_MS,
   TEMPLATE_BODY_MAX_LENGTH,
   TEMPLATE_NAME_MAX_LENGTH,
@@ -319,10 +318,6 @@ export const TemplateFormDialog = ({ open, template, onClose, onSubmit }: Props)
               ) : null}
             </Box>
 
-            <Typography color="text.secondary" variant="body2">
-              {OPT_OUT_FOOTER_NOTE}
-            </Typography>
-
             <Controller
               control={control}
               name="is_active"
@@ -341,7 +336,7 @@ export const TemplateFormDialog = ({ open, template, onClose, onSubmit }: Props)
               Pratinjau
             </Typography>
             <Typography color="text.secondary" variant="caption">
-              Memakai data contoh. Kalimat berhenti berlangganan sudah termasuk.
+              Memakai data contoh.
             </Typography>
             {unknownVariables.length > 0 ? (
               <Alert severity="warning">
