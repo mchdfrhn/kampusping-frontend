@@ -31,6 +31,7 @@ const FIELD_LABELS: Record<string, string> = {
   phone_status: 'Status nomor HP',
   semester: 'Semester',
   amount: 'Nominal',
+  breakdown: 'Rincian',
   due_date: 'Jatuh tempo',
   status: 'Status',
   paid_at: 'Tanggal bayar',

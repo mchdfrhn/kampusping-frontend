@@ -45,6 +45,7 @@ const rupiah = (value: unknown) =>
 
 const FIELD_LABELS: Record<string, string> = {
   amount: 'Nominal',
+  breakdown: 'Rincian',
   due_date: 'Jatuh tempo',
   semester: 'Semester',
   source: 'Sumber',
@@ -52,10 +53,28 @@ const FIELD_LABELS: Record<string, string> = {
   restored: 'Dipulihkan dari data terhapus',
 };
 
+const formatBreakdownList = (value: unknown): string => {
+  if (!Array.isArray(value) || value.length === 0) return '-';
+  return value
+    .map((item) => {
+      if (item && typeof item === 'object' && 'label' in item && 'amount' in item) {
+        const entry = item as { label: unknown; amount: unknown };
+        return `${String(entry.label)} (${rupiah(entry.amount)})`;
+      }
+      return String(item);
+    })
+    .join(', ');
+};
+
 const describeChange = ([field, [before, after]]: [string, [unknown, unknown]]) => {
   const label = FIELD_LABELS[field] ?? field;
   if (field === 'restored') return label;
-  const show = field === 'amount' ? rupiah : String;
+  const show =
+    field === 'amount'
+      ? rupiah
+      : field === 'breakdown'
+        ? formatBreakdownList
+        : (value: unknown) => (value == null ? '-' : String(value));
   return `${label}: ${show(before)} → ${show(after)}`;
 };
 
