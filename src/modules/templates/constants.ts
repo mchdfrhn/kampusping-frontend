@@ -13,6 +13,7 @@ export const TEMPLATE_VARIABLES = [
   'nim',
   'semester',
   'nominal',
+  'rincian',
   'tanggal_jatuh_tempo',
   'cara_bayar',
   'link_pembayaran',

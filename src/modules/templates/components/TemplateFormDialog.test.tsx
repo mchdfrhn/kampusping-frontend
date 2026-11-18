@@ -84,7 +84,7 @@ describe('TemplateFormDialog', () => {
     expect(bodyField().value).toBe('Halo {{nim}}!');
   });
 
-  it('offers a chip for each of the nine allowed variables', () => {
+  it('offers a chip for each of the ten allowed variables', () => {
     renderDialog();
 
     for (const name of [
@@ -92,6 +92,7 @@ describe('TemplateFormDialog', () => {
       'nim',
       'semester',
       'nominal',
+      'rincian',
       'tanggal_jatuh_tempo',
       'cara_bayar',
       'link_pembayaran',
