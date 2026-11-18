@@ -8,30 +8,19 @@ import Card from '@mui/material/Card';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { GridColDef } from '@mui/x-data-grid';
 import { useEffect, useRef, useState } from 'react';
 
 import { AppConfirmDialog } from '@/components/base/AppConfirmDialog';
-import { AppDataGrid } from '@/components/base/AppDataGrid';
-import { useServerGrid } from '@/core/hooks/useServerGrid';
+import { getErrorMessage } from '@/core/http/api-error';
 import { useNotify } from '@/core/notify/NotifyProvider';
 import { formatDisplayDateTime } from '@/core/utils/date.util';
 
 import { IMPORT_SOURCE_LABELS } from '../constants';
 import { importService } from '../services/import.service';
-import type { ImportBatch, ImportRowError, ImportSummary } from '../types';
+import type { ImportBatch, ImportSummary } from '../types';
+import { ImportDetailsPanel } from './ImportDetailsPanel';
 
-type ErrorRow = ImportRowError & { id: string };
-
-const ERROR_SORT = { field: 'row_number', order: 'asc' } as const;
-
-const ERROR_COLUMNS: GridColDef<ErrorRow>[] = [
-  { field: 'row_number', headerName: 'Baris', width: 100, type: 'number', headerAlign: 'left' },
-  { field: 'field', headerName: 'Kolom', width: 160 },
-  { field: 'message', headerName: 'Masalah', minWidth: 240, flex: 1, sortable: false },
-];
-
-const COUNTS: { key: keyof ImportSummary; label: string }[] = [
+const COUNTS: { key: keyof ImportSummary; label: string; rekapOnly?: boolean }[] = [
   { key: 'rows_total', label: 'Baris dibaca' },
   { key: 'rows_valid', label: 'Baris valid' },
   { key: 'rows_error', label: 'Baris bermasalah' },
@@ -39,14 +28,17 @@ const COUNTS: { key: keyof ImportSummary; label: string }[] = [
   { key: 'students_updated', label: 'Mahasiswa diperbarui' },
   { key: 'invoices_new', label: 'Tagihan baru' },
   { key: 'invoices_updated', label: 'Tagihan diperbarui' },
+  { key: 'invoices_unchanged', label: 'Tagihan tidak berubah' },
   { key: 'invoices_skipped', label: 'Tagihan dilewati' },
+  { key: 'paid_suspected', label: 'Diduga lunas', rekapOnly: true },
 ];
 
 type Props = {
   batch: ImportBatch;
   /** Show Terapkan and Batalkan (needs `imports:create`). */
   canManage: boolean;
-  onApply: (batch: ImportBatch) => Promise<void>;
+  /** `markPaidInvoiceIds` is only given for a rekap batch: the suspected-paid invoices approved. */
+  onApply: (batch: ImportBatch, markPaidInvoiceIds?: number[]) => Promise<void>;
   onDiscard: (batch: ImportBatch) => Promise<void>;
 };
 
@@ -55,39 +47,64 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
   const rootRef = useRef<HTMLElement>(null);
   const [applying, setApplying] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [applyConfirmOpen, setApplyConfirmOpen] = useState(false);
   // A ref, not only the disabled state: a second click can arrive before React re-renders.
   const applyInFlight = useRef(false);
-
-  const grid = useServerGrid<ErrorRow, { batch_id: number }>({
-    fetcher: async ({ batch_id, ...query }) => {
-      const result = await importService.errors(batch_id, query);
-      return {
-        ...result,
-        items: result.items.map((item, index) => ({ ...item, id: `${result.page}-${index}` })),
-      };
-    },
-    defaultSort: ERROR_SORT,
-    filters: { batch_id: batch.id },
-    onError: notify.error,
-  });
 
   useEffect(() => {
     rootRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }, [batch.id]);
 
   const isPreview = batch.status === 'preview';
-  const canApply = isPreview && batch.summary.rows_valid > 0 && !applying;
+  const isRekap = batch.kind === 'rekap';
+  const suspectedCount = batch.summary.paid_suspected ?? 0;
+  const incomplete = batch.summary.incomplete_warning === 1;
+  const needsSelection = isPreview && isRekap && suspectedCount > 0;
+
+  // Suspected-paid invoices staff approve; the ids of every page come from one call so "Pilih
+  // semua" and the default selection do not depend on which page is loaded.
+  const [allIds, setAllIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [idsReady, setIdsReady] = useState(!needsSelection);
+
+  useEffect(() => {
+    if (!needsSelection) return;
+    let cancelled = false;
+    importService
+      .detailIds(batch.id)
+      .then(({ ids }) => {
+        if (cancelled) return;
+        setAllIds(ids);
+        // An export that looks partial starts with nothing selected: staff opt in deliberately.
+        setSelectedIds(incomplete ? new Set() : new Set(ids));
+        setIdsReady(true);
+      })
+      .catch((error) => {
+        if (!cancelled) notify.error(getErrorMessage(error, 'Gagal memuat daftar tagihan.'));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [batch.id, incomplete, needsSelection, notify]);
+
+  const canApply = isPreview && batch.summary.rows_valid > 0 && idsReady && !applying;
+  const markPaidCount = isRekap ? selectedIds.size : 0;
 
   const handleApply = async () => {
     if (applyInFlight.current || !canApply) return;
     applyInFlight.current = true;
     setApplying(true);
     try {
-      await onApply(batch);
+      await onApply(batch, isRekap ? [...selectedIds] : undefined);
     } finally {
       applyInFlight.current = false;
       setApplying(false);
     }
+  };
+
+  const handleApplyClick = () => {
+    if (markPaidCount > 0) setApplyConfirmOpen(true);
+    else void handleApply();
   };
 
   const handleDiscard = async () => {
@@ -98,8 +115,15 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
     }
   };
 
+  // flexShrink 0: a Card clips its content (overflow hidden), so as a flex item it would shrink to
+  // the viewport and hide the action buttons instead of letting the page scroll.
   return (
-    <Card component="section" aria-label="Pratinjau impor" ref={rootRef} sx={{ p: 2.5 }}>
+    <Card
+      component="section"
+      aria-label="Pratinjau impor"
+      ref={rootRef}
+      sx={{ p: 2.5, flexShrink: 0 }}
+    >
       <Typography component="h2" variant="h6">
         Pratinjau impor
       </Typography>
@@ -119,7 +143,9 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
           mb: 2,
         }}
       >
-        {COUNTS.map(({ key, label }) => (
+        {COUNTS.filter(
+          ({ key, rekapOnly }) => batch.summary[key] !== undefined && (!rekapOnly || isRekap),
+        ).map(({ key, label }) => (
           <Box key={key}>
             <Typography component="dt" color="text.secondary" variant="body2">
               {label}
@@ -133,10 +159,15 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
 
       {isPreview ? (
         <Alert role="note" severity="info" sx={{ mb: 2 }}>
-          Belum ada data yang disimpan. Periksa ringkasan dan baris bermasalah di bawah, lalu pilih
-          Terapkan untuk menyimpan atau Batalkan untuk membuang pratinjau ini. Hanya baris valid
-          yang diterapkan. Tagihan dengan kode sama akan diperbarui, dan tagihan lama belum lunas
-          milik mahasiswa yang menerima tagihan baru akan otomatis ditandai lunas.
+          {isRekap
+            ? 'Belum ada data yang disimpan. Tagihan yang hilang dari berkas ditampilkan sebagai Diduga lunas dan hanya ditandai lunas bila dipilih. Tunggakan semester yang tidak ada di berkas tidak diubah, dan tagihan baru tidak melunasi tagihan lama.'
+            : 'Belum ada data yang disimpan. Periksa ringkasan dan baris bermasalah di bawah, lalu pilih Terapkan untuk menyimpan atau Batalkan untuk membuang pratinjau ini. Hanya baris valid yang diterapkan. Tagihan dengan kode sama akan diperbarui, dan tagihan lama belum lunas milik mahasiswa yang menerima tagihan baru akan otomatis ditandai lunas.'}
+        </Alert>
+      ) : null}
+      {isPreview && incomplete ? (
+        <Alert role="alert" severity="warning" sx={{ mb: 2 }}>
+          Lebih dari 30% tagihan semester ini hilang dari berkas. Kemungkinan ekspor tidak lengkap.
+          Tidak ada yang dipilih; periksa daftar sebelum menandai lunas.
         </Alert>
       ) : null}
       {isPreview && batch.summary.rows_valid === 0 ? (
@@ -146,18 +177,13 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
         </Alert>
       ) : null}
 
-      <Typography component="h3" variant="subtitle1" sx={{ mb: 1 }}>
-        Rincian masalah pada berkas
-      </Typography>
-      <Box sx={{ height: 340, mb: 2 }}>
-        <AppDataGrid
-          columns={ERROR_COLUMNS}
-          fillWidth
-          getRowId={(row: ErrorRow) => row.id}
-          pageSizeOptions={[20, 50, 100]}
-          {...grid.gridProps}
-        />
-      </Box>
+      <ImportDetailsPanel
+        batch={batch}
+        selectedIds={selectedIds}
+        allIds={allIds}
+        disabled={!isPreview || applying}
+        onSelectedChange={setSelectedIds}
+      />
 
       {canManage ? (
         <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
@@ -176,12 +202,25 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
             startIcon={
               applying ? <CircularProgress color="inherit" size={16} /> : <CheckOutlinedIcon />
             }
-            onClick={() => void handleApply()}
+            onClick={handleApplyClick}
           >
             Terapkan
           </Button>
         </Stack>
       ) : null}
+
+      <AppConfirmDialog
+        open={applyConfirmOpen}
+        title="Terapkan impor"
+        message={`${markPaidCount} tagihan akan ditandai lunas dan pengingatnya dihentikan. Tagihan lain yang diduga lunas tetap belum lunas.`}
+        confirmText="Terapkan"
+        cancelText="Kembali"
+        onConfirm={async () => {
+          setApplyConfirmOpen(false);
+          await handleApply();
+        }}
+        onClose={() => setApplyConfirmOpen(false)}
+      />
 
       <AppConfirmDialog
         open={confirmOpen}
