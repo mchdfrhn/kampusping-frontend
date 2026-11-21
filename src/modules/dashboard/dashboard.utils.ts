@@ -15,8 +15,11 @@ export const formatPercent = (value: number | null): string => (value === null ?
 export type MessageStats = {
   /** Messages that left for WhatsApp: sent + delivered + read. */
   sentTotal: number;
+  /** delivered + read: messages that reached the student's phone. */
+  receivedCount: number;
   /** (delivered + read) / sentTotal. */
   receivedPercent: number | null;
+  readCount: number;
   /** read / sentTotal. */
   readPercent: number | null;
   failed: number;
@@ -28,31 +31,52 @@ export const messageStats = (messages: MessageSummary): MessageStats => {
   const sentTotal = messages.sent + messages.delivered + messages.read;
   return {
     sentTotal,
+    receivedCount: messages.delivered + messages.read,
     receivedPercent: percentOf(messages.delivered + messages.read, sentTotal),
+    readCount: messages.read,
     readPercent: percentOf(messages.read, sentTotal),
     failed: messages.failed,
     queued: messages.queued + messages.sending,
   };
 };
 
-export type PieSlice = {
+export type InvoiceSlice = {
   id: 'paid' | 'unpaid' | 'overdue';
   label: string;
+  /** Number of invoices. */
   value: number;
+  /** Sum in rupiah. */
+  amount: number;
   /** Theme palette token, e.g. `success-main` (becomes `var(--mui-palette-success-main)`). */
   token: string;
 };
 
-/** Paid / unpaid and not yet due / overdue. The three slices add up to the total. */
-export const invoicePieData = (invoices: InvoiceSummary): PieSlice[] => [
-  { id: 'paid', label: 'Lunas', value: invoices.paid, token: 'success-main' },
+/**
+ * Paid / unpaid and not yet due / overdue. The three slices add up to the total, by count and by
+ * amount (`overdue` is a subset of `unpaid`, so the middle slice is the difference).
+ */
+export const invoiceBreakdown = (invoices: InvoiceSummary): InvoiceSlice[] => [
+  {
+    id: 'paid',
+    label: 'Lunas',
+    value: invoices.paid,
+    amount: invoices.paid_amount,
+    token: 'success-main',
+  },
   {
     id: 'unpaid',
-    label: 'Belum lunas',
+    label: 'Belum jatuh tempo',
     value: Math.max(invoices.unpaid - invoices.overdue, 0),
+    amount: Math.max(invoices.unpaid_amount - invoices.overdue_amount, 0),
     token: 'warning-main',
   },
-  { id: 'overdue', label: 'Tunggakan', value: invoices.overdue, token: 'error-main' },
+  {
+    id: 'overdue',
+    label: 'Tunggakan',
+    value: invoices.overdue,
+    amount: invoices.overdue_amount,
+    token: 'error-main',
+  },
 ];
 
 const WHATSAPP_STATE_LABELS: Record<WhatsAppState, string> = {

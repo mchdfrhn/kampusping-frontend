@@ -90,39 +90,96 @@ afterEach(() => {
 });
 
 describe('DashboardPage', () => {
-  it('renders the invoice cards with counts and rupiah', async () => {
+  it('shows how much has been paid out of the total', async () => {
     renderPage();
     await screen.findByText('Total tagihan');
 
+    expect(screen.getByRole('heading', { name: 'Pelunasan tagihan' })).toBeInTheDocument();
+    expect(screen.getByText('sudah dibayar dari Rp480.000.000')).toBeInTheDocument();
     expect(within(card('Total tagihan')).getByText('120')).toBeInTheDocument();
-    expect(within(card('Total tagihan')).getByText('Rp480.000.000')).toBeInTheDocument();
+    // 280 / 480 = 58%
+    expect(screen.getByText('58%')).toBeInTheDocument();
+  });
+
+  it('splits the invoices into paid, not yet due and overdue, with counts and rupiah', async () => {
+    renderPage();
+    await screen.findByText('Total tagihan');
+
     expect(within(card('Lunas')).getByText('70')).toBeInTheDocument();
     expect(within(card('Lunas')).getByText('Rp280.000.000')).toBeInTheDocument();
-    expect(within(card('Belum lunas')).getByText('50')).toBeInTheDocument();
-    expect(within(card('Belum lunas')).getByText('Rp200.000.000')).toBeInTheDocument();
+    // unpaid 50 - overdue 20, Rp200 jt - Rp80 jt
+    expect(within(card('Belum jatuh tempo')).getByText('30')).toBeInTheDocument();
+    expect(within(card('Belum jatuh tempo')).getByText('Rp120.000.000')).toBeInTheDocument();
     expect(within(card('Tunggakan')).getByText('20')).toBeInTheDocument();
     expect(within(card('Tunggakan')).getByText('Rp80.000.000')).toBeInTheDocument();
   });
 
-  it('renders the message cards and the percentages from the summary', async () => {
+  it('names the semester when the summary has one', async () => {
+    summaryApi.mockResolvedValue(makeSummary({ semester: '20261' }));
     renderPage();
-    await screen.findByText('Pesan terkirim');
 
-    // sent + delivered + read = 100
-    expect(within(card('Pesan terkirim')).getByText('100')).toBeInTheDocument();
-    // (delivered + read) / 100 = 90%, read / 100 = 60%
-    expect(within(card('Diterima')).getByText('90%')).toBeInTheDocument();
-    expect(within(card('Dibaca')).getByText('60%')).toBeInTheDocument();
-    expect(within(card('Gagal')).getByText('7')).toBeInTheDocument();
-    // queued + sending
-    expect(within(card('Antre')).getByText('4')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Pelunasan tagihan semester 20261' }),
+    ).toBeInTheDocument();
   });
 
-  it('notes the BRD target next to the received percentage', async () => {
+  it('invites an import when there are no invoices yet', async () => {
+    summaryApi.mockResolvedValue(
+      makeSummary({
+        invoices: {
+          total: 0,
+          total_amount: 0,
+          paid: 0,
+          paid_amount: 0,
+          unpaid: 0,
+          unpaid_amount: 0,
+          overdue: 0,
+          overdue_amount: 0,
+        },
+      }),
+    );
     renderPage();
+
+    expect(await screen.findByText(/Belum ada tagihan\. Impor data/)).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: /Status tagihan/ })).not.toBeInTheDocument();
+  });
+
+  it('renders the delivery funnel from the summary', async () => {
+    renderPage();
+    await screen.findByText('Terkirim');
+
+    // sent + delivered + read = 100
+    expect(within(card('Terkirim')).getByText('100')).toBeInTheDocument();
+    // (delivered + read) / 100 = 90%, read / 100 = 60%
+    expect(within(card('Diterima')).getByText('90%')).toBeInTheDocument();
+    expect(within(card('Diterima')).getByText('90 pesan')).toBeInTheDocument();
+    expect(within(card('Dibaca')).getByText('60%')).toBeInTheDocument();
+    expect(within(card('Dibaca')).getByText('60 pesan')).toBeInTheDocument();
+  });
+
+  it('notes the BRD target and whether it is met', async () => {
+    const { unmount } = renderPage();
     await screen.findByText('Diterima');
 
-    expect(within(card('Diterima')).getByText('Target ≥ 95%')).toBeInTheDocument();
+    expect(screen.getByText('Target ≥ 95% diterima')).toBeInTheDocument();
+    expect(screen.getByText('Belum tercapai')).toBeInTheDocument();
+    unmount();
+
+    summaryApi.mockResolvedValue(
+      makeSummary({
+        messages: {
+          queued: 0,
+          sending: 0,
+          sent: 2,
+          delivered: 18,
+          read: 80,
+          failed: 0,
+          cancelled: 0,
+        },
+      }),
+    );
+    renderPage();
+    expect(await screen.findByText('Tercapai')).toBeInTheDocument();
   });
 
   it('shows a dash instead of a percentage when nothing was sent', async () => {
@@ -144,34 +201,72 @@ describe('DashboardPage', () => {
 
     expect(within(card('Diterima')).getByText('-')).toBeInTheDocument();
     expect(within(card('Dibaca')).getByText('-')).toBeInTheDocument();
-    expect(within(card('Pesan terkirim')).getByText('0')).toBeInTheDocument();
+    expect(within(card('Terkirim')).getByText('0')).toBeInTheDocument();
+    expect(screen.queryByText('Tercapai')).not.toBeInTheDocument();
+    expect(screen.queryByText('Belum tercapai')).not.toBeInTheDocument();
   });
 
-  it('highlights Tunggakan only when there is overdue debt', async () => {
+  it('lists the follow-ups: failed, overdue and queued', async () => {
+    renderPage();
+    await screen.findByText('Pesan gagal');
+
+    expect(within(card('Pesan gagal')).getByText('7')).toBeInTheDocument();
+    expect(within(card('Tagihan menunggak')).getByText('20')).toBeInTheDocument();
+    // queued + sending
+    expect(within(card('Dalam antrean')).getByText('4')).toBeInTheDocument();
+  });
+
+  it('highlights Tunggakan and failed messages only when there are any', async () => {
     const { unmount } = renderPage();
     await screen.findByText('Tunggakan');
     expect(card('Tunggakan')).toHaveAttribute('data-tone', 'error');
+    expect(card('Pesan gagal')).toHaveAttribute('data-tone', 'error');
     expect(card('Lunas')).not.toHaveAttribute('data-tone', 'error');
+    expect(card('Dalam antrean')).not.toHaveAttribute('data-tone', 'error');
     unmount();
 
     summaryApi.mockResolvedValue(
       makeSummary({
         invoices: { ...makeSummary().invoices, overdue: 0, overdue_amount: 0 },
+        messages: { ...makeSummary().messages, failed: 0 },
       }),
     );
     renderPage();
     await waitFor(() => expect(within(card('Tunggakan')).getByText('0')).toBeInTheDocument());
     expect(card('Tunggakan')).not.toHaveAttribute('data-tone', 'error');
+    expect(card('Pesan gagal')).not.toHaveAttribute('data-tone', 'error');
   });
 
-  it('draws the invoice status chart with a legend of the three slices', async () => {
+  it('links the follow-ups only to screens the user may open', async () => {
+    signIn([...ALL, 'messages:read', 'invoices:read']);
+    const { unmount } = renderPage();
+    await screen.findByText('Pesan gagal');
+
+    expect(screen.getByRole('link', { name: 'Buka log pengiriman' })).toHaveAttribute(
+      'href',
+      '/messages',
+    );
+    expect(screen.getByRole('link', { name: 'Buka daftar tagihan' })).toHaveAttribute(
+      'href',
+      '/invoices',
+    );
+    unmount();
+
+    signIn(['dashboard:read']);
+    renderPage();
+    await screen.findByText('Pesan gagal');
+    expect(screen.queryByRole('link', { name: 'Buka log pengiriman' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Buka daftar tagihan' })).not.toBeInTheDocument();
+  });
+
+  it('draws the invoice bar with an accessible summary of the three parts', async () => {
     renderPage();
     await screen.findByText('Total tagihan');
 
     const chart = screen.getByRole('img', { name: /Status tagihan/ });
-    expect(chart).toHaveAccessibleName(/Lunas 70/);
-    expect(chart).toHaveAccessibleName(/Belum lunas 30/);
-    expect(chart).toHaveAccessibleName(/Tunggakan 20/);
+    expect(chart).toHaveAccessibleName(/Lunas 70 tagihan/);
+    expect(chart).toHaveAccessibleName(/Belum jatuh tempo 30 tagihan/);
+    expect(chart).toHaveAccessibleName(/Tunggakan 20 tagihan/);
   });
 
   it('shows when the numbers were generated', async () => {

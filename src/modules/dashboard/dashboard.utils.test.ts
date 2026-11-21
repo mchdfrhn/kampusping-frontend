@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   formatPercent,
-  invoicePieData,
+  invoiceBreakdown,
   messageStats,
   percentOf,
   whatsappStateLabel,
@@ -81,19 +81,30 @@ describe('messageStats', () => {
   });
 });
 
-describe('invoicePieData', () => {
-  it('splits unpaid into not-yet-due and overdue', () => {
-    const data = invoicePieData(invoices({ total: 10, paid: 4, unpaid: 6, overdue: 2 }));
+describe('invoiceBreakdown', () => {
+  it('splits unpaid into not-yet-due and overdue, by count and by amount', () => {
+    const data = invoiceBreakdown(
+      invoices({
+        total: 10,
+        total_amount: 1000,
+        paid: 4,
+        paid_amount: 400,
+        unpaid: 6,
+        unpaid_amount: 600,
+        overdue: 2,
+        overdue_amount: 200,
+      }),
+    );
 
-    expect(data.map(({ id, label, value }) => ({ id, label, value }))).toEqual([
-      { id: 'paid', label: 'Lunas', value: 4 },
-      { id: 'unpaid', label: 'Belum lunas', value: 4 },
-      { id: 'overdue', label: 'Tunggakan', value: 2 },
+    expect(data.map(({ id, label, value, amount }) => ({ id, label, value, amount }))).toEqual([
+      { id: 'paid', label: 'Lunas', value: 4, amount: 400 },
+      { id: 'unpaid', label: 'Belum jatuh tempo', value: 4, amount: 400 },
+      { id: 'overdue', label: 'Tunggakan', value: 2, amount: 200 },
     ]);
   });
 
   it('uses theme palette tokens, never colors', () => {
-    const data = invoicePieData(invoices({ paid: 1, unpaid: 2, overdue: 1 }));
+    const data = invoiceBreakdown(invoices({ paid: 1, unpaid: 2, overdue: 1 }));
 
     expect(data.map((slice) => slice.token)).toEqual([
       'success-main',
@@ -103,9 +114,19 @@ describe('invoicePieData', () => {
   });
 
   it('never goes negative if overdue exceeds unpaid', () => {
-    const data = invoicePieData(invoices({ unpaid: 1, overdue: 3 }));
+    const data = invoiceBreakdown(invoices({ unpaid: 1, overdue: 3 }));
 
     expect(data.find((slice) => slice.id === 'unpaid')?.value).toBe(0);
+    expect(data.find((slice) => slice.id === 'unpaid')?.amount).toBe(0);
+  });
+});
+
+describe('messageStats counts', () => {
+  it('counts received and read messages next to the percentages', () => {
+    const stats = messageStats(messages({ sent: 10, delivered: 30, read: 60 }));
+
+    expect(stats.receivedCount).toBe(90);
+    expect(stats.readCount).toBe(60);
   });
 });
 
