@@ -7,6 +7,9 @@ const tinted = (token: 'primary' | 'success' | 'error' | 'warning' | 'info'): Sx
   bgcolor: mixToken(`${token}-main`, 12),
   borderRadius: 2,
   color: `${token}.main`,
+  flexShrink: 0,
+  height: 30,
+  width: 30,
   '&:hover': { bgcolor: mixToken(`${token}-main`, 20) },
   '&.Mui-disabled': {
     bgcolor: 'action.disabledBackground',
