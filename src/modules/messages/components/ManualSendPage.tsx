@@ -14,6 +14,7 @@ import Card from '@mui/material/Card';
 import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -55,6 +56,7 @@ export const ManualSendPage = () => {
     cohorts: [],
     study_programs: [],
     semesters: [],
+    components: [],
   });
   const [loadingRefs, setLoadingRefs] = useState(true);
 
@@ -66,6 +68,7 @@ export const ManualSendPage = () => {
   const [amountMin, setAmountMin] = useState('');
   const [amountMax, setAmountMax] = useState('');
   const [search, setSearch] = useState('');
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
 
   // Preview & execution state
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -112,9 +115,18 @@ export const ManualSendPage = () => {
     setAmountMin('');
     setAmountMax('');
     setSearch('');
+    setSelectedComponents([]);
     setPreviewData(null);
     setSelectedIds(new Set());
     setSendResult(null);
+  };
+
+  const toggleComponent = (componentName: string) => {
+    setSelectedComponents((prev) =>
+      prev.includes(componentName)
+        ? prev.filter((item) => item !== componentName)
+        : [...prev, componentName],
+    );
   };
 
   const fetchPreview = async (clearResult: boolean) => {
@@ -136,6 +148,7 @@ export const ManualSendPage = () => {
         amount_min: amountMin ? Number(amountMin) : undefined,
         amount_max: amountMax ? Number(amountMax) : undefined,
         search: search.trim() || undefined,
+        components: selectedComponents.length > 0 ? selectedComponents : undefined,
       });
       setPreviewData(res);
       const eligibleIds = new Set(
@@ -187,6 +200,7 @@ export const ManualSendPage = () => {
       const res = await messagesService.sendManual({
         template_id: Number(templateId),
         invoice_ids: Array.from(selectedIds),
+        components: selectedComponents.length > 0 ? selectedComponents : undefined,
       });
       setSendResult(res);
       notify.success(
@@ -495,6 +509,79 @@ export const ManualSendPage = () => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </Box>
+
+            {(filterOptions.components ?? []).length > 0 ? (
+              <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2', md: 'span 12' } }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'background.default',
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        Filter Komponen Tagihan (SIAKAD)
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {selectedComponents.length === 0
+                          ? 'Semua komponen disertakan (nominal total penuh). Centang komponen tertentu jika hanya ingin menagih komponen spesifik.'
+                          : `Hanya menagih ${selectedComponents.length} komponen terpilih — nominal & rincian pesan otomatis disesuaikan.`}
+                      </Typography>
+                    </Box>
+                    {selectedComponents.length > 0 ? (
+                      <Button
+                        size="small"
+                        color="inherit"
+                        onClick={() => setSelectedComponents([])}
+                      >
+                        Semua Komponen
+                      </Button>
+                    ) : null}
+                  </Stack>
+
+                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+                    {(filterOptions.components ?? []).map((comp) => {
+                      const checked = selectedComponents.includes(comp);
+                      return (
+                        <FormControlLabel
+                          key={comp}
+                          control={
+                            <Checkbox
+                              size="small"
+                              checked={checked}
+                              onChange={() => toggleComponent(comp)}
+                            />
+                          }
+                          label={<Typography variant="body2">{comp}</Typography>}
+                          sx={{
+                            m: 0,
+                            pr: 1.5,
+                            py: 0.25,
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: checked ? 'primary.main' : 'divider',
+                            bgcolor: checked ? 'action.selected' : 'background.paper',
+                          }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              </Box>
+            ) : null}
           </Box>
 
           <Stack
