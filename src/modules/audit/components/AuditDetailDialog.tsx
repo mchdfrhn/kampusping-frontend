@@ -47,7 +47,12 @@ export const AuditDetailDialog = ({ event, onClose }: Props) => (
         />
         <Box
           component="dl"
-          sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(2, 1fr)', m: 0 }}
+          sx={{
+            display: 'grid',
+            gap: 1.5,
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+            m: 0,
+          }}
         >
           <Field label="Waktu" value={formatDisplayDateTime(event.at)} />
           <Field label="Pelaku" value={event.actor} />

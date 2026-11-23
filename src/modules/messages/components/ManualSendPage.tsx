@@ -295,6 +295,31 @@ export const ManualSendPage = () => {
         flex: 0.8,
         type: 'number',
         valueFormatter: (val) => formatRupiah(Number(val)),
+        renderCell: ({ row }) => {
+          const formatted = formatRupiah(row.amount);
+          if (!row.breakdown || row.breakdown.length === 0) {
+            return formatted;
+          }
+          const tooltipText = row.breakdown
+            .map((item) => `${item.label}: ${formatRupiah(item.amount)}`)
+            .join(' • ');
+          return (
+            <Tooltip title={`Rincian tagihan: ${tooltipText}`}>
+              <Typography
+                component="span"
+                variant="body2"
+                sx={{
+                  borderBottom: '1px dashed',
+                  borderColor: 'text.secondary',
+                  cursor: 'help',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {formatted}
+              </Typography>
+            </Tooltip>
+          );
+        },
       },
       {
         field: 'due_date',
@@ -715,7 +740,14 @@ export const ManualSendPage = () => {
               }}
             >
               {/* Kolom Kiri: Tabel Calon Penerima */}
-              <Card sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 600 }}>
+              <Card
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: { xs: 500, md: 600 },
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
@@ -764,10 +796,36 @@ export const ManualSendPage = () => {
               </Card>
 
               {/* Kolom Kanan: Simulasi WhatsApp */}
-              <Card sx={{ p: 2, height: 600, display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Pratinjau Pesan WhatsApp
-                </Typography>
+              <Card
+                sx={{
+                  p: 2,
+                  height: { xs: 480, md: 600 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Pratinjau Pesan WhatsApp
+                  </Typography>
+                  {previewData.sample_preview ? (
+                    <Chip
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      label={formatRupiah(previewData.sample_preview.amount)}
+                    />
+                  ) : null}
+                </Stack>
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 2 }}>
                   Simulasi tampilan pesan yang dikirimkan ke calon penerima pertama.
                 </Typography>
@@ -913,7 +971,11 @@ export const ManualSendPage = () => {
       <AppConfirmDialog
         open={confirmOpen}
         title="Konfirmasi Pengiriman Pesan Manual"
-        message={`Apakah Anda yakin ingin mengirim pesan penagihan manual ke ${selectedCount} mahasiswa terpilih? Pesan akan langsung dimasukkan ke dalam antrean pengiriman WhatsApp.`}
+        message={`Apakah Anda yakin ingin mengirim pesan penagihan manual ke ${selectedCount} mahasiswa terpilih?${
+          selectedComponents.length > 0
+            ? ` (Komponen ditagih: ${selectedComponents.join(', ')})`
+            : ''
+        } Pesan akan langsung dimasukkan ke dalam antrean pengiriman WhatsApp.`}
         confirmText={sending ? 'Memproses...' : 'Kirim Sekarang'}
         cancelText="Batal"
         onConfirm={handleConfirmSend}

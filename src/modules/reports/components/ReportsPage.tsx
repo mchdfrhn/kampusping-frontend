@@ -78,7 +78,7 @@ const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
       ? `7 hari terakhir (${formatDisplayDate(preview.period_start)} sampai ${formatDisplayDate(preview.period_end)})`
       : `Semester ${preview.semester}`;
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ pb: 4 }}>
       <Box>
         <Typography component="p" sx={{ fontWeight: 600 }} variant="subtitle1">
           {periodTitle}
@@ -284,7 +284,7 @@ export const ReportsPage = () => {
               select
               label="Semester"
               size="small"
-              sx={{ minWidth: 240 }}
+              sx={{ minWidth: { xs: '100%', sm: 240 } }}
               value={semester}
               onChange={(event) => setSemester(event.target.value)}
             >
@@ -298,7 +298,7 @@ export const ReportsPage = () => {
         </Stack>
 
         {canExport ? (
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
             <Button
               disabled={!canDownload}
               startIcon={<TableChartOutlinedIcon />}

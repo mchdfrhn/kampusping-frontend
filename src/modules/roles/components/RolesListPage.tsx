@@ -1,25 +1,22 @@
 'use client';
 
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
-import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import { AppConfirmDialog } from '@/components/base/AppConfirmDialog';
 import { AppDataGrid } from '@/components/base/AppDataGrid';
+import { AppSearchField } from '@/components/base/AppSearchField';
 import { gridActionButtonSx } from '@/components/base/styles/gridActionButtonStyles';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Can } from '@/components/layout/RequirePermission';
@@ -210,38 +207,16 @@ export const RolesListPage = () => {
           display: 'flex',
           flex: 1,
           flexDirection: 'column',
-          minHeight: 0,
+          minHeight: 360,
           p: 2,
           overflow: 'hidden',
         }}
       >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
-          <TextField
+          <AppSearchField
             placeholder="Cari peran"
-            aria-label="Cari"
             value={grid.search}
-            onChange={(event) => grid.setSearch(event.target.value)}
-            sx={{ maxWidth: '100%', minWidth: { xs: '100%', sm: 300 } }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchOutlinedIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-                endAdornment: grid.search ? (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="Hapus pencarian"
-                      size="small"
-                      onClick={() => grid.setSearch('')}
-                    >
-                      <CloseOutlinedIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ) : null,
-              },
-            }}
+            onChange={grid.setSearch}
           />
         </Box>
         <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>

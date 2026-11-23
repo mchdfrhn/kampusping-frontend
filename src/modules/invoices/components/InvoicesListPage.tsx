@@ -11,6 +11,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import type { GridColDef } from '@mui/x-data-grid';
 import type { Dayjs } from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
@@ -136,9 +137,34 @@ export const InvoicesListPage = () => {
         field: 'amount',
         headerName: 'Nominal',
         type: 'number',
-        minWidth: 110,
-        flex: 0.6,
+        minWidth: 120,
+        flex: 0.65,
         valueFormatter: (value) => formatRupiah(Number(value)),
+        renderCell: ({ row }) => {
+          const formatted = formatRupiah(row.amount);
+          if (!row.breakdown || row.breakdown.length === 0) {
+            return formatted;
+          }
+          const tooltipText = row.breakdown
+            .map((item) => `${item.label}: ${formatRupiah(item.amount)}`)
+            .join(' • ');
+          return (
+            <Tooltip title={`Rincian: ${tooltipText}`}>
+              <Typography
+                component="span"
+                variant="body2"
+                sx={{
+                  borderBottom: '1px dashed',
+                  borderColor: 'text.secondary',
+                  cursor: 'help',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {formatted}
+              </Typography>
+            </Tooltip>
+          );
+        },
       },
       {
         field: 'due_date',
@@ -246,7 +272,7 @@ export const InvoicesListPage = () => {
           display: 'flex',
           flex: 1,
           flexDirection: 'column',
-          minHeight: 0,
+          minHeight: 360,
           p: 2,
           overflow: 'hidden',
         }}

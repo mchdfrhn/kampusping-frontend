@@ -9,12 +9,18 @@ export type InvoiceStudent = {
   name: string;
 };
 
+export type InvoiceBreakdownItem = {
+  label: string;
+  amount: number;
+};
+
 export type InvoiceRecord = {
   id: number;
   invoice_code: string;
   student: InvoiceStudent;
   semester: string;
   amount: number;
+  breakdown?: InvoiceBreakdownItem[] | null;
   due_date: string;
   status: InvoiceStatus;
   paid_at: string | null;
