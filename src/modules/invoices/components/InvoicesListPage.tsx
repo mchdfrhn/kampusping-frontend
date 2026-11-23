@@ -11,6 +11,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import type { GridColDef } from '@mui/x-data-grid';
 import type { Dayjs } from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
@@ -136,9 +137,88 @@ export const InvoicesListPage = () => {
         field: 'amount',
         headerName: 'Nominal',
         type: 'number',
-        minWidth: 110,
-        flex: 0.6,
+        minWidth: 120,
+        flex: 0.65,
         valueFormatter: (value) => formatRupiah(Number(value)),
+        renderCell: ({ row }) => {
+          const formatted = formatRupiah(row.amount);
+          if (!row.breakdown || row.breakdown.length === 0) {
+            return formatted;
+          }
+          const tooltipContent = (
+            <Box sx={{ minWidth: 220, py: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                  mb: 0.75,
+                  opacity: 0.85,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Rincian Komponen Biaya
+              </Typography>
+              <Stack spacing={0.5}>
+                {row.breakdown.map((item) => (
+                  <Stack
+                    key={item.label}
+                    direction="row"
+                    spacing={2}
+                    sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}
+                  >
+                    <Typography variant="caption" sx={{ opacity: 0.92 }}>
+                      {item.label}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {formatRupiah(item.amount)}
+                    </Typography>
+                  </Stack>
+                ))}
+                <Box
+                  sx={{
+                    borderTop: '1px solid rgba(255,255,255,0.22)',
+                    mt: 0.5,
+                    pt: 0.5,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                    Total
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatted}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+          );
+          return (
+            <Tooltip title={tooltipContent} arrow>
+              <Typography
+                component="span"
+                variant="body2"
+                sx={{
+                  borderBottom: '1px dashed',
+                  borderColor: 'primary.main',
+                  cursor: 'help',
+                  fontVariantNumeric: 'tabular-nums',
+                  fontWeight: 500,
+                }}
+              >
+                {formatted}
+              </Typography>
+            </Tooltip>
+          );
+        },
       },
       {
         field: 'due_date',
@@ -246,7 +326,7 @@ export const InvoicesListPage = () => {
           display: 'flex',
           flex: 1,
           flexDirection: 'column',
-          minHeight: 0,
+          minHeight: 360,
           p: 2,
           overflow: 'hidden',
         }}

@@ -135,7 +135,7 @@ export const AuditLogPage = () => {
           display: 'flex',
           flex: 1,
           flexDirection: 'column',
-          minHeight: 0,
+          minHeight: 360,
           p: 2,
           overflow: 'hidden',
         }}

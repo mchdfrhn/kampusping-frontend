@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import LinearProgress from '@mui/material/LinearProgress';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -14,6 +15,7 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
+import TableFooter from '@mui/material/TableFooter';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
@@ -78,7 +80,7 @@ const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
       ? `7 hari terakhir (${formatDisplayDate(preview.period_start)} sampai ${formatDisplayDate(preview.period_end)})`
       : `Semester ${preview.semester}`;
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ pb: 4 }}>
       <Box>
         <Typography component="p" sx={{ fontWeight: 600 }} variant="subtitle1">
           {periodTitle}
@@ -157,19 +159,85 @@ const PreviewBody = ({ preview }: { preview: ReportPreview }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {preview.groups.map((group) => (
-                    <TableRow key={`${group.study_program}|${group.cohort}`}>
-                      <TableCell>{group.study_program}</TableCell>
-                      <TableCell>{group.cohort}</TableCell>
-                      <TableCell align="right">{formatNumber(group.total)}</TableCell>
-                      <TableCell align="right">{formatNumber(group.paid)}</TableCell>
-                      <TableCell align="right">{formatNumber(group.unpaid)}</TableCell>
-                      <TableCell align="right">{formatNumber(group.overdue)}</TableCell>
-                      <TableCell align="right">{formatRupiah(group.overdue_amount)}</TableCell>
-                      <TableCell align="right">{formatPercentValue(group.paid_percent)}</TableCell>
-                    </TableRow>
-                  ))}
+                  {preview.groups.map((group) => {
+                    const clampedPercent = Math.min(100, Math.max(0, group.paid_percent));
+                    const progressColor =
+                      clampedPercent >= 75
+                        ? 'success'
+                        : clampedPercent >= 40
+                          ? 'primary'
+                          : 'warning';
+                    return (
+                      <TableRow key={`${group.study_program}|${group.cohort}`} hover>
+                        <TableCell sx={{ fontWeight: 500 }}>{group.study_program}</TableCell>
+                        <TableCell>{group.cohort}</TableCell>
+                        <TableCell align="right">{formatNumber(group.total)}</TableCell>
+                        <TableCell align="right">{formatNumber(group.paid)}</TableCell>
+                        <TableCell align="right">{formatNumber(group.unpaid)}</TableCell>
+                        <TableCell align="right">{formatNumber(group.overdue)}</TableCell>
+                        <TableCell align="right">{formatRupiah(group.overdue_amount)}</TableCell>
+                        <TableCell align="right" sx={{ minWidth: 150 }}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ alignItems: 'center', justifyContent: 'flex-end' }}
+                          >
+                            <LinearProgress
+                              color={progressColor}
+                              variant="determinate"
+                              value={clampedPercent}
+                              sx={{
+                                borderRadius: 999,
+                                flex: 1,
+                                height: 6,
+                                maxWidth: 68,
+                              }}
+                            />
+                            <Typography
+                              component="span"
+                              variant="body2"
+                              sx={{
+                                fontVariantNumeric: 'tabular-nums',
+                                fontWeight: 600,
+                                minWidth: 48,
+                              }}
+                            >
+                              {formatPercentValue(group.paid_percent)}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
+                <TableFooter>
+                  <TableRow
+                    sx={{
+                      bgcolor: 'action.hover',
+                      '& .MuiTableCell-root': {
+                        color: 'text.primary',
+                        fontSize: 13,
+                        fontWeight: 700,
+                      },
+                    }}
+                  >
+                    <TableCell colSpan={2}>
+                      {`Total Keseluruhan (${preview.groups.length} kelompok)`}
+                    </TableCell>
+                    <TableCell align="right">{`Total: ${formatNumber(invoices.total)}`}</TableCell>
+                    <TableCell align="right">{`Lunas: ${formatNumber(invoices.paid)}`}</TableCell>
+                    <TableCell align="right">{`Belum: ${formatNumber(invoices.unpaid)}`}</TableCell>
+                    <TableCell align="right">
+                      {`Menunggak: ${formatNumber(invoices.overdue)}`}
+                    </TableCell>
+                    <TableCell align="right">
+                      {`Total ${formatRupiah(invoices.overdue_amount)}`}
+                    </TableCell>
+                    <TableCell align="right">
+                      {`Rata-rata ${formatPercentValue(invoices.paid_percent_count)}`}
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
               </Table>
             </TableContainer>
           )}
@@ -284,7 +352,7 @@ export const ReportsPage = () => {
               select
               label="Semester"
               size="small"
-              sx={{ minWidth: 240 }}
+              sx={{ minWidth: { xs: '100%', sm: 240 } }}
               value={semester}
               onChange={(event) => setSemester(event.target.value)}
             >
@@ -298,7 +366,7 @@ export const ReportsPage = () => {
         </Stack>
 
         {canExport ? (
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
             <Button
               disabled={!canDownload}
               startIcon={<TableChartOutlinedIcon />}

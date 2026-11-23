@@ -53,6 +53,7 @@ const mockOptions: ManualFilterOptions = {
   cohorts: ['2023', '2024'],
   study_programs: ['Teknik Informatika', 'Sistem Informasi'],
   semesters: ['Ganjil 2026/2027'],
+  components: ['002 - SPP', 'Biaya Praktikum', 'Biaya Sidang Skripsi'],
 };
 
 const mockPreview: ManualMessagePreviewResponse = {
@@ -268,5 +269,38 @@ describe('ManualSendPage', () => {
     await user.click(screen.getByRole('button', { name: /Reset Filter/i }));
 
     expect(screen.queryByText('Total Tagihan Cocok')).not.toBeInTheDocument();
+  });
+
+  it('allows ticking specific fee components and sends them in preview and send requests', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Tampilkan Pratinjau/i })).not.toBeDisabled();
+    });
+
+    await user.click(screen.getByRole('checkbox', { name: 'Biaya Praktikum' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Biaya Sidang Skripsi' }));
+
+    await user.click(screen.getByRole('button', { name: /Tampilkan Pratinjau/i }));
+
+    expect(messagesService.previewManual).toHaveBeenCalledWith(
+      expect.objectContaining({
+        template_id: 1,
+        components: ['Biaya Praktikum', 'Biaya Sidang Skripsi'],
+      }),
+    );
+
+    const executeBtn = await screen.findByRole('button', { name: /Eksekusi Pengiriman/i });
+    await user.click(executeBtn);
+    await user.click(screen.getByRole('button', { name: 'Kirim Sekarang' }));
+
+    await waitFor(() => {
+      expect(messagesService.sendManual).toHaveBeenCalledWith({
+        template_id: 1,
+        invoice_ids: [101],
+        components: ['Biaya Praktikum', 'Biaya Sidang Skripsi'],
+      });
+    });
   });
 });

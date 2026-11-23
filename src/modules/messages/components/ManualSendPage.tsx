@@ -14,9 +14,11 @@ import Card from '@mui/material/Card';
 import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import type { GridColDef } from '@mui/x-data-grid';
@@ -55,6 +57,7 @@ export const ManualSendPage = () => {
     cohorts: [],
     study_programs: [],
     semesters: [],
+    components: [],
   });
   const [loadingRefs, setLoadingRefs] = useState(true);
 
@@ -66,6 +69,7 @@ export const ManualSendPage = () => {
   const [amountMin, setAmountMin] = useState('');
   const [amountMax, setAmountMax] = useState('');
   const [search, setSearch] = useState('');
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
 
   // Preview & execution state
   const [loadingPreview, setLoadingPreview] = useState(false);
@@ -112,9 +116,18 @@ export const ManualSendPage = () => {
     setAmountMin('');
     setAmountMax('');
     setSearch('');
+    setSelectedComponents([]);
     setPreviewData(null);
     setSelectedIds(new Set());
     setSendResult(null);
+  };
+
+  const toggleComponent = (componentName: string) => {
+    setSelectedComponents((prev) =>
+      prev.includes(componentName)
+        ? prev.filter((item) => item !== componentName)
+        : [...prev, componentName],
+    );
   };
 
   const fetchPreview = async (clearResult: boolean) => {
@@ -136,6 +149,7 @@ export const ManualSendPage = () => {
         amount_min: amountMin ? Number(amountMin) : undefined,
         amount_max: amountMax ? Number(amountMax) : undefined,
         search: search.trim() || undefined,
+        components: selectedComponents.length > 0 ? selectedComponents : undefined,
       });
       setPreviewData(res);
       const eligibleIds = new Set(
@@ -187,6 +201,7 @@ export const ManualSendPage = () => {
       const res = await messagesService.sendManual({
         template_id: Number(templateId),
         invoice_ids: Array.from(selectedIds),
+        components: selectedComponents.length > 0 ? selectedComponents : undefined,
       });
       setSendResult(res);
       notify.success(
@@ -281,6 +296,85 @@ export const ManualSendPage = () => {
         flex: 0.8,
         type: 'number',
         valueFormatter: (val) => formatRupiah(Number(val)),
+        renderCell: ({ row }) => {
+          const formatted = formatRupiah(row.amount);
+          if (!row.breakdown || row.breakdown.length === 0) {
+            return formatted;
+          }
+          const tooltipContent = (
+            <Box sx={{ minWidth: 220, py: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                  mb: 0.75,
+                  opacity: 0.85,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Rincian Komponen Ditagih
+              </Typography>
+              <Stack spacing={0.5}>
+                {row.breakdown.map((item) => (
+                  <Stack
+                    key={item.label}
+                    direction="row"
+                    spacing={2}
+                    sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}
+                  >
+                    <Typography variant="caption" sx={{ opacity: 0.92 }}>
+                      {item.label}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {formatRupiah(item.amount)}
+                    </Typography>
+                  </Stack>
+                ))}
+                <Box
+                  sx={{
+                    borderTop: '1px solid rgba(255,255,255,0.22)',
+                    mt: 0.5,
+                    pt: 0.5,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                    Total Ditagih
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatted}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+          );
+          return (
+            <Tooltip title={tooltipContent} arrow>
+              <Typography
+                component="span"
+                variant="body2"
+                sx={{
+                  borderBottom: '1px dashed',
+                  borderColor: 'primary.main',
+                  cursor: 'help',
+                  fontVariantNumeric: 'tabular-nums',
+                  fontWeight: 500,
+                }}
+              >
+                {formatted}
+              </Typography>
+            </Tooltip>
+          );
+        },
       },
       {
         field: 'due_date',
@@ -495,6 +589,79 @@ export const ManualSendPage = () => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </Box>
+
+            {(filterOptions.components ?? []).length > 0 ? (
+              <Box sx={{ gridColumn: { xs: 'span 1', sm: 'span 2', md: 'span 12' } }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 1.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'background.default',
+                  }}
+                >
+                  <Stack
+                    direction="row"
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 1,
+                      mb: 1,
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        Filter Komponen Tagihan (SIAKAD)
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {selectedComponents.length === 0
+                          ? 'Semua komponen disertakan (nominal total penuh). Centang komponen tertentu jika hanya ingin menagih komponen spesifik.'
+                          : `Hanya menagih ${selectedComponents.length} komponen terpilih — nominal & rincian pesan otomatis disesuaikan.`}
+                      </Typography>
+                    </Box>
+                    {selectedComponents.length > 0 ? (
+                      <Button
+                        size="small"
+                        color="inherit"
+                        onClick={() => setSelectedComponents([])}
+                      >
+                        Semua Komponen
+                      </Button>
+                    ) : null}
+                  </Stack>
+
+                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
+                    {(filterOptions.components ?? []).map((comp) => {
+                      const checked = selectedComponents.includes(comp);
+                      return (
+                        <FormControlLabel
+                          key={comp}
+                          control={
+                            <Checkbox
+                              size="small"
+                              checked={checked}
+                              onChange={() => toggleComponent(comp)}
+                            />
+                          }
+                          label={<Typography variant="body2">{comp}</Typography>}
+                          sx={{
+                            m: 0,
+                            pr: 1.5,
+                            py: 0.25,
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: checked ? 'primary.main' : 'divider',
+                            bgcolor: checked ? 'action.selected' : 'background.paper',
+                          }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              </Box>
+            ) : null}
           </Box>
 
           <Stack
@@ -628,7 +795,14 @@ export const ManualSendPage = () => {
               }}
             >
               {/* Kolom Kiri: Tabel Calon Penerima */}
-              <Card sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 600 }}>
+              <Card
+                sx={{
+                  p: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: { xs: 500, md: 600 },
+                }}
+              >
                 <Box
                   sx={{
                     display: 'flex',
@@ -677,10 +851,36 @@ export const ManualSendPage = () => {
               </Card>
 
               {/* Kolom Kanan: Simulasi WhatsApp */}
-              <Card sx={{ p: 2, height: 600, display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                  Pratinjau Pesan WhatsApp
-                </Typography>
+              <Card
+                sx={{
+                  p: 2,
+                  height: { xs: 480, md: 600 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    mb: 0.5,
+                  }}
+                >
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    Pratinjau Pesan WhatsApp
+                  </Typography>
+                  {previewData.sample_preview ? (
+                    <Chip
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      label={formatRupiah(previewData.sample_preview.amount)}
+                    />
+                  ) : null}
+                </Stack>
                 <Typography variant="caption" color="text.secondary" sx={{ mb: 2 }}>
                   Simulasi tampilan pesan yang dikirimkan ke calon penerima pertama.
                 </Typography>
@@ -826,7 +1026,11 @@ export const ManualSendPage = () => {
       <AppConfirmDialog
         open={confirmOpen}
         title="Konfirmasi Pengiriman Pesan Manual"
-        message={`Apakah Anda yakin ingin mengirim pesan penagihan manual ke ${selectedCount} mahasiswa terpilih? Pesan akan langsung dimasukkan ke dalam antrean pengiriman WhatsApp.`}
+        message={`Apakah Anda yakin ingin mengirim pesan penagihan manual ke ${selectedCount} mahasiswa terpilih?${
+          selectedComponents.length > 0
+            ? ` (Komponen ditagih: ${selectedComponents.join(', ')})`
+            : ''
+        } Pesan akan langsung dimasukkan ke dalam antrean pengiriman WhatsApp.`}
         confirmText={sending ? 'Memproses...' : 'Kirim Sekarang'}
         cancelText="Batal"
         onConfirm={handleConfirmSend}

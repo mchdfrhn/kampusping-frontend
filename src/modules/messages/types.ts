@@ -59,6 +59,7 @@ export type ManualRecipientItem = {
   cohort: string | null;
   semester: string;
   amount: number;
+  breakdown?: Array<{ label: string; amount: number }> | null;
   due_date: string;
   invoice_status: string;
   is_eligible: boolean;
@@ -92,6 +93,7 @@ export type ManualMessagePreviewRequest = {
   status?: string;
   search?: string;
   invoice_ids?: number[];
+  components?: string[];
 };
 
 export type ManualMessagePreviewResponse = {
@@ -113,6 +115,7 @@ export type ManualMessageSendRequest = {
   status?: string;
   search?: string;
   invoice_ids?: number[];
+  components?: string[];
 };
 
 export type ManualMessageSendResponse = {
@@ -126,4 +129,5 @@ export type ManualFilterOptions = {
   cohorts: string[];
   study_programs: string[];
   semesters: string[];
+  components?: string[];
 };

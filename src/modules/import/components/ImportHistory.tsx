@@ -169,7 +169,7 @@ export const ImportHistory = ({
       renderCell: ({ row }) => {
         if (row.status === 'preview') {
           return (
-            <Stack direction="row" spacing={0.5}>
+            <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', height: '100%' }}>
               <Tooltip title="Buka pratinjau">
                 <IconButton
                   aria-label={`Buka pratinjau ${row.file_name}`}
@@ -204,11 +204,11 @@ export const ImportHistory = ({
         if (row.status === 'applied') {
           const block = row.rollback_block;
           return (
-            <Stack direction="row" spacing={0.5}>
+            <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', height: '100%' }}>
               {canRollback ? (
                 <Tooltip title={block ? IMPORT_ROLLBACK_BLOCK_LABELS[block] : 'Batalkan impor'}>
                   {/* a disabled button swallows pointer events, so the tooltip hangs on the wrapper */}
-                  <span>
+                  <span style={{ display: 'inline-flex' }}>
                     <IconButton
                       aria-label={`Batalkan impor ${row.file_name}`}
                       disabled={Boolean(block)}
@@ -244,19 +244,21 @@ export const ImportHistory = ({
         }
         if ((row.status === 'discarded' || row.status === 'rolled_back') && canDelete) {
           return (
-            <Tooltip title="Hapus dari riwayat">
-              <IconButton
-                aria-label={`Hapus riwayat ${row.file_name}`}
-                size="small"
-                sx={gridActionButtonSx.delete}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setDeleteTarget(row);
-                }}
-              >
-                <DeleteOutlineOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', height: '100%' }}>
+              <Tooltip title="Hapus dari riwayat">
+                <IconButton
+                  aria-label={`Hapus riwayat ${row.file_name}`}
+                  size="small"
+                  sx={gridActionButtonSx.delete}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setDeleteTarget(row);
+                  }}
+                >
+                  <DeleteOutlineOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           );
         }
         return null;
@@ -272,7 +274,7 @@ export const ImportHistory = ({
         display: 'flex',
         flex: 1,
         flexDirection: 'column',
-        minHeight: 0,
+        minHeight: 360,
         p: 2,
         overflow: 'hidden',
       }}

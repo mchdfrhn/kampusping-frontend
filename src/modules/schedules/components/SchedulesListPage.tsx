@@ -1,12 +1,15 @@
 'use client';
 
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
+import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
@@ -204,6 +207,11 @@ export const SchedulesListPage = () => {
     ];
   }, [canUpdate, canDelete, inactiveTemplateIds]);
 
+  const sortedTimelineRules = useMemo(
+    () => [...grid.gridProps.rows].sort((a, b) => a.offset_days - b.offset_days),
+    [grid.gridProps.rows],
+  );
+
   return (
     <>
       <PageHeader
@@ -237,12 +245,75 @@ export const SchedulesListPage = () => {
         }
       />
 
+      {sortedTimelineRules.length > 0 ? (
+        <Card sx={{ mb: 2, p: 2, flexShrink: 0 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              mb: 1.25,
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <TimelineOutlinedIcon color="primary" fontSize="small" />
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                Alur Timeline Pengingat Tagihan
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="text.secondary">
+              Urutan pengiriman otomatis relatif terhadap tanggal jatuh tempo (H)
+            </Typography>
+          </Stack>
+
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 1,
+            }}
+          >
+            {sortedTimelineRules.map((rule, index) => {
+              const isBefore = rule.offset_days < 0;
+              const isOnDue = rule.offset_days === 0;
+              const chipColor = !rule.is_active
+                ? 'default'
+                : isBefore
+                  ? 'info'
+                  : isOnDue
+                    ? 'primary'
+                    : 'warning';
+              return (
+                <Stack key={rule.id} direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Chip
+                    size="small"
+                    color={chipColor}
+                    variant={rule.is_active ? 'filled' : 'outlined'}
+                    label={`${formatOffsetLabel(rule.offset_days)} · ${rule.name}`}
+                    sx={{
+                      fontWeight: 600,
+                      opacity: rule.is_active ? 1 : 0.65,
+                    }}
+                  />
+                  {index < sortedTimelineRules.length - 1 ? (
+                    <ArrowForwardRoundedIcon sx={{ color: 'text.disabled', fontSize: 16 }} />
+                  ) : null}
+                </Stack>
+              );
+            })}
+          </Stack>
+        </Card>
+      ) : null}
+
       <Card
         sx={{
           display: 'flex',
           flex: 1,
           flexDirection: 'column',
-          minHeight: 0,
+          minHeight: 360,
           p: 2,
           overflow: 'hidden',
         }}

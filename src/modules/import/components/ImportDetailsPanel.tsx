@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import type { GridColDef, GridRowSelectionModel } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
@@ -103,6 +104,16 @@ const CHANGED_COLUMNS: GridColDef<ImportDetailChanged>[] = [
     flex: 1,
     sortable: false,
     valueGetter: (_value, row) => Object.entries(row.fields).map(describeChange).join('; '),
+    renderCell: ({ value }) => {
+      const text = value ? String(value) : '-';
+      return (
+        <Tooltip title={text}>
+          <Typography noWrap sx={{ width: '100%' }} variant="body2">
+            {text}
+          </Typography>
+        </Tooltip>
+      );
+    },
   },
 ];
 
@@ -291,8 +302,13 @@ export const ImportDetailsPanel = ({
           <>
             <Stack
               direction="row"
-              spacing={1.5}
-              sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}
+              sx={{
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 1.5,
+                justifyContent: 'space-between',
+                mb: 1,
+              }}
             >
               <Typography color="text.secondary" variant="body2">
                 {`Dipilih ${selectedIds.size} dari ${allIds.length}`}
