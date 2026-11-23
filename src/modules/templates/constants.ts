@@ -19,4 +19,11 @@ export const TEMPLATE_VARIABLES = [
   'link_pembayaran',
   'kontak_keuangan',
   'nama_kampus',
+  'salam',
 ] as const;
+
+/** Hover hints for variables whose value is not obvious from the name. */
+export const TEMPLATE_VARIABLE_HINTS: Partial<Record<(typeof TEMPLATE_VARIABLES)[number], string>> =
+  {
+    salam: 'Selamat pagi/siang/sore/malam, sesuai jam pesan terkirim',
+  };

@@ -84,7 +84,7 @@ describe('TemplateFormDialog', () => {
     expect(bodyField().value).toBe('Halo {{nim}}!');
   });
 
-  it('offers a chip for each of the ten allowed variables', () => {
+  it('offers a chip for each of the eleven allowed variables', () => {
     renderDialog();
 
     for (const name of [
@@ -98,9 +98,19 @@ describe('TemplateFormDialog', () => {
       'link_pembayaran',
       'kontak_keuangan',
       'nama_kampus',
+      'salam',
     ]) {
       expect(screen.getByRole('button', { name: `{{${name}}}` })).toBeInTheDocument();
     }
+  });
+
+  it('explains that salam follows the send time', () => {
+    renderDialog();
+
+    expect(screen.getByRole('button', { name: '{{salam}}' })).toHaveAttribute(
+      'title',
+      'Selamat pagi/siang/sore/malam, sesuai jam pesan terkirim',
+    );
   });
 
   it('does not show an automatic opt-out footer notice', () => {

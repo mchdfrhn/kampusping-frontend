@@ -27,6 +27,7 @@ import {
   PREVIEW_DEBOUNCE_MS,
   TEMPLATE_BODY_MAX_LENGTH,
   TEMPLATE_NAME_MAX_LENGTH,
+  TEMPLATE_VARIABLE_HINTS,
   TEMPLATE_VARIABLES,
 } from '../constants';
 import { findMalformedPlaceholders } from '../placeholders';
@@ -275,6 +276,7 @@ export const TemplateFormDialog = ({ open, template, onClose, onSubmit }: Props)
                   <Chip
                     key={name}
                     label={`{{${name}}}`}
+                    title={TEMPLATE_VARIABLE_HINTS[name]}
                     size="small"
                     variant="outlined"
                     onClick={() => insertVariable(name)}
