@@ -1,11 +1,14 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import DoneAllOutlinedIcon from '@mui/icons-material/DoneAllOutlined';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
@@ -71,6 +74,8 @@ type Props = {
 };
 
 export const TemplateFormDialog = ({ open, template, onClose, onSubmit }: Props) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const methods = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: emptyForm,
@@ -207,22 +212,78 @@ export const TemplateFormDialog = ({ open, template, onClose, onSubmit }: Props)
     }
     return (
       <Box
-        component="pre"
-        aria-label="Pratinjau pesan"
         sx={{
-          bgcolor: 'action.hover',
-          borderRadius: 1,
-          fontFamily: 'inherit',
-          fontSize: 14,
-          m: 0,
-          maxHeight: 320,
-          overflow: 'auto',
-          overflowWrap: 'anywhere',
-          p: 1.5,
-          whiteSpace: 'pre-wrap',
+          borderRadius: 2,
+          overflow: 'hidden',
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: isDark ? 'grey.900' : '#E5DDD5',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        {preview.rendered}
+        <Box
+          sx={{
+            bgcolor: isDark ? '#1F2C34' : '#075E54',
+            color: '#FFFFFF',
+            px: 1.75,
+            py: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.25,
+          }}
+        >
+          <WhatsAppIcon sx={{ fontSize: 22 }} />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 700, color: '#FFFFFF', display: 'block' }}
+            >
+              Simulasi Penerima WhatsApp
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.78)', fontSize: 11 }}>
+              Data contoh mahasiswa
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box sx={{ p: 1.75, maxHeight: 320, overflowY: 'auto' }}>
+          <Box
+            sx={{
+              maxWidth: '94%',
+              p: 1.5,
+              borderRadius: '0px 10px 10px 10px',
+              bgcolor: isDark ? '#005C4B' : '#FFFFFF',
+              color: isDark ? '#E9EDEF' : '#111B21',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.14)',
+            }}
+          >
+            <Box
+              component="pre"
+              aria-label="Pratinjau pesan"
+              sx={{
+                fontFamily: 'inherit',
+                fontSize: 13.5,
+                lineHeight: 1.55,
+                m: 0,
+                overflowWrap: 'anywhere',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {preview.rendered}
+            </Box>
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{ alignItems: 'center', justifyContent: 'flex-end', mt: 0.5, opacity: 0.72 }}
+            >
+              <Typography variant="caption" sx={{ fontSize: 10.5 }}>
+                09.00
+              </Typography>
+              <DoneAllOutlinedIcon sx={{ fontSize: 14, color: isDark ? '#53BDEB' : '#34B7F1' }} />
+            </Stack>
+          </Box>
+        </Box>
       </Box>
     );
   };

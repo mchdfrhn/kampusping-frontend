@@ -145,19 +145,73 @@ export const InvoicesListPage = () => {
           if (!row.breakdown || row.breakdown.length === 0) {
             return formatted;
           }
-          const tooltipText = row.breakdown
-            .map((item) => `${item.label}: ${formatRupiah(item.amount)}`)
-            .join(' • ');
+          const tooltipContent = (
+            <Box sx={{ minWidth: 220, py: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  fontWeight: 700,
+                  letterSpacing: 0.4,
+                  mb: 0.75,
+                  opacity: 0.85,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Rincian Komponen Biaya
+              </Typography>
+              <Stack spacing={0.5}>
+                {row.breakdown.map((item) => (
+                  <Stack
+                    key={item.label}
+                    direction="row"
+                    spacing={2}
+                    sx={{ justifyContent: 'space-between', alignItems: 'baseline' }}
+                  >
+                    <Typography variant="caption" sx={{ opacity: 0.92 }}>
+                      {item.label}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {formatRupiah(item.amount)}
+                    </Typography>
+                  </Stack>
+                ))}
+                <Box
+                  sx={{
+                    borderTop: '1px solid rgba(255,255,255,0.22)',
+                    mt: 0.5,
+                    pt: 0.5,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                    Total
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatted}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+          );
           return (
-            <Tooltip title={`Rincian: ${tooltipText}`}>
+            <Tooltip title={tooltipContent} arrow>
               <Typography
                 component="span"
                 variant="body2"
                 sx={{
                   borderBottom: '1px dashed',
-                  borderColor: 'text.secondary',
+                  borderColor: 'primary.main',
                   cursor: 'help',
                   fontVariantNumeric: 'tabular-nums',
+                  fontWeight: 500,
                 }}
               >
                 {formatted}

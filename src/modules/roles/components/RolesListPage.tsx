@@ -213,11 +213,7 @@ export const RolesListPage = () => {
         }}
       >
         <Box sx={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
-          <AppSearchField
-            placeholder="Cari peran"
-            value={grid.search}
-            onChange={grid.setSearch}
-          />
+          <AppSearchField placeholder="Cari peran" value={grid.search} onChange={grid.setSearch} />
         </Box>
         <Box sx={{ flex: 1, minHeight: 0, height: '100%' }}>
           <AppDataGrid

@@ -20,18 +20,56 @@ import { importService } from '../services/import.service';
 import type { ImportBatch, ImportSummary } from '../types';
 import { ImportDetailsPanel } from './ImportDetailsPanel';
 
-const COUNTS: { key: keyof ImportSummary; label: string; rekapOnly?: boolean }[] = [
-  { key: 'rows_total', label: 'Baris dibaca' },
-  { key: 'rows_valid', label: 'Baris valid' },
-  { key: 'rows_error', label: 'Baris bermasalah' },
-  { key: 'students_new', label: 'Mahasiswa baru' },
-  { key: 'students_updated', label: 'Mahasiswa diperbarui' },
-  { key: 'invoices_new', label: 'Tagihan baru' },
-  { key: 'invoices_updated', label: 'Tagihan diperbarui' },
-  { key: 'invoices_unchanged', label: 'Tagihan tidak berubah' },
-  { key: 'invoices_skipped', label: 'Tagihan dilewati' },
-  { key: 'paid_suspected', label: 'Diduga lunas', rekapOnly: true },
+type CountTone = 'default' | 'success' | 'error' | 'warning' | 'info';
+
+const COUNTS: {
+  key: keyof ImportSummary;
+  label: string;
+  rekapOnly?: boolean;
+  tone?: CountTone;
+}[] = [
+  { key: 'rows_total', label: 'Baris dibaca', tone: 'default' },
+  { key: 'rows_valid', label: 'Baris valid', tone: 'success' },
+  { key: 'rows_error', label: 'Baris bermasalah', tone: 'error' },
+  { key: 'students_new', label: 'Mahasiswa baru', tone: 'info' },
+  { key: 'students_updated', label: 'Mahasiswa diperbarui', tone: 'info' },
+  { key: 'invoices_new', label: 'Tagihan baru', tone: 'success' },
+  { key: 'invoices_updated', label: 'Tagihan diperbarui', tone: 'info' },
+  { key: 'invoices_unchanged', label: 'Tagihan tidak berubah', tone: 'default' },
+  { key: 'invoices_skipped', label: 'Tagihan dilewati', tone: 'default' },
+  { key: 'paid_suspected', label: 'Diduga lunas', rekapOnly: true, tone: 'warning' },
 ];
+
+const getStatCardStyles = (tone: CountTone = 'default', value: number) => {
+  const activeTone: CountTone = value === 0 && tone !== 'default' ? 'default' : tone;
+  const borderAccent: Record<CountTone, string> = {
+    default: 'divider',
+    success: 'success.main',
+    error: 'error.main',
+    warning: 'warning.main',
+    info: 'primary.main',
+  };
+  const valueColor: Record<CountTone, string> = {
+    default: 'text.primary',
+    success: 'success.main',
+    error: 'error.main',
+    warning: 'warning.main',
+    info: 'primary.main',
+  };
+  return {
+    cardSx: {
+      bgcolor: activeTone === 'default' ? 'background.default' : 'background.paper',
+      border: '1px solid',
+      borderColor: 'divider',
+      borderLeft: '4px solid',
+      borderLeftColor: borderAccent[activeTone],
+      borderRadius: 2,
+      px: 1.75,
+      py: 1.25,
+    },
+    valueColor: valueColor[activeTone],
+  };
+};
 
 type Props = {
   batch: ImportBatch;
@@ -137,24 +175,38 @@ export const ImportPreview = ({ batch, canManage, onApply, onDiscard }: Props) =
         component="dl"
         sx={{
           display: 'grid',
-          gap: 2,
-          gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+          gap: 1.5,
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' },
           m: 0,
-          mb: 2,
+          mb: 2.5,
         }}
       >
         {COUNTS.filter(
           ({ key, rekapOnly }) => batch.summary[key] !== undefined && (!rekapOnly || isRekap),
-        ).map(({ key, label }) => (
-          <Box key={key}>
-            <Typography component="dt" color="text.secondary" variant="body2">
-              {label}
-            </Typography>
-            <Typography component="dd" variant="h5" sx={{ m: 0 }}>
-              {batch.summary[key]}
-            </Typography>
-          </Box>
-        ))}
+        ).map(({ key, label, tone }) => {
+          const val = Number(batch.summary[key] ?? 0);
+          const { cardSx, valueColor } = getStatCardStyles(tone, val);
+          return (
+            <Box key={key} sx={cardSx}>
+              <Typography
+                component="dt"
+                color="text.secondary"
+                variant="caption"
+                sx={{ display: 'block', fontWeight: 600, mb: 0.25 }}
+              >
+                {label}
+              </Typography>
+              <Typography
+                component="dd"
+                variant="h5"
+                color={valueColor}
+                sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', m: 0 }}
+              >
+                {batch.summary[key]}
+              </Typography>
+            </Box>
+          );
+        })}
       </Box>
 
       {isPreview ? (
