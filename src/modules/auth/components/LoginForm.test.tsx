@@ -77,7 +77,10 @@ describe('LoginForm', () => {
   });
 
   it('signs in and returns to the requested page', async () => {
-    service.login.mockResolvedValue(tokenResponse);
+    service.login.mockResolvedValue({
+      ...tokenResponse,
+      user: { ...tokenResponse.user, permissions: ['users:read'] },
+    });
     search = 'next=%2Fusers';
     render(<LoginForm />);
 
@@ -94,6 +97,19 @@ describe('LoginForm', () => {
   const withPermissions = (permissions: string[]) => ({
     ...tokenResponse,
     user: { ...tokenResponse.user, permissions },
+  });
+
+  it('sends a pimpinan to the dashboard when next is a page they may not open', async () => {
+    service.login.mockResolvedValue(
+      withPermissions(['dashboard:read', 'reports:read', 'reports:export']),
+    );
+    search = 'next=%2Fusers';
+    render(<LoginForm />);
+
+    await fill('pimpinan@example.com', 'Correct-horse-9');
+
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/dashboard'));
+    expect(replace).not.toHaveBeenCalledWith('/users');
   });
 
   it('ignores an external redirect target and lands on the dashboard for dashboard:read', async () => {

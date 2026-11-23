@@ -43,3 +43,30 @@ export const firstAccessibleRoute = (
   user: Pick<AuthUser, 'permissions'> | null | undefined,
   menu: MenuGroupConfig[] = menuConfig,
 ): string => filterMenuByPermission(menu, user)[0]?.items[0]?.path ?? routes.profile;
+
+/** The menu item a path belongs to: the longest menu path equal to it or a parent of it. */
+const menuItemFor = (path: string, menu: MenuGroupConfig[]) => {
+  const pathname = path.split(/[?#]/)[0] ?? path;
+  return menu
+    .flatMap((group) => group.items)
+    .filter((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
+    .sort((a, b) => b.path.length - a.path.length)[0];
+};
+
+/**
+ * Where to go right after signing in. A `?next=` target is honoured only when it is a safe in-app
+ * path the signed-in user may open: it can be left over from another account's session (an
+ * administrator on `/users`), and a pimpinan sent there would land on "no access". Pages outside
+ * the menu, such as the profile, are open to everyone; the API stays the real gate.
+ */
+export const postLoginPath = (
+  next: string | null | undefined,
+  user: Pick<AuthUser, 'permissions'> | null | undefined,
+  menu: MenuGroupConfig[] = menuConfig,
+): string => {
+  const fallback = firstAccessibleRoute(user, menu);
+  const target = safeNextPath(next, fallback);
+  const item = menuItemFor(target, menu);
+  if (item?.permission && !hasPermission(user, item.permission)) return fallback;
+  return target;
+};

@@ -9,7 +9,7 @@ import { AppLoading } from '@/components/base/AppLoading';
 import { AppLogo } from '@/components/layout/AppLogo';
 import { useAuthStore } from '@/core/auth/auth.store';
 import { appConfig } from '@/core/config/app.config';
-import { firstAccessibleRoute, safeNextPath } from '@/core/utils/navigation.util';
+import { postLoginPath } from '@/core/utils/navigation.util';
 import { PRIMARY } from '@/design-system/tokens/surface.token';
 
 import { LoginForm } from './LoginForm';
@@ -28,7 +28,7 @@ export const LoginPage = () => {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.replace(safeNextPath(params.get('next'), firstAccessibleRoute(user)));
+      router.replace(postLoginPath(params.get('next'), user));
     }
   }, [status, user, router, params]);
 

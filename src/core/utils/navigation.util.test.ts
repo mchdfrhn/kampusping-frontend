@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { permissions } from '@/core/auth/permissions';
 import { menuConfig } from '@/core/config/menu.config';
 
-import { filterMenuByPermission, firstAccessibleRoute, safeNextPath } from './navigation.util';
+import {
+  filterMenuByPermission,
+  firstAccessibleRoute,
+  postLoginPath,
+  safeNextPath,
+} from './navigation.util';
 
 describe('safeNextPath', () => {
   it('keeps in-app paths, including query strings', () => {
@@ -151,5 +156,47 @@ describe('firstAccessibleRoute', () => {
 
     expect(firstAccessibleRoute({ permissions: [] }, menu)).toBe('/help');
     expect(firstAccessibleRoute({ permissions: ['x:read'] }, menu)).toBe('/secret');
+  });
+});
+
+describe('postLoginPath', () => {
+  const pimpinan = {
+    permissions: [permissions.dashboardRead, permissions.reportsRead, permissions.reportsExport],
+  };
+
+  it('sends a pimpinan to the dashboard when next points at a page they may not open', () => {
+    expect(postLoginPath('/users', pimpinan)).toBe('/dashboard');
+    expect(postLoginPath('/users/12', pimpinan)).toBe('/dashboard');
+    expect(postLoginPath('/settings?tab=wa', pimpinan)).toBe('/dashboard');
+  });
+
+  it('keeps next when the user may open it, including sub-pages and query strings', () => {
+    expect(postLoginPath('/reports?year=2026', pimpinan)).toBe('/reports?year=2026');
+    const staff = { permissions: [permissions.studentsRead] };
+    expect(postLoginPath('/students/42', staff)).toBe('/students/42');
+  });
+
+  it('checks the most specific menu path, so Kirim Manual needs messages:send', () => {
+    const reader = { permissions: [permissions.messagesRead] };
+    expect(postLoginPath('/messages', reader)).toBe('/messages');
+    expect(postLoginPath('/messages/manual', reader)).toBe('/messages');
+    const sender = { permissions: [permissions.messagesSend] };
+    expect(postLoginPath('/messages/manual', sender)).toBe('/messages/manual');
+  });
+
+  it('does not treat a shared prefix as a sub-page', () => {
+    const reader = { permissions: [permissions.reportsRead] };
+    expect(postLoginPath('/reportsx', reader)).toBe('/reportsx');
+    expect(postLoginPath('/users-old', pimpinan)).toBe('/users-old');
+  });
+
+  it('keeps pages outside the menu, such as the profile, open to everyone', () => {
+    expect(postLoginPath('/profile', pimpinan)).toBe('/profile');
+  });
+
+  it('falls back to the first accessible page for a missing or unsafe next', () => {
+    expect(postLoginPath(null, pimpinan)).toBe('/dashboard');
+    expect(postLoginPath('https://evil.example', pimpinan)).toBe('/dashboard');
+    expect(postLoginPath('//evil.example', pimpinan)).toBe('/dashboard');
   });
 });
