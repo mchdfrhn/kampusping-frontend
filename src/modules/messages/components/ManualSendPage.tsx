@@ -1026,10 +1026,11 @@ export const ManualSendPage = () => {
       <AppConfirmDialog
         open={confirmOpen}
         title="Konfirmasi Pengiriman Pesan Manual"
-        message={`Apakah Anda yakin ingin mengirim pesan penagihan manual ke ${selectedCount} mahasiswa terpilih?${selectedComponents.length > 0
+        message={`Apakah Anda yakin ingin mengirim pesan penagihan manual ke ${selectedCount} mahasiswa terpilih?${
+          selectedComponents.length > 0
             ? ` (Komponen ditagih: ${selectedComponents.join(', ')})`
             : ''
-          } Pesan akan langsung dimasukkan ke dalam antrean pengiriman WhatsApp.`}
+        } Pesan akan langsung dimasukkan ke dalam antrean pengiriman WhatsApp.`}
         confirmText={sending ? 'Memproses...' : 'Kirim Sekarang'}
         cancelText="Batal"
         onConfirm={handleConfirmSend}

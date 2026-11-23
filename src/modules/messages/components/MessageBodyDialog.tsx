@@ -157,14 +157,14 @@ export const MessageBodyDialog = ({ message, onClose }: Props) => {
                   <Typography variant="caption" sx={{ fontSize: 11 }}>
                     {formatDisplayDateTime(
                       message.read_at ??
-                      message.delivered_at ??
-                      message.sent_at ??
-                      message.queued_at,
+                        message.delivered_at ??
+                        message.sent_at ??
+                        message.queued_at,
                     )}
                   </Typography>
                   {message.status === 'sent' ||
-                    message.status === 'delivered' ||
-                    message.status === 'read' ? (
+                  message.status === 'delivered' ||
+                  message.status === 'read' ? (
                     <DoneAllOutlinedIcon
                       sx={{
                         fontSize: 15,
